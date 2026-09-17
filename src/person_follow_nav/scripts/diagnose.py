@@ -141,7 +141,7 @@ def main() -> None:
         keep = self_filter_mask(pts, ldeg, FRONT, REAR, HW, SELF_MARGIN, BLIND)
         p2 = pts[keep]
         print(f"  Bo loc than xe bo:                {int((~keep).sum())}"
-              f"  {G}(binh thuong 45-55){X}")
+              f"  {G}(binh thuong ~20-50, tuy sau xe co vat trong 5m){X}")
         print(f"  Con lai:                          {p2.shape[0]}")
         if p2.shape[0] == 0:
             print(f"  {R}=> BO LOC BO SACH. Sai tham so hinh hoc.{X}")

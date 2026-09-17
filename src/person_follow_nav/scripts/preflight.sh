@@ -47,13 +47,15 @@ fi
 
 echo
 echo "${B}4. Trang thai planner${X}"
-st=$(timeout 4 ros2 topic echo /follow/planner_status --once 2>/dev/null)
-if [ -z "$st" ]; then
+# --full-length: mac dinh ros2 topic echo cat chuoi dai bang "...", mat n_obstacles o cuoi JSON
+st=$(timeout 4 ros2 topic echo /follow/planner_status --once --full-length 2>/dev/null)
+nobs=$(echo "$st" | grep -oP '"n_obstacles":\s*\K\d+')
+state=$(echo "$st" | grep -oP '"state":\s*"\K[A-Z_]+')
+fc=$(echo "$st" | grep -oP '"front_clearance_m":\s*\K[0-9.]+')
+# Khong co planner thi ros2 topic echo in loi ra stdout (st khong rong) -> xet state
+if [ -z "$state" ]; then
   bad "khong co /follow/planner_status — follow_planner chua chay"
 else
-  nobs=$(echo "$st" | grep -oP '"n_obstacles":\s*\K\d+')
-  state=$(echo "$st" | grep -oP '"state":\s*"\K[A-Z_]+')
-  fc=$(echo "$st" | grep -oP '"front_clearance_m":\s*\K[0-9.]+')
   ok "state=$state  n_obstacles=${nobs:-?}  thoang truoc=${fc:-?} m"
   if [ "${nobs:-0}" -eq 0 ]; then
     warn "n_obstacles=0 — lidar khong thay gi, hoac bo loc bo het. Kiem tra lai."
@@ -64,7 +66,8 @@ echo
 echo "${B}5. Bo loc than xe${X}"
 echo "  Xem log cua follow_planner, phai co dong nhu:"
 echo "    self-filter: bo N/360 tia dap vao than xe"
-echo "  Voi xe nay N nen vao khoang ${B}45-55${X}."
+echo "  Voi xe nay N nen vao khoang ${B}20-50${X}: ~20 la than xe, them toi ~49 khi"
+echo "  sau xe co vat trong 5m (cung 246-294 bo MOI diem, xa gan deu bo)."
 echo "    N = 0      -> bo loc KHONG an, xe se ket BLOCKED ngay"
 echo "    N > 150    -> co gi do dang chan lidar"
 

@@ -414,8 +414,10 @@ PWM (trước là 9% và 5%).
 
 - Tháo lắp lại LiDAR, dù chỉ nới ốc
 - Lắp thêm phụ kiện lên xe (giá đỡ, pin, camera)
-- Log của planner báo số tia bị lọc nhảy vọt:
-  `self-filter: bo 47/360 tia dap vao than xe` (bình thường là 3–8)
+- Log của planner báo số tia bị lọc vượt hẳn ~50:
+  `self-filter: bo N/M tia dap vao than xe`. Bình thường N khoảng 20–50: ~20 là thân xe
+  (bảng Bước 1), tăng tới ~49 khi phía sau xe có vật trong 5 m vì cung `[246, 294]` bỏ mọi
+  điểm dù xa hay gần. Đo 17/09: 19/227, độ thoáng quanh footprint 0.838 m.
 - Xe né vật cản sai hướng, hoặc kẹt `BLOCKED` mà không có gì chắn
 - **Tốc độ:** đổi `max_percent`, thay bánh/động cơ, hoặc xe chạy nhanh/chậm rõ rệt so với
   lệnh → chạy lại `scripts/measure_speed.py`

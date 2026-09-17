@@ -493,8 +493,10 @@ ros2 service call /follow/enable std_srvs/srv/Trigger {}
 
 Cần thấy:
 
-- Log planner có `self-filter: bo N/360 tia dap vao than xe`, **N khoảng 45–55**.
-  N = 0 nghĩa là bộ lọc không ăn, xe sẽ kẹt `BLOCKED` ngay khi xuống đất.
+- Log planner có `self-filter: bo N/M tia dap vao than xe`, **N khoảng 20–50**: ~20 là
+  thân xe, tăng tới ~49 khi phía sau xe có vật trong 5 m (cung `[246, 294]` bỏ mọi điểm,
+  xa gần đều bỏ). Đo 17/09: 19. N = 0 nghĩa là bộ lọc không ăn, xe sẽ kẹt `BLOCKED` ngay
+  khi xuống đất.
 - `cmd_v` dương, tăng dần từ 0 lên khoảng 0.05–0.1 rồi về 0 khi tới đích.
 - Bánh **thật sự quay** ở `cmd_v` nhỏ nhất. Nếu bánh đứng im ở `v = 0.035` thì tăng
   `min_move_linear` lên 0.05.
@@ -575,7 +577,7 @@ ros2 service call /follow/enable             std_srvs/srv/Trigger {}
 Kiểm tra `target_tracker` trước khi cho xe chạy:
 
 ```bash
-ros2 topic echo /follow/target --field source
+ros2 topic echo /follow/target --field data --full-length | grep --line-buffered -oP '"source": "\K[^"]+'
 ```
 
 Đứng cách xe 2 m, bạn phải thấy `camera+lidar`. Nếu thấy `camera+bbox` thì LiDAR
@@ -594,7 +596,7 @@ Kịch bản test:
 Với 4.4, theo dõi:
 
 ```bash
-ros2 topic echo /follow/planner_status --field state
+ros2 topic echo /follow/planner_status --field data --full-length | grep --line-buffered -oP '"state": "\K[A-Z_]+'
 ```
 
 Chuỗi mong đợi: `FOLLOW` → `AVOID` → `OCCLUDED` → `FOLLOW`.
@@ -712,11 +714,12 @@ ros2 service call /follow/stop    std_srvs/srv/Trigger {}
 # Xóa bộ nhớ vị trí người (khi tracker bám nhầm)
 ros2 service call /follow/reset_tracker std_srvs/srv/Trigger {}
 
-# Theo dõi
-ros2 topic echo /follow/target          # tracker nghĩ người ở đâu
-ros2 topic echo /follow/planner_status  # planner đang làm gì
-ros2 topic echo /follow/target --field source
-ros2 topic echo /follow/planner_status --field state
+# Theo dõi — message là String chứa JSON: --field <khóa JSON> KHÔNG chạy, và phải có
+# --full-length vì mặc định ros2 topic echo cắt chuỗi dài bằng "..."
+ros2 topic echo /follow/target --full-length          # tracker nghĩ người ở đâu
+ros2 topic echo /follow/planner_status --full-length  # planner đang làm gì
+ros2 topic echo /follow/target --field data --full-length | grep --line-buffered -oP '"source": "\K[^"]+'
+ros2 topic echo /follow/planner_status --field data --full-length | grep --line-buffered -oP '"state": "\K[A-Z_]+'
 
 # Kiểm tra không có node nào tranh /cmd_vel
 ros2 topic info /cmd_vel --verbose

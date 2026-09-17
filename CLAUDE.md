@@ -396,7 +396,7 @@ Hai lớp:
 1. Bỏ mọi điểm rơi vào footprint thu nhỏ `self_filter_margin` (0.03 m). An toàn vì vật cản thật không thể "xuất hiện" bên trong footprint mà trước đó không đi qua biên.
 2. Bỏ các cung góc trong `blind_sectors_deg` (khung LiDAR), dùng cho cột đỡ cao hơn mép footprint.
 
-Planner log mỗi 10 giây: `self-filter: bo N/360 tia dap vao than xe`. **Với xe này N phải khoảng 45–55.** N = 0 → bộ lọc không ăn. N > 150 → có gì đó chắn LiDAR.
+Planner log mỗi 10 giây: `self-filter: bo N/M tia dap vao than xe` (M = số điểm hợp lệ trong 5 m). **Với xe này N khoảng 20–50:** ~20 là thân xe (15 tia ổn định 100% + các bin yếu), tăng tới ~49 khi phía sau xe có vật trong 5 m, vì cung `[246, 294]` bỏ **mọi** điểm dù xa hay gần. Đo 17/09: 19/227. N = 0 → bộ lọc không ăn. N > 150 → có gì đó chắn LiDAR. Kiểm tra quyết định: `diagnose.py` mục 3 "Do thoang nho nhat quanh footprint" phải > `margin_hard` — ≈ 0 là còn điểm thân xe lọt qua. (Tài liệu cũ ghi 45–55 là **sai**.)
 
 ---
 
@@ -457,14 +457,15 @@ Planner log mỗi 10 giây: `self-filter: bo N/360 tia dap vao than xe`. **Với
 
 ### Đang làm
 
-**Giai đoạn 3 — test né vật cản không cần camera.** Người dùng báo: *"lidar không xoay mà xe chỉ chạy thẳng"*. Câu này có thể hiểu hai cách:
+**Giai đoạn 3 — test né vật cản không cần camera.** Trước đây người dùng báo *"lidar không xoay mà xe chỉ chạy thẳng"* — lúc đó xe còn chạy nhanh gấp 2.16 lần lệnh (lỗi 7.2-P).
 
-- **A** — đầu quét LiDAR vật lý không quay
-- **B** — LiDAR quay bình thường nhưng planner không dùng dữ liệu
+**Kết quả 17/09 trên xe thật** (sau khi sửa `max_linear`):
+- `preflight.sh`: `/scan` 9.9 Hz, `/odom` 50.2 Hz, đúng 1 nguồn ghi `/cmd_vel`, `/follow/stop` sẵn sàng. Cảnh báo "n_obstacles=0" là **báo sai** do `ros2 topic echo` cắt chuỗi — đã sửa bằng `--full-length`.
+- `diagnose.py`: LiDAR **đang quay** (33% tia thay đổi giữa hai vòng, 9.8 Hz, 66% tia hợp lệ); planner thấy 109 vật cản; bộ lọc bỏ 19/227 điểm; độ thoáng quanh footprint 0.838 m. `ros2 node list | grep -c sc_mini` = 1.
+- `fake_target.py 1.2`: xe dừng trước vật cản, không va chạm (3.1 đạt).
+- `fake_target.py 2.5`: xe **né được** vật cản. **[CẦN XÁC NHẬN]** bố trí nào trong bảng 3.2–3.7.
 
-Đã tạo `scripts/diagnose.py` để phân biệt. **[CẦN XÁC NHẬN] Chưa có kết quả chạy `diagnose.py`.**
-
-Nghi phạm hàng đầu cho A: **đang chạy hai launch file cùng lúc** → hai node `sc_mini` tranh cùng một cổng serial. Kiểm tra `ros2 node list | grep -c sc_mini` phải bằng 1.
+**Còn lại:** chạy đủ và ghi từng kịch bản 3.2–3.7 trong README (nghiệm thu 6/6, không va chạm). Lỗi kẹt 13.12 dễ lộ ra ở 3.3/3.4.
 
 ### Chưa làm
 
@@ -575,8 +576,10 @@ ros2 service call /follow/enable             std_srvs/srv/Trigger {}
 ### Giám sát
 
 ```bash
-ros2 topic echo /follow/target --field source          # tracker đang dùng nguồn nào
-ros2 topic echo /follow/planner_status --field state   # planner đang làm gì
+# Message là String chứa JSON: `--field source/state` KHÔNG chạy (Invalid field), và phải có
+# --full-length vì mặc định ros2 topic echo cắt chuỗi dài bằng "..."
+ros2 topic echo /follow/target --field data --full-length | grep --line-buffered -oP '"source": "\K[^"]+'        # tracker đang dùng nguồn nào
+ros2 topic echo /follow/planner_status --field data --full-length | grep --line-buffered -oP '"state": "\K[A-Z_]+' # planner đang làm gì
 ros2 topic info /cmd_vel --verbose                     # kiểm tra chỉ 1 publisher
 ros2 topic hz /scan                                    # ~10 Hz
 ros2 topic hz /odom                                    # ~20–50 Hz
@@ -594,7 +597,7 @@ ros2 service call /follow/stop std_srvs/srv/Trigger {}
 
 | Triệu chứng | Sửa |
 |---|---|
-| Xe đứng yên không nhúc nhích | Kiểm tra N của self-filter (phải 45–55), và `sample_window_sec` ≥ 0.4 |
+| Xe đứng yên không nhúc nhích | Kiểm tra self-filter (N ≠ 0, độ thoáng quanh footprint trong `diagnose.py` > 0.06), và `sample_window_sec` ≥ 0.4 |
 | Xe đi lòng vòng, không bám sát | Tăng `w_goal` |
 | Xe đi sát vật cản quá | Tăng `w_clear` hoặc `margin_soft` |
 | Xe giật, đổi hướng liên tục | Tăng `w_smooth` |
@@ -621,7 +624,7 @@ ros2 service call /follow/stop std_srvs/srv/Trigger {}
 
 **Watchdog driver.** `cmd_timeout: 1.0` — xe tự dừng nếu 1 s không nhận lệnh. Planner chạy 15 Hz nên an toàn, nhưng nếu CPU quá tải (YOLO trên CPU) thì tần số tụt và xe giật. Kiểm tra `ros2 topic hz /cmd_vel` ≥ 10 Hz.
 
-**Khi nào phải hiệu chỉnh lại LiDAR:** tháo lắp lại LiDAR dù chỉ nới ốc; lắp thêm phụ kiện lên xe; log self-filter nhảy vọt (bình thường 45–55); xe né sai hướng hoặc kẹt `BLOCKED` mà không có gì chắn.
+**Khi nào phải hiệu chỉnh lại LiDAR:** tháo lắp lại LiDAR dù chỉ nới ốc; lắp thêm phụ kiện lên xe; log self-filter vượt hẳn ~50 (bình thường 20–50); xe né sai hướng hoặc kẹt `BLOCKED` mà không có gì chắn.
 
 ---
 
@@ -647,7 +650,7 @@ Các mục sau **chưa được kiểm chứng**. Không tự đoán, hãy hỏi
 
 9. **Độ chính xác odom** (`encoder_ppr_default: 750`) — **quãng đường đã kiểm chứng** (16/09): thước 1.50 m / odom 1.503 m. **Góc xoay: odom đếm thiếu ~3%** (thật 135° / odom 130.9°; 34° / 33°) → `wheel_separation` hiệu dụng ≈ 0.388 thay vì 0.40. **Chưa đổi** — đọc góc bằng mắt sai 1–3°, cần xoay ~2 vòng (`measure_speed.py 0.0 --w 0.8 --sec 15`) để chốt. Nếu đổi thì tính lại `max_angular` (≈ 2.52), vì 2.46 lấy từ odom.
 
-10. **Nguyên nhân lỗi giai đoạn 3 hiện tại** — chưa có kết quả `diagnose.py`.
+10. **ĐÃ XÁC NHẬN 17/09 — lỗi "LiDAR không xoay, xe chỉ chạy thẳng" không còn.** `diagnose.py` cho thấy LiDAR quay và planner dùng dữ liệu; xe thật đã né được vật cản với `fake_target.py 2.5` (xem mục 8). Nguyên nhân cũ chưa rõ — có thể do lỗi tốc độ 7.2-P.
 
 11. **Hành vi thực địa của thuật toán** — toàn bộ kết quả trong file này là **mô phỏng offline**. Chưa có lần nào xe chạy thật thành công qua kịch bản né vật cản.
 
