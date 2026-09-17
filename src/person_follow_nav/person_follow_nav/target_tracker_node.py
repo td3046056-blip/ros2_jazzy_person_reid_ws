@@ -100,6 +100,9 @@ class TargetTrackerNode(Node):
 
         self.last_camera_fix_time = 0.0      # lan cuoi co goc camera that
         self.last_lidar_fix_time = 0.0       # lan cuoi lidar bam duoc cum nguoi
+        self.scan_used_time = 0.0            # vong quet da dua vao bo loc (moi vong 1 lan)
+        self.cam_used_time = 0.0             # khung camera da dung cho bbox (moi khung 1 lan)
+        self.last_meas_source = "none"
         self.confidence = 0.0
         self.source = "none"
         self.tracking = False
@@ -190,6 +193,12 @@ class TargetTrackerNode(Node):
 
             # Du doan khi bi che hoan toan
             "predict_max_sec": 2.5,
+            # Mat han phep do -> van toc nguoi giam theo e^(-t/T): vi tri du doan dung
+            # gan cho thay nguoi LAN CUOI thay vi troi thang theo huong cu. 0 = tat.
+            "predict_velocity_decay_sec": 1.0,
+            # Giua hai phep do (lidar 10 Hz, camera 8 Hz) giu nguyen nhan nguon trong
+            # khoang nay, khong bao "predicted" moi nhip 20 Hz.
+            "measurement_hold_sec": 0.3,
             "ab_alpha": 0.55,
             "ab_beta": 0.10,
             "max_person_speed": 1.8,
@@ -270,6 +279,8 @@ class TargetTrackerNode(Node):
         self.lidar_only_max_sec = float(g("lidar_only_max_sec"))
 
         self.predict_max_sec = float(g("predict_max_sec"))
+        self.predict_vel_decay = float(g("predict_velocity_decay_sec"))
+        self.meas_hold = float(g("measurement_hold_sec"))
         self.ab_alpha = float(g("ab_alpha"))
         self.ab_beta = float(g("ab_beta"))
         self.max_person_speed = float(g("max_person_speed"))
@@ -488,6 +499,15 @@ class TargetTrackerNode(Node):
         source = "none"
         meas_quality = 0.0
 
+        # Moi vong quet / khung hinh chi dua vao bo loc MOT lan. Tracker chay 20 Hz
+        # con lidar 10 Hz, camera 8 Hz: dua lai cung mot phep do voi thoi diem moi
+        # khien bo loc tuong nguoi DUNG YEN -> van toc bi keo ve 0, xe bam tre khi
+        # nguoi re, va khi mat hinh thi du doan sai.
+        new_scan = self.scan_time > self.scan_used_time
+        new_cam = self.cam_time > self.cam_used_time
+        # Lidar vua bam duoc nguoi, chi dang cho vong quet sau -> dung chen bbox (nhieu ±20cm)
+        lidar_waiting = (not new_scan) and (now - self.last_lidar_fix_time) < self.meas_hold
+
         # ── 1. CAMERA (+ LIDAR) ──────────────────────────────────────────
         payload = self.cam_payload or {}
         cam_fresh = (now - self.cam_time) < self.camera_msg_timeout
@@ -499,13 +519,22 @@ class TargetTrackerNode(Node):
             if bearing is not None:
                 dist: Optional[float] = None
                 expect = None
+                exp_bx = exp_by = None
                 if self.filter.initialized:
                     px, py = self.filter.predict(now)
-                    bx, by = self._to_base(px, py)
-                    expect = math.hypot(bx, by)
+                    exp_bx, exp_by = self._to_base(px, py)
+                    expect = math.hypot(exp_bx, exp_by)
 
-                if self.use_lidar_distance and scan_fresh:
+                if self.use_lidar_distance and scan_fresh and new_scan:
                     c = self._pick_person_cluster(bearing, expect)
+                    # Chan cum nhay xa bat thuong so voi du doan — vd. chan nguoi vua khuat sau
+                    # goc tuong, cua so ±assoc_window bat nham mot doan tuong: nguoi khong the
+                    # dich chuyen lidar_distance_max_jump_m giua hai vong quet. Chi chan khi lidar
+                    # vua bam duoc nguoi (< 1 s); mat lau hon thi du doan da sai, phai nhan lai.
+                    if (c is not None and exp_bx is not None and self.max_jump > 0.0
+                            and (now - self.last_lidar_fix_time) < 1.0
+                            and math.hypot(c.cx - exp_bx, c.cy - exp_by) > self.max_jump):
+                        c = None
                     if c is not None:
                         dist = c.range_m
                         # dung luon bearing cua cum — chinh xac hon ca camera o gan
@@ -513,7 +542,7 @@ class TargetTrackerNode(Node):
                         source = "camera+lidar"
                         meas_quality = 1.0
 
-                if dist is None and self.bbox_fallback:
+                if dist is None and self.bbox_fallback and new_cam and not lidar_waiting:
                     dist = self._bbox_distance(payload)
                     if dist is not None:
                         source = "camera+bbox"
@@ -530,7 +559,7 @@ class TargetTrackerNode(Node):
                     measured = True
 
         # ── 2. LIDAR-ONLY (camera bi che, chan nguoi con thay) ───────────
-        if not measured and self.lidar_only_enabled and scan_fresh and self.filter.initialized:
+        if not measured and self.lidar_only_enabled and scan_fresh and new_scan and self.filter.initialized:
             age_cam = now - self.last_camera_fix_time
             if age_cam <= self.lidar_only_max_sec:
                 px, py = self.filter.predict(now)
@@ -561,8 +590,25 @@ class TargetTrackerNode(Node):
                 meas_quality = 0.30
                 measured = True
 
+        if new_scan:
+            self.scan_used_time = self.scan_time
+        if new_cam:
+            self.cam_used_time = self.cam_time
+
         # ── 4. Du doan thuan tuy ─────────────────────────────────────────
+        last_fix = max(self.last_camera_fix_time, self.last_lidar_fix_time)
+        # Chua co phep do moi nhung vua do xong -> chi dang cho, KHONG phai mat nguoi
+        holding = (not measured) and (now - last_fix) < self.meas_hold
+        if measured:
+            self.last_meas_source = source
         if not measured:
+            # Mat that su: giam dan van toc de du doan dung gan cho thay nguoi lan cuoi.
+            # Mo hinh van toc khong doi lam nguoi "di thang tiep" khi ho da re khuat.
+            if (not holding and self.predict_vel_decay > 0.0
+                    and self.filter.initialized and self.filter.last_time is not None):
+                k = math.exp(-max(0.0, now - self.filter.last_time) / self.predict_vel_decay)
+                self.filter.vx *= k
+                self.filter.vy *= k
             self.filter.step(now)
 
         # ── Tinh do tin cay ──────────────────────────────────────────────
@@ -587,7 +633,10 @@ class TargetTrackerNode(Node):
             return
 
         self.tracking = True
-        self.source = source if measured else "predicted"
+        if measured:
+            self.source = source
+        else:
+            self.source = self.last_meas_source if holding else "predicted"
         self._publish(now, "ok", self.source, age_fix=age_fix, measured=measured)
 
     # ─────────────────────────────────────────────────────────────────────

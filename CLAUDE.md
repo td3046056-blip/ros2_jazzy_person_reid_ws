@@ -327,6 +327,12 @@ Nguồn dữ liệu, ưu tiên giảm dần:
 
 **Bù độ trễ camera:** YOLO + DeepSORT + ReID trễ 80–250 ms. Node giữ lịch sử yaw 1.5 s và trừ đi góc xe đã quay trong khoảng trễ đó (`compensate_camera_latency: true`). Ở 0.5 rad/s, 250 ms = 7° sai lệch — đủ để bám lệch ra ngoài khung hình.
 
+**Mỗi phép đo chỉ dùng MỘT lần (sửa 17/09).** Tracker chạy 20 Hz nhưng LiDAR 10 Hz, camera 8 Hz. `_update()` chỉ gọi `filter.update()` khi có vòng quét mới (`scan_used_time`) hoặc khung camera mới cho bbox (`cam_used_time`). Giữa hai phép đo, trong `measurement_hold_sec` (0.3 s), giữ nguyên nhãn nguồn cũ — không nhảy sang `predicted` mỗi nhịp.
+
+**Chặn nhảy vị trí:** cụm LiDAR cách vị trí dự đoán > `lidar_distance_max_jump_m` (0.6 m) bị bỏ, chỉ khi LiDAR vừa bám được người < 1 s. Tham số này trước đây khai báo nhưng **không dùng**.
+
+**Vận tốc giảm dần khi mất hẳn:** hết `measurement_hold_sec` mà không có phép đo → `vx, vy *= e^(-dt/predict_velocity_decay_sec)` (1.0 s). Dự đoán dừng gần chỗ thấy người lần cuối thay vì trôi thẳng theo hướng cũ.
+
 ### 6.3 `follow_planner_node` — nguồn DUY NHẤT ghi `/cmd_vel`
 
 Hai tầng.
@@ -368,6 +374,14 @@ Hàm chi phí:
 **Không có ràng buộc phanh riêng.** Chân trời 1.2 s đã đủ: thời gian phanh `v_max/accel = 0.63 s`, quãng đường phanh `v²/2a = 0.069 m` < quãng đường mô phỏng 0.26 m.
 
 **Máy trạng thái:** `IDLE`, `FOLLOW`, `AVOID`, `OCCLUDED`, `SEARCH`, `ARRIVED`, `BLOCKED`, `ESTOP`.
+
+**Vùng chết hướng (sửa 17/09):** người lệch < `bearing_deadband_deg` (4°) → đích coi như thẳng trước mũi (`goal_b = 0`). Góc cụm chân rung vài độ mỗi bước; không có vùng chết thì DWA bẻ lái ±0.1 rad/s liên tục.
+
+**Camera không thấy người** (`source` không bắt đầu bằng `camera` — tức `lidar_track`, `predicted`, `rssi_bearing`) và lệch > `occluded_turn_deg` (15°) → **xoay tại chỗ về phía đó trước** (trễ: tới dưới 7.5°), rồi mới tiến. Chỉ khi `_can_rotate_in_place()`. Ngưỡng thấp hơn nửa FOV vì góc dự đoán thường trễ hơn góc thật ~10°.
+
+**SEARCH (sửa 17/09)** tính từ lần cuối có mục tiêu **hợp lệ** (`last_valid_time`), bắt đầu ngay khi mất nếu đã lưu vị trí người:
+1. **Pha đi tới:** lái (chọn khe + DWA) tới cách chỗ thấy người lần cuối (`last_target_odom`, khung odom) một `follow_distance`, tối đa `search_goto_max_sec` (8 s). Chỉ xoay tại chỗ khi đích lệch > 60°.
+2. **Pha quét:** xoay qua lại như cũ. Hết `search_max_sec` hoặc không đủ chỗ xoay → `IDLE`, `last_valid_time = 0` → không quét lại tới khi thấy người. `/follow/enable` xoá vị trí đã lưu.
 
 ### 6.4 Ba kỹ thuật cốt lõi
 
@@ -436,6 +450,11 @@ Planner log mỗi 10 giây: `self-filter: bo N/M tia dap vao than xe` (M = số 
 | N | **`calibrate_center` kiểm tra thoáng luôn thất bại** | Lấy `min` toàn bộ tia, mà cụm thân xe 0.128 m luôn có đó | Áp `self_filter_mask` trước |
 | O | **`/scan` chạy 10 Hz không phải 20 Hz** | Checklist ghi "≥ 15 Hz" làm người dùng tưởng hỏng | Sửa thành ≥ 8 Hz, `scan_timeout_sec: 0.6` |
 | P | **`max_linear` driver sai 2.16 lần** — launch dùng `max_percent 60` nhưng giữ `0.226` (số calib ở 30%) | Lệnh 0.22 m/s → xe chạy 0.475 m/s; lệnh xoay 0.8 → 1.76 rad/s. Người dùng thấy "xe chạy hơi nhanh". Dự đoán của DWA (quãng phanh, văng đuôi) sai cùng tỉ lệ | Đo bằng `measure_speed.py` + thước → `max_linear 0.49`, `max_angular 2.46`. **Không** giảm tốc bằng cách hạ `v_max` (xem mục 13.12) |
+| Q | **Tracker đưa lại phép đo cũ mỗi nhịp 20 Hz** | Bộ lọc tưởng người đứng yên → vận tốc bị kéo về 0 → bám trễ khi người rẽ, dự đoán sai khi mất hình | Mỗi vòng quét / khung hình dùng 1 lần + `measurement_hold_sec` (xem 6.2) |
+| R | **SEARCH không bao giờ chạy** | Planner tính "mất người" bằng `target_time`, mà tracker gửi `/follow/target` 20 Hz **cả khi `valid=false`** → `age` luôn ≈ 0 → mất người thì xe đứng yên mãi | `last_valid_time` (xem 6.3) |
+| S | **Dự đoán vận tốc không đổi + không quay về phía người** | Người dùng báo: *"khi predicted xe chỉ đi thẳng"*. Mô phỏng góc tường: người rẽ khuất, dự đoán trôi thẳng, xe đi thẳng `w=0` rồi đứng yên | Giảm dần vận tốc; xoay về hướng nhớ cuối khi camera không thấy; SEARCH lái tới chỗ thấy lần cuối |
+| T | **`lidar_distance_max_jump_m` khai báo nhưng không dùng** | Mô phỏng: chân người khuất sau góc tường → cửa sổ ±10° bắt nhầm đoạn tường → vận tốc ước lượng vọt 1.75 m/s, dự đoán bay 75° | Cổng chặn nhảy vị trí (xem 6.2) |
+| U | **Xe lắc qua lại khi bám thẳng** | Người dùng báo: *"không bám thẳng theo người"*. Mô phỏng: `w` đổi chiều 42 lần / 22 s | Vùng chết hướng → 25 lần. Còn lắc nhẹ do góc cụm chân rung |
 
 ### 7.3 Lỗi môi trường / build
 
@@ -475,6 +494,8 @@ Trước đây người dùng báo *"lidar không xoay mà xe chỉ chạy thẳ
 1. **Tốc độ ReID trên CPU** (xem 13.7): chạy `follow_nav_real.launch.py`, xem log `identity_lock_node` dòng `Models loaded; ...`, đo `ros2 topic hz /person_reid/target` và `ros2 topic hz /cmd_vel` (phải ≥ 10 Hz khi YOLO đang chạy — mục 12 "Watchdog driver").
 2. **Chưa bật `/follow/enable`**: enroll, đứng cách xe 2 m, `source` phải là `camera+lidar` (lệnh giám sát mục 10).
 3. Rồi mới chạy kịch bản 4.1–4.5 trong README.
+
+**Kết quả 17/09:** bước 1–2 đạt — `/person_reid/target` 8.0 Hz, `/cmd_vel` ~14.8 Hz (ReID chạy CPU), `source = camera+lidar`. Chạy thử bám người, người dùng báo 3 vấn đề: xe không bám thẳng (lắc), rẽ theo không kịp, và khi `predicted` xe đi thẳng thay vì quay về hướng thấy người lần cuối. Đã sửa tracker + planner (lỗi 7.2-Q…U), kiểm bằng `scripts/sim_follow.py`. **[CẦN XÁC NHẬN] chưa chạy lại trên xe.**
 
 ### Chưa làm
 
@@ -613,6 +634,10 @@ ros2 service call /follow/stop std_srvs/srv/Trigger {}
 | Xe né xong hay mất người | Tăng `w_fov` |
 | Xe dừng trước khe lẽ ra chui được | Kiểm tra `half_width` trước, rồi mới giảm `margin_hard` |
 | Bánh không quay ở lệnh nhỏ | Tăng `min_move_linear` (0.035) / `min_move_angular` (0.10) |
+| Xe lắc qua lại khi bám người đi thẳng | Tăng `bearing_deadband_deg` (4) — đổi lại xe để người lệch nhiều hơn mới chỉnh |
+| Người ra khỏi camera mà xe quay lại chậm | Giảm `occluded_turn_deg` (15) |
+| Mất người thì xe chạy quá xa / quá lâu mới quét | Giảm `search_goto_max_sec` (8); 0 = tắt pha đi tới |
+| Dự đoán "bay" theo hướng người đi khi mất hình | Giảm `predict_velocity_decay_sec` (1.0) |
 | Xe quá rụt rè trong hành lang | Giảm `margin_soft` |
 | Xe cọ tường | Tăng `margin_hard` |
 
@@ -665,3 +690,8 @@ Các mục sau **chưa được kiểm chứng**. Không tự đoán, hãy hỏi
 12. **Planner kẹt đứng yên vĩnh viễn cạnh vật cản (thấy trong mô phỏng, chưa sửa).** Test 5 của `test_sim.py` chỉ ĐẠT với đúng kịch bản gốc. Dời người chen ngang 5 cm, hoặc cho người đi 0.10 m/s, thì 11/18 biến thể xe dừng cách người chen ~0.28 m rồi đứng yên mãi ở `AVOID` (DWA chọn v=w=0). `stuck_time_sec` được khai báo nhưng không dùng → xe thật không có cơ chế thoát kẹt. Hạ `v_max` xuống ≤ 0.21 cũng làm test 5 `LOI` vì cùng lý do. **Trên xe thật 17/09 chưa gặp**: vật cản giữa đường, 3.3/3.4 (thùng lệch 20 cm) đều né được. Vẫn có thể lộ ra với người đi chậm ở giai đoạn 4.
 
 13. **ĐÃ XÁC NHẬN 17/09 — bánh quay được ở 5% PWM.** Lệnh nhỏ nhất của planner (`min_move_linear 0.035`, `min_move_angular 0.10`) đều ra 5%. Đo: `measure_speed.py 0.035` → thước 11.5 cm / odom 11.4 cm; `--w 0.10` → thật 34° / odom 33°. Giữ nguyên hai tham số.
+
+14. **Sửa bám người 17/09 (7.2-Q…U) mới kiểm bằng mô phỏng vòng kín, chưa chạy xe thật.** Số liệu `sim_follow.py` (camera ±25°), gốc → mới: đi thẳng `w` đổi chiều 42 → 25 lần; bước ngang 1 m/s mất camera lâu nhất 0.7 → 0.2 s; ra khỏi khung (LiDAR mất chân) lệch trung bình 6.0° → 3.6°; rẽ gắt 0.5 m/s và đi chéo 0.8 m/s không đổi. **Góc tường gắt** (người rẽ sát mép tường, nhanh gấp đôi xe): xe giờ quay về phía người, vào SEARCH và lái tới góc, nhưng **vẫn không thấy lại người** — tới góc thì mép tường trong 0.53 m nên `_can_rotate_in_place()` (đòi trống cho cả vòng 360°) không cho quét → `IDLE`. Có thể cần kiểm tra quét theo góc xoay thực (footprint quét trong DWA) thay vì cả vòng. Góc tường thoáng hơn thì cả code cũ lẫn mới đều không mất người.
+
+15. **Tham số khai báo nhưng không dùng:** `fov_cost_only_when_visible` (DWA luôn bật chi phí FOV) và `stuck_time_sec` (xem 13.12). Chưa sửa.
+

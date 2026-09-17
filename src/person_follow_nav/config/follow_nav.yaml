@@ -61,6 +61,8 @@ target_tracker_node:
     person_width_max_m: 0.90
     person_range_min_m: 0.30
     person_range_max_m: 6.0
+    # Cum lidar cach vi tri du doan hon muc nay -> bo (vd. bat nham canh tuong khi
+    # nguoi vua khuat sau goc). Chi ap dung khi lidar vua bam duoc nguoi < 1 s.
     lidar_distance_max_jump_m: 0.60
 
     # Chi dung khi LiDAR khong thay gi (nguoi bi ban che chan, ...)
@@ -74,6 +76,11 @@ target_tracker_node:
 
     # ── Du doan khi bi che hoan toan ──────────────────────────────────────
     predict_max_sec: 2.5
+    # Mat han phep do -> van toc nguoi giam e^(-t/T): du doan dung gan cho thay nguoi
+    # LAN CUOI, khong troi thang theo huong cu khi nguoi da re khuat. 0 = tat.
+    predict_velocity_decay_sec: 1.0
+    # Giua hai phep do (lidar 10 Hz, camera 8 Hz) giu nhan nguon, khong bao "predicted"
+    measurement_hold_sec: 0.3
     ab_alpha: 0.55
     ab_beta: 0.10
     max_person_speed: 1.8
@@ -187,6 +194,10 @@ follow_planner_node:
     camera_fov_deg: 62.0
     fov_keep_deg: 22.0
     fov_cost_only_when_visible: true
+    # Camera khong thay nguoi (lidar_track/predicted) va nguoi lech hon goc nay -> xoay
+    # tai cho ve huong nho cuoi truoc, xuong duoi mot nua goc nay moi tien toi. Goc du
+    # doan thuong tre hon that ~10 do nen dat thap hon nua FOV (31). 0 = tat.
+    occluded_turn_deg: 15.0
 
     # ── Tang chon khe (VFH) chay TRUOC DWA ────────────────────────────────
     # Quet cac huong -100..+100 do, thu di duoc bao xa. Thu lan luot tu xa ve gan.
@@ -202,6 +213,9 @@ follow_planner_node:
     avoid_side_hold_sec: 2.0            # khoa ben ne trong 2s -> chong do du trai/phai
     stuck_time_sec: 2.5
     search_after_sec: 1.5
+    # Mat nguoi -> truoc khi xoay quet, lai toi cho thay nguoi lan cuoi toi da bay
+    # nhieu giay (nguoi re khuat sau goc tuong thi phai toi goc moi thay). 0 = tat.
+    search_goto_max_sec: 8.0
     search_w: 0.35
     search_max_sec: 12.0
     min_confidence: 0.15

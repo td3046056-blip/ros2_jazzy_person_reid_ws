@@ -98,6 +98,12 @@ class FollowPlannerNode(Node):
 
         self.target: Dict[str, Any] = {}
         self.target_time = 0.0
+        self.last_valid_time = 0.0          # lan cuoi co muc tieu HOP LE (0 = chua/het quet)
+        self.occl_turning = False           # dang xoay ve huong nho cuoi (co tre)
+        self.last_target_odom: Optional[Tuple[float, float]] = None   # cho thay nguoi lan cuoi
+        self.search_goto = False            # SEARCH dang o pha lai toi cho do
+        self.robot_x = 0.0
+        self.robot_y = 0.0
         self.scan_pts = np.zeros((0, 2))
         self.scan_time = 0.0
         self.obstacles = np.zeros((0, 2))
@@ -224,6 +230,10 @@ class FollowPlannerNode(Node):
             "camera_fov_deg": 62.0,
             "fov_keep_deg": 22.0,       # co gang giu nguoi trong +-22 do
             "fov_cost_only_when_visible": True,
+            # Camera khong thay nguoi (lidar_track/predicted) va nguoi lech hon goc nay ->
+            # xoay tai cho ve huong nho cuoi truoc, xuong duoi mot nua goc nay moi tien toi.
+            # 0 = tat.
+            "occluded_turn_deg": 15.0,
 
             # Chuyen trang thai
             # Tang chon khe (VFH) chay truoc DWA
@@ -236,6 +246,10 @@ class FollowPlannerNode(Node):
             "avoid_side_hold_sec": 2.0,
             "stuck_time_sec": 2.5,
             "search_after_sec": 1.5,
+            # Mat nguoi -> truoc khi xoay quet, LAI TOI cho thay nguoi lan cuoi (khung
+            # odom) toi da bay nhieu giay. Nguoi re khuat sau goc tuong thi phai toi goc
+            # moi nhin thay duoc. 0 = tat (cho search_after_sec roi xoay tai cho).
+            "search_goto_max_sec": 8.0,
             "search_w": 0.35,
             "search_max_sec": 12.0,
             "min_confidence": 0.15,
@@ -322,6 +336,7 @@ class FollowPlannerNode(Node):
         self.camera_fov_rad = math.radians(float(g("camera_fov_deg")))
         self.fov_keep_rad = math.radians(float(g("fov_keep_deg")))
         self.fov_only_visible = bool(g("fov_cost_only_when_visible"))
+        self.occluded_turn_rad = math.radians(float(g("occluded_turn_deg")))
 
         self.probe_distances = [float(x) for x in g("probe_distances")]
         self.min_speed_scale = float(g("min_speed_scale"))
@@ -331,6 +346,7 @@ class FollowPlannerNode(Node):
         self.avoid_hold = float(g("avoid_side_hold_sec"))
         self.stuck_time = float(g("stuck_time_sec"))
         self.search_after = float(g("search_after_sec"))
+        self.search_goto_max = float(g("search_goto_max_sec"))
         self.search_w = float(g("search_w"))
         self.search_max = float(g("search_max_sec"))
         self.min_conf = float(g("min_confidence"))
@@ -380,12 +396,17 @@ class FollowPlannerNode(Node):
         self.scan_time = time.time()
 
     def _odom_cb(self, msg: Odometry) -> None:
+        self.robot_x = float(msg.pose.pose.position.x)
+        self.robot_y = float(msg.pose.pose.position.y)
         q = msg.pose.pose.orientation
         self.robot_yaw = yaw_from_quaternion(float(q.x), float(q.y), float(q.z), float(q.w))
         self.odom_ok = True
 
     def _enable_cb(self, req: Trigger.Request, res: Trigger.Response) -> Trigger.Response:
         self.enabled = True
+        # Bat lai la bat dau moi: khong lai toi cho nguoi cua lan bam truoc
+        self.last_valid_time = 0.0
+        self.last_target_odom = None
         res.success = True
         res.message = "Bam nguoi: BAT"
         self.get_logger().info(res.message)
@@ -791,14 +812,57 @@ class FollowPlannerNode(Node):
 
         # ── Khong co muc tieu: tim kiem hoac dung ────────────────────────
         if not valid:
-            age = now - self.target_time
-            if self.state != S_SEARCH and age > self.search_after:
-                self._set_state(S_SEARCH)
+            # Tinh tu lan cuoi co muc tieu HOP LE, khong dung target_time: tracker gui
+            # /follow/target 20 Hz ca khi valid=false nen target_time luon moi va xe
+            # KHONG BAO GIO vao SEARCH. last_valid_time = 0 -> chua thay ai / da quet xong.
+            lost_for = now - self.last_valid_time
+            if self.state != S_SEARCH and self.last_valid_time > 0.0:
+                use_goto = self.search_goto_max > 0.0 and self.last_target_odom is not None
+                if use_goto or lost_for > self.search_after:
+                    self._set_state(S_SEARCH)
+                    self.search_start = now
+                    self.search_goto = use_goto
+                    self.occl_turning = False
+                    self.avoid_side = 0
+                    self.search_dir = 1.0 if self.last_seen_bearing >= 0 else -1.0
+            if self.state == S_SEARCH and self.search_goto:
+                # Pha 1: lai toi cach cho thay nguoi lan cuoi mot follow_distance. Dung
+                # sat hon thi canh tuong/goc ban thuong trong tam duoi xe -> khong xoay quet duoc.
+                ox, oy = self.last_target_odom
+                c, s = math.cos(-self.robot_yaw), math.sin(-self.robot_yaw)
+                dx, dy = ox - self.robot_x, oy - self.robot_y
+                bx, by = c * dx - s * dy, s * dx + c * dy
+                gb = math.atan2(by, bx)
+                gr = math.hypot(bx, by) - self.follow_distance
+                if gr > self.dist_deadband and (now - self.search_start) < self.search_goto_max:
+                    # Chi xoay tai cho khi dich lech hon 60 do: DWA tu lai duoc trong ±100 do.
+                    # Nguong thap (nhu occluded_turn_deg) khien xe di doc tuong cu dung-xoay-di.
+                    turn_thr = math.radians(60.0) * (0.5 if self.occl_turning else 1.0)
+                    if abs(gb) > turn_thr and self._can_rotate_in_place():
+                        self.occl_turning = True
+                        w_cmd = float(np.clip(1.5 * gb, -self.w_max * 0.6, self.w_max * 0.6))
+                        v, w = self._emit(0.0, w_cmd, dt)
+                        self._report(status, v, w, "mat nguoi — quay ve cho thay lan cuoi", now)
+                        return
+                    self.occl_turning = False
+                    phi, reach, _direct = self._choose_heading(gb, gr, gb)
+                    if phi is not None:
+                        sub_r = min(reach, gr)
+                        res = self._dwa((sub_r * math.cos(phi), sub_r * math.sin(phi)), None, dt,
+                                        allow_reverse=False, fov_active=False)
+                        if res is not None:
+                            v, w = self._emit(res[0], res[1], dt)
+                            self._report(status, v, w, "mat nguoi — lai toi cho thay lan cuoi",
+                                         now, clearance=res[2], chosen_heading=phi)
+                            return
+                # Toi noi, het gio, hoac bi chan -> pha 2: xoay tai cho quet tim
+                self.search_goto = False
+                self.occl_turning = False
                 self.search_start = now
-                self.search_dir = 1.0 if self.last_seen_bearing >= 0 else -1.0
             if self.state == S_SEARCH:
                 if (now - self.search_start) > self.search_max or not self._can_rotate_in_place():
                     self._set_state(S_IDLE)
+                    self.last_valid_time = 0.0      # khong quet lai cho toi khi thay nguoi
                     self._emit(0.0, 0.0, dt)
                     self._report(status, 0.0, 0.0, "khong tim thay nguoi — dung", now)
                     return
@@ -820,6 +884,10 @@ class FollowPlannerNode(Node):
         source = str(tgt.get("source", "none"))
         predicted = source in ("predicted", "rssi_bearing")
         self.last_seen_bearing = bearing
+        self.last_valid_time = now
+        self.search_goto = False
+        if tgt.get("odom_x") is not None and tgt.get("odom_y") is not None:
+            self.last_target_odom = (float(tgt["odom_x"]), float(tgt["odom_y"]))
 
         if dist > self.max_follow_dist:
             self._emit(0.0, 0.0, dt)
@@ -829,8 +897,12 @@ class FollowPlannerNode(Node):
         # GOAL = diem cach nguoi follow_distance ve phia xe.
         # Nho vay khong can loai nguoi khoi danh sach vat can (sua Bug#4).
         goal_r = max(0.0, dist - self.follow_distance)
-        gx = goal_r * math.cos(bearing)
-        gy = goal_r * math.sin(bearing)
+        # Vung chet huong: lech duoi bearing_deadband thi coi dich nam thang truoc mui.
+        # Goc lay tu cum chan nguoi rung vai do moi buoc chan; khong co vung chet thi DWA
+        # be lai +-0.1 rad/s lien tuc va xe lac qua lai thay vi bam thang.
+        goal_b = bearing if abs(bearing) > self.bearing_deadband else 0.0
+        gx = goal_r * math.cos(goal_b)
+        gy = goal_r * math.sin(goal_b)
 
         # ── Duong thang toi dich co bi chan khong? ───────────────────────
         corridor = self.half_width * self.block_corridor_scale + self.margin_hard
@@ -865,6 +937,25 @@ class FollowPlannerNode(Node):
         elif self.state not in (S_AVOID,):
             self._set_state(S_FOLLOW)
 
+        # ── NGUOI RA KHOI CAMERA: xoay ve huong nho cuoi truoc ───────────
+        # Camera co dinh nen phai QUAY XE moi thay lai nguoi. Camera khong thay (chi con
+        # lidar_track hoac du doan) ma nguoi lech qua occluded_turn_deg -> xoay tai cho ve
+        # phia do (co tre: quay toi duoi mot nua nguong), roi moi tien toi. Goc du doan
+        # thuong tre hon goc that ~10 do nen nguong dat thap hon nua FOV. Chi xoay khi
+        # du cho cho duoi xe.
+        camera_blind = not source.startswith("camera")
+        turn_thr = self.occluded_turn_rad * (0.5 if self.occl_turning else 1.0)
+        if (camera_blind and self.occluded_turn_rad > 0.0 and abs(bearing) > turn_thr
+                and self._can_rotate_in_place()):
+            self.occl_turning = True
+            self._set_state(S_OCCLUDED)
+            w_cmd = float(np.clip(1.5 * bearing, -self.w_max * 0.6, self.w_max * 0.6))
+            v, w = self._emit(0.0, w_cmd, dt)
+            self._report(status, v, w, "nguoi ra khoi camera — xoay ve huong nho cuoi",
+                         now, dist, bearing, source)
+            return
+        self.occl_turning = False
+
         # ── DA TOI DUNG KHOANG CACH: chi xoay nhe de giu nguoi giua khung ─
         if self.state == S_ARRIVED:
             v, w = self._emit(0.0, 0.0, dt)
@@ -880,7 +971,7 @@ class FollowPlannerNode(Node):
             return
 
         # ── TANG 1: chon huong di qua khe (VFH) ──────────────────────────
-        phi, reach, _direct = self._choose_heading(bearing, goal_r, bearing)
+        phi, reach, _direct = self._choose_heading(goal_b, goal_r, bearing)
 
         if phi is None:
             # Khong huong nao di duoc: xoay tai cho tim loi, hoac dung han
