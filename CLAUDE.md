@@ -65,7 +65,7 @@ Ba bài toán chính người dùng đặt ra:
 
 | | |
 |---|---|
-| Máy | Lenovo Legion R9000P ADR10, AMD Ryzen 9 8945HX, 16 GiB RAM |
+| Máy | Lenovo Legion R9000P ADR10, AMD Ryzen 9 8945HX, 16 GiB RAM, GPU NVIDIA (PCI `2d59`) + AMD Radeon tích hợp — GPU NVIDIA **chưa dùng được** (xem 13.7) |
 | OS | Ubuntu 24.04.4 LTS |
 | ROS | ROS 2 Jazzy |
 | User / host | `thach@thachLG` |
@@ -190,7 +190,8 @@ Ba nguồn độc lập cùng cho `lidar_yaw_offset_deg = -90.0`: phép đo, `ro
 ├── src/
 │   ├── person_follow_nav/        ← PACKAGE CHÍNH (mới, thay thế 2 controller cũ)
 │   ├── person_follow_identity/   ← camera ReID → /person_reid/target
-│   ├── person_follow_robot/      ← CONTROLLER CŨ, KHÔNG DÙNG NỮA
+│   ├── person_follow_robot/      ← CONTROLLER CŨ, KHÔNG DÙNG NỮA — nhưng ĐỪNG XOÁ: follow_nav_real.launch.py
+│   │                                vẫn đọc config/identity_lock_kingsen.yaml ở đây
 │   ├── robot_rssi_ros2/          ← RSSI serial + follow node CŨ (không dùng)
 │   ├── bw_dr03_ros2/             ← driver khung xe
 │   ├── sc_mini/                  ← driver LiDAR (C++, ament_cmake)
@@ -454,10 +455,11 @@ Planner log mỗi 10 giây: `self-filter: bo N/M tia dap vao than xe` (M = số 
 - **Giai đoạn 0** — build sạch, 8/8 package
 - **Giai đoạn 1** — hiệu chỉnh LiDAR hoàn tất, toàn bộ giá trị ở mục 3 đã xác nhận
 - **Giai đoạn 2** — đo footprint, xác nhận tâm quay
+- **Giai đoạn 3** — né vật cản không camera, **nghiệm thu 6/6 trên xe thật (17/09)**, không va chạm
 
-### Đang làm
+### Giai đoạn 3 — kết quả
 
-**Giai đoạn 3 — test né vật cản không cần camera.** Trước đây người dùng báo *"lidar không xoay mà xe chỉ chạy thẳng"* — lúc đó xe còn chạy nhanh gấp 2.16 lần lệnh (lỗi 7.2-P).
+Trước đây người dùng báo *"lidar không xoay mà xe chỉ chạy thẳng"* — lúc đó xe còn chạy nhanh gấp 2.16 lần lệnh (lỗi 7.2-P).
 
 **Kết quả 17/09 trên xe thật** (sau khi sửa `max_linear`):
 - `preflight.sh`: `/scan` 9.9 Hz, `/odom` 50.2 Hz, đúng 1 nguồn ghi `/cmd_vel`, `/follow/stop` sẵn sàng. Cảnh báo "n_obstacles=0" là **báo sai** do `ros2 topic echo` cắt chuỗi — đã sửa bằng `--full-length`.
@@ -465,11 +467,17 @@ Planner log mỗi 10 giây: `self-filter: bo N/M tia dap vao than xe` (M = số 
 - `fake_target.py 1.2`: xe dừng trước vật cản, không va chạm (3.1 đạt).
 - `fake_target.py 2.5`, vật cản **giữa đường** cách mũi ~1 m: xe **né ổn** (người dùng xác nhận). `diagnose.py` lần có vật cản: vật gần nhất trước mặt 1.12 m tại +2° (= 0.98 m từ mũi, khớp thực tế → kiểm chứng thêm hiệu chỉnh LiDAR); bộ lọc bỏ 22/220; `preflight.sh` đã sửa đọc đúng `n_obstacles=135`. (Lần `diagnose.py` đầu chưa đặt vật cản nên chỉ thấy vật ở 2.20 m.)
 
-**Còn lại:** chạy đủ và ghi từng kịch bản 3.2–3.7 trong README (nghiệm thu 6/6, không va chạm) — vật cản giữa đường ở trên không nằm trong bảng; 3.3/3.4 là thùng **lệch 20 cm**. Lỗi kẹt 13.12 dễ lộ ra ở 3.3/3.4.
+- Bảng 3.2–3.7 trong README (người dùng chạy 17/09): 3.2, 3.3, 3.4, 3.5, 3.7 **đúng như mong đợi**. 3.6 (hai thùng cách 0.40 m, xe cách 1 m): **không** chui qua khe; hai bên thoáng thì xe vòng ra ngoài thay vì `BLOCKED`; trong hành lang hẹp (không vòng được) thì `BLOCKED`. Đây là **đúng thiết kế**: `_choose_heading` quét ±100°, chỉ `BLOCKED` khi không hướng nào đi được (`phi is None`), và `fake_target` ở khung `base_link` nên mục tiêu xoay theo xe. Kỳ vọng 3.6 cũ trong README ghi thiếu — đã sửa.
+
+### Đang làm
+
+**Giai đoạn 4 — ghép camera.** Kiểm tra trước khi cho xe bám người:
+1. **Tốc độ ReID trên CPU** (xem 13.7): chạy `follow_nav_real.launch.py`, xem log `identity_lock_node` dòng `Models loaded; ...`, đo `ros2 topic hz /person_reid/target` và `ros2 topic hz /cmd_vel` (phải ≥ 10 Hz khi YOLO đang chạy — mục 12 "Watchdog driver").
+2. **Chưa bật `/follow/enable`**: enroll, đứng cách xe 2 m, `source` phải là `camera+lidar` (lệnh giám sát mục 10).
+3. Rồi mới chạy kịch bản 4.1–4.5 trong README.
 
 ### Chưa làm
 
-- Giai đoạn 4 — ghép camera
 - Giai đoạn 5 — không gian hẹp thật + RSSI
 - Giai đoạn 6 — checklist thực địa
 
@@ -644,7 +652,7 @@ Các mục sau **chưa được kiểm chứng**. Không tự đoán, hãy hỏi
 
 6. **Hai sonar `/bw_dr03/sonar`** — chưa đọc, chưa biết định dạng và độ tin cậy.
 
-7. **YOLO đang chạy CPU hay GPU?** Máy có Radeon tích hợp. Nếu `identity_lock_node` báo `using CPU` thì sẽ rất chậm. Chưa kiểm tra.
+7. **YOLO/ReID đang chạy CPU** (kiểm tra 17/09). Máy có GPU NVIDIA rời (PCI `2d59`, dòng RTX 50) + Radeon tích hợp, nhưng `nvidia-smi` báo *"No devices were found"* (driver không nhận GPU) và torch cài là `2.12.0+cpu` → `core.choose_device("auto")` rơi về CPU. **Chưa đo tốc độ thật** (`ros2 topic hz /person_reid/target`). Chỉ cần xử lý GPU nếu tốc độ không đủ — việc đó cần sửa driver NVIDIA (sudo, khởi động lại) và cài torch bản CUDA: **người dùng quyết định**.
 
 8. **Nội dung chi tiết của `person_follow_identity`** — đã đọc `node.py` và `core.py` để lấy định dạng payload, nhưng **chưa kiểm chứng toàn bộ các trường** ở runtime.
 
@@ -652,8 +660,8 @@ Các mục sau **chưa được kiểm chứng**. Không tự đoán, hãy hỏi
 
 10. **ĐÃ XÁC NHẬN 17/09 — lỗi "LiDAR không xoay, xe chỉ chạy thẳng" không còn.** `diagnose.py` cho thấy LiDAR quay và planner dùng dữ liệu; xe thật đã né được vật cản với `fake_target.py 2.5` (xem mục 8). Nguyên nhân cũ chưa rõ — có thể do lỗi tốc độ 7.2-P.
 
-11. **Hành vi thực địa của thuật toán** — toàn bộ kết quả trong file này là **mô phỏng offline**. Chưa có lần nào xe chạy thật thành công qua kịch bản né vật cản.
+11. **Hành vi thực địa của thuật toán** — giai đoạn 3 (né vật cản với mục tiêu giả) **đã đạt 6/6 trên xe thật 17/09** (mục 8). Phần có camera/ReID (giai đoạn 4 trở đi) **chưa chạy thật**.
 
-12. **Planner kẹt đứng yên vĩnh viễn cạnh vật cản (thấy trong mô phỏng, chưa sửa).** Test 5 của `test_sim.py` chỉ ĐẠT với đúng kịch bản gốc. Dời người chen ngang 5 cm, hoặc cho người đi 0.10 m/s, thì 11/18 biến thể xe dừng cách người chen ~0.28 m rồi đứng yên mãi ở `AVOID` (DWA chọn v=w=0). `stuck_time_sec` được khai báo nhưng không dùng → xe thật không có cơ chế thoát kẹt. Hạ `v_max` xuống ≤ 0.21 cũng làm test 5 `LOI` vì cùng lý do.
+12. **Planner kẹt đứng yên vĩnh viễn cạnh vật cản (thấy trong mô phỏng, chưa sửa).** Test 5 của `test_sim.py` chỉ ĐẠT với đúng kịch bản gốc. Dời người chen ngang 5 cm, hoặc cho người đi 0.10 m/s, thì 11/18 biến thể xe dừng cách người chen ~0.28 m rồi đứng yên mãi ở `AVOID` (DWA chọn v=w=0). `stuck_time_sec` được khai báo nhưng không dùng → xe thật không có cơ chế thoát kẹt. Hạ `v_max` xuống ≤ 0.21 cũng làm test 5 `LOI` vì cùng lý do. **Trên xe thật 17/09 chưa gặp**: vật cản giữa đường, 3.3/3.4 (thùng lệch 20 cm) đều né được. Vẫn có thể lộ ra với người đi chậm ở giai đoạn 4.
 
 13. **ĐÃ XÁC NHẬN 17/09 — bánh quay được ở 5% PWM.** Lệnh nhỏ nhất của planner (`min_move_linear 0.035`, `min_move_angular 0.10`) đều ra 5%. Đo: `measure_speed.py 0.035` → thước 11.5 cm / odom 11.4 cm; `--w 0.10` → thật 34° / odom 33°. Giữ nguyên hai tham số.

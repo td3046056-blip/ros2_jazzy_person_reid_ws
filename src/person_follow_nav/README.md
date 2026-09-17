@@ -521,7 +521,7 @@ cho đến khi gặp vật cản. Luôn sẵn sàng bấm Ctrl-C (script tự g�
 | 3.3 | Thùng giữa đường, lệch trái 20 cm | Vòng phải rồi về đường thẳng, `state = AVOID` |
 | 3.4 | Thùng giữa đường, lệch phải 20 cm | Vòng trái |
 | 3.5 | Hai thùng cách nhau **0.90 m** | Chui qua giữa, chậm lại |
-| 3.6 | Hai thùng cách nhau **0.40 m** | **Không** chui, xoay tìm lối, `state = BLOCKED` |
+| 3.6 | Hai thùng cách nhau **0.40 m** | **Không** chui qua khe. Hai bên thoáng → vòng ra ngoài hai thùng (`AVOID`). Không còn hướng nào đi được trong ±100° (vd. hành lang hẹp) → `BLOCKED`, xoay tìm lối |
 | 3.7 | Tường chắn kín | Dừng, không đâm |
 
 Xe rộng 0.60 m nên khe tối thiểu thực tế là **0.80 m** — xem mục "Giới hạn không gian
