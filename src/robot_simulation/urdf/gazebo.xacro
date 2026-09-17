@@ -1,0 +1,61 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+  <xacro:macro name="gazebo_plugins">
+    <!-- Gazebo Harmonic ros2_control plugin -->
+    <gazebo>
+      <plugin filename="gz_ros2_control-system" name="gz_ros2_control::GazeboSimROS2ControlPlugin">
+        <parameters>$(find robot_simulation)/config/robot_controllers.yaml</parameters>
+        <robot_param>robot_description</robot_param>
+        <robot_param_node>robot_state_publisher</robot_param_node>
+      </plugin>
+    </gazebo>
+
+    <!-- Publish sim clock -->
+    <gazebo>
+      <plugin filename="gz-sim-scene-broadcaster-system" name="gz::sim::systems::SceneBroadcaster">
+      </plugin>
+    </gazebo>
+
+    <!-- Friction for main wheels -->
+    <gazebo reference="front_left_wheel_link">
+      <mu1>0.9</mu1>
+      <mu2>0.9</mu2>
+      <kp>1000000.0</kp>
+      <kd>100.0</kd>
+      <minDepth>0.001</minDepth>
+      <maxVel>1.0</maxVel>
+      <material>Gazebo/Black</material>
+    </gazebo>
+
+    <gazebo reference="front_right_wheel_link">
+      <mu1>0.9</mu1>
+      <mu2>0.9</mu2>
+      <kp>1000000.0</kp>
+      <kd>100.0</kd>
+      <minDepth>0.001</minDepth>
+      <maxVel>1.0</maxVel>
+      <material>Gazebo/Black</material>
+    </gazebo>
+
+    <!-- Friction for caster wheels (lower friction, allow swivel) -->
+    <gazebo reference="rear_left_caster_wheel_link">
+      <mu1>0.1</mu1>
+      <mu2>0.1</mu2>
+      <material>Gazebo/White</material>
+    </gazebo>
+
+    <gazebo reference="rear_right_caster_wheel_link">
+      <mu1>0.1</mu1>
+      <mu2>0.1</mu2>
+      <material>Gazebo/White</material>
+    </gazebo>
+
+    <!-- Chassis -->
+    <gazebo reference="base_link">
+      <material>Gazebo/Green</material>
+    </gazebo>
+
+  </xacro:macro>
+
+</robot>

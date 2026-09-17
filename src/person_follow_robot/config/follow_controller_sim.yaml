@@ -1,0 +1,29 @@
+person_follow_controller:
+  ros__parameters:
+    target_topic: "/person_reid/target"
+    sonar_topic: "/bw_dr03/sonar"
+    cmd_vel_topic: "/diff_drive_controller/cmd_vel_unstamped"
+    status_topic: "/person_follow/status"
+    command_topic: "/person_follow/command"
+    enable_service: "/person_follow/enable"
+    disable_service: "/person_follow/disable"
+    stop_service: "/person_follow/stop"
+    start_enabled: false
+    require_identity_ready: true
+    target_timeout_sec: 0.45
+    control_hz: 12.0
+    target_distance_m: 1.0
+    distance_deadband_m: 0.10
+    distance_source: "bbox"
+    camera_distance_enabled: true
+    bbox_height_at_target_distance_px: 250.0
+    kp_linear: 0.45
+    kp_angular: 1.65
+    angular_sign: -1.0
+    max_linear_forward: 0.22
+    max_linear_backward: 0.10
+    max_angular: 0.85
+    angle_deadband_deg: 3.0
+    align_only_angle_deg: 26.0
+    slow_down_angle_deg: 14.0
+    search_when_lost: false

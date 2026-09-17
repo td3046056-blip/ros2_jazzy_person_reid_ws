@@ -1,0 +1,19 @@
+# ── Sinh ra khi build — khong backup ─────────────────────────────────
+# colcon: o goc workspace, va ca ban build nham trong src/person_follow_nav/scripts/
+build/
+install/
+log/
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+# PlatformIO (firmware ESP32)
+.pio/
+
+# ── Du lieu ghi lai — qua lon cho GitHub (toi da 100 MB moi file) ───
+*.db3
+*.mcap
+*.bag
+
+# ── Cau hinh ca nhan cua Claude Code ─────────────────────────────────
+.claude/settings.local.json

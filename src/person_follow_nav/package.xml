@@ -1,0 +1,33 @@
+<?xml version="1.0"?>
+<?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
+<package format="3">
+  <name>person_follow_nav</name>
+  <version>1.0.0</version>
+  <description>
+    Bam nguoi + ne vat can cho robot BW-DR03: ghep camera ReID, LiDAR 2D va RSSI
+    thanh mot uoc luong vi tri nguoi trong khung odom, roi dieu huong bang DWA
+    co xet footprint that va gioi han truong nhin camera co dinh.
+  </description>
+
+  <maintainer email="thad91738@gmail.com">thaihoa</maintainer>
+  <license>MIT</license>
+
+  <depend>rclpy</depend>
+  <depend>rcl_interfaces</depend>
+  <depend>std_msgs</depend>
+  <depend>std_srvs</depend>
+  <depend>geometry_msgs</depend>
+  <depend>sensor_msgs</depend>
+  <depend>nav_msgs</depend>
+  <depend>visualization_msgs</depend>
+  <depend>python3-numpy</depend>
+
+  <buildtool_depend>ament_python</buildtool_depend>
+  <test_depend>ament_copyright</test_depend>
+  <test_depend>ament_flake8</test_depend>
+  <test_depend>ament_pep257</test_depend>
+
+  <export>
+    <build_type>ament_python</build_type>
+  </export>
+</package>

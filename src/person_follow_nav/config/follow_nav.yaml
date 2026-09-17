@@ -1,0 +1,211 @@
+# ============================================================================
+# follow_nav.yaml — cau hinh cho robot BW-DR03 bam nguoi + ne vat can
+# ----------------------------------------------------------------------------
+# CAC THAM SO BAT BUOC PHAI HIEU CHINH TRUOC KHI CHAY THAT (danh dau [*]):
+#   lidar_yaw_offset_deg, lidar_angle_sign   -> chay `ros2 run person_follow_nav calibrate_lidar`
+#   front_len / rear_len / half_width        -> do thuoc than xe cua ban
+#   camera_angle_sign                        -> kiem tra xe quay dung chieu
+# ============================================================================
+
+target_tracker_node:
+  ros__parameters:
+    target_topic_in: "/person_reid/target"
+    target_topic_out: "/follow/target"
+    marker_topic: "/follow/target_marker"
+    scan_topic: "/scan"
+    odom_topic: "/odom"
+    rssi_angle_topic: "/rssi/angle_deg"
+    rssi_conf_topic: "/rssi/confidence"
+    odom_frame: "odom"
+    base_frame: "base_link"
+
+    # ── [*] Hinh hoc LiDAR ────────────────────────────────────────────────
+    # SYSTEM_CONTEXT.md cua ban ghi "goc 90 do la huong thang truoc".
+    # Neu dung vay thi offset = -90. HAY CHAY calibrate_lidar DE XAC NHAN.
+    lidar_yaw_offset_deg: -90.0
+    lidar_angle_sign: 1.0
+    lidar_x: 0.10             # lidar dat TRUOC base_link 10cm
+    lidar_y: 0.00
+    lidar_max_use_range: 8.0
+
+    # ── LOC TIA DAP VAO THAN XE — BAT BUOC ────────────────────────────────
+    # LiDAR quet 360 do nen thay ca cot do, day dien, mep san cua CHINH XE.
+    # Cac diem do nam trong footprint => rect_clearance()=0 => moi quy dao bi
+    # loai => XE KET VINH VIEN o trang thai BLOCKED.
+    # Chay de lay so:
+    #   ros2 run person_follow_nav calibrate_lidar --ros-args -p mode:=self_scan
+    self_filter_enabled: true
+    self_filter_margin: 0.03
+    # DINH DANG PHANG theo cap [lo1, hi1, lo2, hi2, ...] — ROS 2 khong nhan
+    # mang long nhau. Goc tinh trong KHUNG LIDAR, don vi do.
+    # [246.0, 294.0] = than xe phia SAU, do bang che do A tren xe nay.
+    blind_sectors_deg: [246.0, 294.0]
+    front_len: 0.14              # phai trung voi follow_planner_node
+    rear_len: 0.33
+    half_width: 0.30
+
+    # ── Camera ────────────────────────────────────────────────────────────
+    # camera_angle_deg duong = nguoi ben PHAI khung hinh = goc AM trong base_link
+    camera_angle_sign: -1.0
+    camera_fov_deg: 62.0
+    require_identity_ready: true
+    camera_msg_timeout_sec: 0.6
+    compensate_camera_latency: true     # bu tre YOLO/ReID bang odom — rat quan trong
+    max_camera_latency_sec: 0.6
+
+    # ── Ghep LiDAR de lay khoang cach (thay cho bbox height) ──────────────
+    use_lidar_distance: true
+    assoc_window_deg: 10.0              # cung goc quanh huong camera de tim nguoi
+    cluster_gap_m: 0.18
+    person_width_min_m: 0.08
+    person_width_max_m: 0.90
+    person_range_min_m: 0.30
+    person_range_max_m: 6.0
+    lidar_distance_max_jump_m: 0.60
+
+    # Chi dung khi LiDAR khong thay gi (nguoi bi ban che chan, ...)
+    bbox_fallback_enabled: true
+    bbox_height_at_1m_px: 420.0         # lay tu follow_controller.yaml cu cua ban
+
+    # ── Bam bang LiDAR khi camera mat hinh ────────────────────────────────
+    lidar_only_track_enabled: true
+    lidar_only_assoc_radius_m: 0.55
+    lidar_only_max_sec: 3.0
+
+    # ── Du doan khi bi che hoan toan ──────────────────────────────────────
+    predict_max_sec: 2.5
+    ab_alpha: 0.55
+    ab_beta: 0.10
+    max_person_speed: 1.8
+
+    # ── RSSI (du phong) ───────────────────────────────────────────────────
+    # TAM TAT: chua cam mach RSSI. Khi nao cam roi thi doi thanh true
+    # va them start_rssi:=true vao lenh launch.
+    # Tracker van chay binh thuong khi tat — no chi mat lop du phong cuoi cung.
+    rssi_enabled: false
+    rssi_angle_sign: -1.0
+    rssi_min_confidence: 0.20
+    rssi_timeout_sec: 2.0
+    rssi_takeover_after_sec: 1.2
+    rssi_assumed_distance_m: 1.6
+    rssi_bearing_blend: 0.35
+
+    update_hz: 20.0
+    publish_marker: true
+    log_period_sec: 1.0
+
+
+follow_planner_node:
+  ros__parameters:
+    target_topic: "/follow/target"
+    scan_topic: "/scan"
+    odom_topic: "/odom"
+    cmd_vel_topic: "/cmd_vel"
+    status_topic: "/follow/planner_status"
+    markers_topic: "/follow/debug_markers"
+    base_frame: "base_link"
+
+    start_enabled: false                # LUON de false — bat bang service
+    control_hz: 15.0
+
+    # ── [*] Hinh hoc LiDAR — PHAI TRUNG voi target_tracker_node ───────────
+    lidar_yaw_offset_deg: -90.0
+    lidar_angle_sign: 1.0
+    lidar_x: 0.10                # lidar dat TRUOC base_link 10cm
+    lidar_y: 0.00
+    lidar_max_use_range: 5.0
+    scan_timeout_sec: 0.6        # SC-Mini chay ~10 Hz (chu ky 0.1s)
+    obstacle_bucket_deg: 2.0
+    max_obstacle_points: 160
+    # Loc tia dap vao than xe — phai trung voi target_tracker_node o tren
+    self_filter_enabled: true
+    self_filter_margin: 0.03
+    blind_sectors_deg: [246.0, 294.0]   # phai trung voi target_tracker_node
+
+    # ── [*] Footprint that — DO TRUC TIEP TREN XE ─────────────────────────
+    # base_link = tam giua 2 banh truoc. Xe LECH VE SAU rat nhieu:
+    #   mui chi 14cm phia truoc, nhung duoi keo dai 33cm phia sau.
+    #   Be ngang 60cm, chieu dai 47cm.
+    # Dung hinh CHU NHAT chu khong phai hinh tron — quan trong hon voi xe nay
+    # vi front_len va rear_len chenh nhau hon 2 lan.
+    front_len: 0.14                     # base_link -> mui xe
+    rear_len: 0.33                      # base_link -> duoi xe
+    half_width: 0.30                    # nua be ngang
+    # Xe rong 0.60m nen khong gian hep la van de that. Da quet tham so:
+    #   margin_soft / margin_hard  ->  khe nho nhat thuc te chui duoc
+    #        0.22 / 0.08           ->  0.84 m   (ly thuyet 0.76)
+    #        0.18 / 0.08           ->  0.84 m
+    #        0.15 / 0.06           ->  0.80 m   (ly thuyet 0.72)  <- dang dung
+    #        0.12 / 0.05           ->  0.80 m   (ly thuyet 0.70)
+    # Ha margin_hard duoi 0.06 KHONG giup them, chi bot an toan.
+    margin_soft: 0.15                   # khoang cach MONG MUON toi vat can
+    margin_hard: 0.06                   # khoang cach TUYET DOI khong pham
+    # Ban kinh ngoai tiep = hypot(rear_len, half_width) = hypot(0.33, 0.30)
+    #                     = 0.446 m  <- goc SAU la diem xa tam nhat
+    # Duoi dai 33cm nen khi xoay tai cho, duoi VANG RA rat rong.
+    rotate_radius: 0.47                 # 0.446 + 2cm du
+
+    # ── Gioi han dong hoc — toc do THAT (driver da hieu chinh max_linear 0.49) ─
+    v_max: 0.22
+    v_min: -0.06
+    w_max: 0.80
+    accel_lin: 0.35
+    accel_ang: 1.60
+    min_move_linear: 0.035              # duoi nguong nay banh khong quay
+    min_move_angular: 0.10
+
+    # ── Lay mau DWA (tang => muot hon nhung ton CPU hon) ──────────────────
+    n_samples_v: 7
+    n_samples_w: 17
+    horizon_steps: 12
+    horizon_dt: 0.10                    # nhin truoc 12 * 0.10 = 1.2 giay
+    # Cua so lay mau van toc = accel * sample_window_sec.
+    # KHONG de nho bang 1/control_hz — se khien xe dung yen vinh vien (xem README).
+    sample_window_sec: 0.5
+
+    # ── Trong so ham chi phi ──────────────────────────────────────────────
+    # Xe di lan quan, khong bam sat  -> tang w_goal
+    # Xe di sat vat can qua          -> tang w_clear hoac margin_soft
+    # Xe giat, doi huong lien tuc    -> tang w_smooth
+    # Xe ne xong hay mat nguoi       -> tang w_fov
+    # Xe do du trai/phai khi ne      -> tang w_side hoac avoid_side_hold_sec
+    w_goal: 2.4
+    w_heading: 1.0
+    w_clear: 2.2
+    w_speed: 0.55
+    w_smooth: 0.45
+    w_fov: 1.6
+    w_side: 0.9
+
+    # ── Hanh vi bam ───────────────────────────────────────────────────────
+    follow_distance_m: 1.00
+    distance_deadband_m: 0.12
+    bearing_deadband_deg: 4.0
+    max_follow_distance_m: 6.0
+
+    # ── Camera co dinh: co gang giu nguoi trong +-22 do ───────────────────
+    camera_fov_deg: 62.0
+    fov_keep_deg: 22.0
+    fov_cost_only_when_visible: true
+
+    # ── Tang chon khe (VFH) chay TRUOC DWA ────────────────────────────────
+    # Quet cac huong -100..+100 do, thu di duoc bao xa. Thu lan luot tu xa ve gan.
+    # Tang so dau -> nhin xa hon, ne som hon. Giam -> phan ung sat hon, o hep tot hon.
+    probe_distances: [1.6, 1.1, 0.7, 0.45]
+    # Toc do toi thieu (ti le v_max) khi bo sat vat can. 0.25 * 0.22 = 0.055 m/s
+    min_speed_scale: 0.25
+
+    # ── Chuyen trang thai ─────────────────────────────────────────────────
+    block_corridor_scale: 1.15
+    block_enter_sec: 0.25               # chan lien tuc bao lau moi vao AVOID
+    block_exit_sec: 0.60                # thoang lien tuc bao lau moi ra khoi AVOID
+    avoid_side_hold_sec: 2.0            # khoa ben ne trong 2s -> chong do du trai/phai
+    stuck_time_sec: 2.5
+    search_after_sec: 1.5
+    search_w: 0.35
+    search_max_sec: 12.0
+    min_confidence: 0.15
+    target_msg_timeout_sec: 0.8
+
+    publish_markers: true
+    log_period_sec: 1.0

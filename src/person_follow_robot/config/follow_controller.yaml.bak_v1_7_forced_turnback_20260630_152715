@@ -1,0 +1,78 @@
+person_follow_controller:
+  ros__parameters:
+    target_topic: "/person_reid/target"
+    sonar_topic: "/bw_dr03/sonar"
+    cmd_vel_topic: "/cmd_vel"
+    status_topic: "/person_follow/status"
+    command_topic: "/person_follow/command"
+
+    enable_service: "/person_follow/enable"
+    disable_service: "/person_follow/disable"
+    stop_service: "/person_follow/stop"
+
+    start_enabled: false
+    require_identity_ready: true
+    require_verified: false
+    allow_recovered_target: true
+
+    target_timeout_sec: 1.20
+    target_hold_sec: 1.50
+    target_hold_drive_sec: 0.80
+    hold_speed_scale: 0.35
+    require_valid_frames: 1
+
+    control_hz: 10.0
+
+    # Forward-only logic:
+    # > 1.10 m: start moving slowly forward
+    # <= ~1.02 m: stop
+    # never move backward
+    target_distance_m: 1.0
+    distance_deadband_m: 0.10
+    start_forward_error_m: 0.10
+    stop_forward_error_m: 0.02
+    distance_source: "bbox"
+
+    sonar_scale_to_m: 0.01
+    sonar_valid_min_m: 0.15
+    sonar_valid_max_m: 3.5
+    sonar_timeout_sec: 0.45
+    sonar_angle_gate_deg: 18.0
+    emergency_stop_m: 0.45
+
+    camera_distance_enabled: true
+    bbox_height_at_target_distance_px: 420.0
+    bbox_distance_valid_min_m: 0.35
+    bbox_distance_valid_max_m: 5.0
+
+    distance_filter_alpha: 0.20
+    angle_filter_alpha: 0.24
+    max_distance_step_m: 0.25
+    max_angle_step_deg: 8.0
+
+    # Slow and smooth motion.
+    kp_linear: 0.12
+    kp_angular: 0.70
+    angular_sign: -1.0
+
+    max_linear_forward: 0.06
+    max_linear_backward: 0.0
+    forward_only: true
+    max_angular: 0.28
+    min_forward_speed: 0.03
+
+    max_linear_accel: 0.10
+    max_angular_accel: 0.40
+
+    # Keep eps smaller than max_linear_accel/control_hz so the rate limiter can ramp up.
+    cmd_epsilon_linear: 0.001
+    cmd_epsilon_angular: 0.010
+
+    angle_deadband_deg: 4.0
+    align_only_angle_deg: 28.0
+    slow_down_angle_deg: 14.0
+
+    search_when_lost: false
+    search_angular: 0.20
+    publish_stop_when_disabled: false
+    log_period_sec: 0.8

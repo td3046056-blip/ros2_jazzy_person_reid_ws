@@ -1,0 +1,17 @@
+# Robot USB Persistent Port Rules
+# Dùng KERNELS path vật lý thay vì serial (vì các thiết bị CH340 không có serial duy nhất)
+# Tạo lại bởi setup_usb_rules.py sau khi fix bug serial trùng
+
+# ── Lidar SC-Mini ─────────────────────────────────────────────────────────
+# CH340 (1a86:7523), cổng vật lý 1-2.3
+SUBSYSTEM=="tty", KERNELS=="1-2.3", ATTRS{idVendor}=="1a86", ATTRS{idProduct}=="7523", SYMLINK+="robot_lidar", MODE="0666"
+
+# ── Robot BW-DR03 ─────────────────────────────────────────────────────────
+# FTDI FT231X (0403:6015), có serial duy nhất D30BF0NT → dùng serial cho chính xác tuyệt đối
+SUBSYSTEM=="tty", ATTRS{serial}=="D30BF0NT", SYMLINK+="robot_base", MODE="0666"
+
+# ── RSSI NodeMCU ──────────────────────────────────────────────────────────
+# CH340 (1a86:7523), cổng vật lý 1-2.2.4 (ttyUSB4)
+# ⚠️ Nếu RSSI đang ở ttyUSB3 → đổi 1-2.2.4 thành 1-2.2.3
+# ⚠️ Nếu RSSI đang ở ttyUSB2 → đổi 1-2.2.4 thành 1-2.2.2
+SUBSYSTEM=="tty", KERNELS=="1-2.2.4", ATTRS{idVendor}=="1a86", ATTRS{idProduct}=="7523", SYMLINK+="robot_rssi", MODE="0666"

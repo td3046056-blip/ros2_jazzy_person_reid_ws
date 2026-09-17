@@ -1,0 +1,94 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+
+    // ── BUILD (không upload) ─────────────────────────────────────
+    {
+      "label": "🔨 Build ALL (kiểm tra compile)",
+      "type": "shell",
+      "command": "${env:USERPROFILE}\\.platformio\\penv\\Scripts\\pio.exe run -e mcu -e mtiny1 -e mtiny2 -e s3_esp",
+      "group": { "kind": "build", "isDefault": true },
+      "presentation": { "reveal": "always", "panel": "shared" },
+      "problemMatcher": []
+    },
+
+    // ── UPLOAD từng board ────────────────────────────────────────
+    {
+      "label": "⬆ Upload Master (mcu) — CHAY TRUOC",
+      "type": "shell",
+      "command": "${env:USERPROFILE}\\.platformio\\penv\\Scripts\\pio.exe run -e mcu -t upload",
+      "presentation": { "reveal": "always", "panel": "shared" },
+      "problemMatcher": []
+    },
+    {
+      "label": "⬆ Upload Slave B (mtiny1)",
+      "type": "shell",
+      "command": "${env:USERPROFILE}\\.platformio\\penv\\Scripts\\pio.exe run -e mtiny1 -t upload",
+      "presentation": { "reveal": "always", "panel": "shared" },
+      "problemMatcher": []
+    },
+    {
+      "label": "⬆ Upload Slave C (mtiny2)",
+      "type": "shell",
+      "command": "${env:USERPROFILE}\\.platformio\\penv\\Scripts\\pio.exe run -e mtiny2 -t upload",
+      "presentation": { "reveal": "always", "panel": "shared" },
+      "problemMatcher": []
+    },
+    {
+      "label": "⬆ Upload Beacon (s3_esp)",
+      "type": "shell",
+      "command": "${env:USERPROFILE}\\.platformio\\penv\\Scripts\\pio.exe run -e s3_esp -t upload",
+      "presentation": { "reveal": "always", "panel": "shared" },
+      "problemMatcher": []
+    },
+
+    // ── UPLOAD TẤT CẢ (theo thứ tự bắt buộc) ───────────────────
+    {
+      "label": "🚀 Upload TAT CA 4 board (theo thu tu)",
+      "dependsOn": [
+        "⬆ Upload Master (mcu) — CHAY TRUOC",
+        "⬆ Upload Slave B (mtiny1)",
+        "⬆ Upload Slave C (mtiny2)",
+        "⬆ Upload Beacon (s3_esp)"
+      ],
+      "dependsOrder": "sequence",
+      "problemMatcher": []
+    },
+
+    // ── SERIAL MONITOR ───────────────────────────────────────────
+    {
+      "label": "📡 Monitor Master (xem huong robot)",
+      "type": "shell",
+      "command": "${env:USERPROFILE}\\.platformio\\penv\\Scripts\\pio.exe device monitor -e mcu",
+      "presentation": { "reveal": "always", "panel": "new" },
+      "problemMatcher": [],
+      "isBackground": true
+    },
+    {
+      "label": "📡 Monitor Slave B (mtiny1)",
+      "type": "shell",
+      "command": "${env:USERPROFILE}\\.platformio\\penv\\Scripts\\pio.exe device monitor -e mtiny1",
+      "presentation": { "reveal": "always", "panel": "new" },
+      "problemMatcher": [],
+      "isBackground": true
+    },
+    {
+      "label": "📡 Monitor Slave C (mtiny2)",
+      "type": "shell",
+      "command": "${env:USERPROFILE}\\.platformio\\penv\\Scripts\\pio.exe device monitor -e mtiny2",
+      "presentation": { "reveal": "always", "panel": "new" },
+      "problemMatcher": [],
+      "isBackground": true
+    },
+
+    // ── TIỆN ÍCH ─────────────────────────────────────────────────
+    {
+      "label": "🔌 Xem danh sach COM port",
+      "type": "shell",
+      "command": "${env:USERPROFILE}\\.platformio\\penv\\Scripts\\pio.exe device list",
+      "presentation": { "reveal": "always", "panel": "shared" },
+      "problemMatcher": []
+    }
+
+  ]
+}

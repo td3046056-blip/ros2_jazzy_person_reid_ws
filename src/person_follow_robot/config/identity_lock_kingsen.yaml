@@ -1,0 +1,105 @@
+identity_lock_node:
+  ros__parameters:
+    camera_source: "/dev/v4l/by-id/usb-Generic_KINGSEN_CAMERA_200901010001-video-index0"
+    frame_width: 640
+    frame_height: 480
+
+    model_weights: ""
+    deepsort_ckpt: ""
+    device: "auto"
+    use_cuda: true
+    img_size: 640
+
+    det_conf_thres: 0.55
+    det_iou_thres: 0.50
+    person_class_id: 0
+
+    deepsort_max_age: 30
+    deepsort_n_init: 4
+    deepsort_max_dist: 0.18
+
+    min_stable_frames: 4
+    min_bbox_area: 1800
+    initial_select_mode: "center_largest"
+    auto_enroll_on_start: false
+    enroll_seconds: 30.0
+    enroll_min_samples: 80
+    enroll_sample_every_n_frames: 3
+
+    positive_gallery_size: 160
+    negative_gallery_size: 160
+    color_gallery_size: 100
+    reid_match_mode: "topk_mean"
+    reid_top_k: 5
+
+    reid_threshold: 0.82
+    current_min_reid: 0.60
+    current_min_combined: 0.64
+    current_min_color: 0.28
+    recover_min_combined: 0.80
+    recover_min_reid: 0.78
+    recover_min_color: 0.25
+    reid_margin: 0.06
+    combined_margin: 0.06
+    negative_margin: 0.10
+    verification_fail_limit: 1
+
+    verify_every_n_frames: 4
+    update_gallery_every_n_frames: 4
+    target_update_min_similarity: 0.62
+    max_duplicate_similarity: 0.985
+    negative_add_max_reid: 0.55
+    negative_add_min_margin: 0.12
+
+    # Strict policy: A lost => robot/controller stop. Do not auto-lock B.
+    # spatial_gate_px vẫn dùng cho mất dấu ngắn/tại chỗ (nhanh, rẻ).
+    # Sau khi robot XOAY LỚN để né vật (lidar_enhancer), vị trí pixel cũ của A
+    # không còn ý nghĩa nữa -> nếu global recovery tắt, hệ thống sẽ luôn trả
+    # về "spatial_gate_rejected" dù camera đã thấy đúng A. Mở global recovery
+    # với ngưỡng ReID/gait vẫn NGHIÊM (0.90/0.82/0.94 + bắt buộc gait) để bù lại
+    # việc bỏ điều kiện vị trí pixel.
+    spatial_gate_px: 140.0
+    global_search_after_sec: 1.5
+    global_search_min_reid: 0.94
+    enable_global_recovery: true
+    allow_single_candidate_global_recovery: false
+    recovery_confirm_frames: 4
+    recovery_single_candidate_min_reid: 0.90
+    recovery_single_candidate_min_combined: 0.82
+    max_lost_keep_id_sec: 3.0
+
+    reid_weight: 0.75
+    color_weight: 0.20
+    gait_identity_weight: 0.10
+
+
+    # Gait / body-shape identity check from uploaded gait repo.
+    # During enrollment ask target A to walk slowly / shift weight for a few seconds.
+    enable_gait: true
+    gait_required_for_recovery: true
+    gait_required_for_enrollment: true
+    gait_sample_every_n_frames: 1
+    gait_window: 45
+    gait_min_frames: 6
+    gait_gallery_size: 80
+    gait_current_min_score: 0.45
+    gait_recovery_min_score: 0.50
+    gait_model_complexity: 1
+    gait_min_detection_confidence: 0.20
+    gait_min_tracking_confidence: 0.20
+    gait_min_landmark_visibility: 0.0
+
+    camera_fov_deg: 62.0
+
+    draw_all_tracks: true
+    publish_debug_image: true
+    target_topic: "/person_reid/target"
+    debug_image_topic: "/person_reid/debug_image"
+    command_topic: "/person_reid/command"
+    start_enroll_service: "/person_reid/start_enroll"
+    finish_enroll_service: "/person_reid/finish_enroll"
+    reset_service: "/person_reid/reset"
+
+    processing_hz: 8.0
+    frame_skip: 0
+    show_window: true

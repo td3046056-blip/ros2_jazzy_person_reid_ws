@@ -1,0 +1,12 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="custom_robot">
+
+  <xacro:include filename="$(find robot_simulation)/urdf/materials.xacro"/>
+  <xacro:include filename="$(find robot_simulation)/urdf/robot_core.xacro"/>
+  <xacro:include filename="$(find robot_simulation)/urdf/ros2_control.xacro"/>
+  <xacro:include filename="$(find robot_simulation)/urdf/gazebo.xacro"/>
+
+  <xacro:ros2_control/>
+  <xacro:gazebo_plugins/>
+
+</robot>

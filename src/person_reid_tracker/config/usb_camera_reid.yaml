@@ -1,0 +1,63 @@
+camera_reid_node:
+  ros__parameters:
+    # Change this to your USB camera path after running ./scripts/list_cameras.py
+    camera_source: "/dev/video2"
+    frame_width: 640
+    frame_height: 480
+
+    model_weights: ""
+    deepsort_ckpt: ""
+
+    device: "cpu"
+    use_cuda: false
+    img_size: 640
+
+    det_conf_thres: 0.50
+    det_iou_thres: 0.50
+    person_class_id: 0
+
+    deepsort_max_age: 90
+    deepsort_n_init: 3
+    deepsort_max_dist: 0.20
+
+    min_stable_frames: 3
+    initial_select_mode: "largest_box"
+    max_lost_sec: 5.0
+
+    reid_threshold: 0.85
+    reid_margin: 0.15
+    reid_gallery_size: 30
+    update_gallery_every_n_frames: 5
+    spatial_gate_px: 220.0
+
+    # Strict target lock: periodically verify the current DeepSORT ID.
+    # This prevents the target bbox from silently jumping to another person when DeepSORT ID switches.
+    verify_current_track: true
+    verify_every_n_frames: 5
+    current_min_reid: 0.42
+    current_min_color: 0.18
+    current_min_combined: 0.48
+    verification_fail_limit: 2
+
+    # ReID recovery after target ID is lost. Raise these if it recovers the wrong person.
+    reid_match_mode: "max"
+    recover_min_combined: 0.72
+    recover_min_reid_for_combined: 0.45
+    recover_min_color: 0.20
+    reid_weight: 0.70
+    color_weight: 0.30
+    min_bbox_area: 1200
+
+    camera_fov_deg: 62.0
+
+    draw_all_tracks: true
+    publish_debug_image: true
+    target_topic: "/person_reid/target"
+    debug_image_topic: "/person_reid/debug_image"
+
+    processing_hz: 15.0
+    frame_skip: 0
+
+    # true opens an OpenCV preview window on Ubuntu Desktop.
+    # If you run over SSH/headless, keep false and use rqt_image_view on a desktop session.
+    show_window: true

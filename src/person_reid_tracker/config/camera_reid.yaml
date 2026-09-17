@@ -1,0 +1,68 @@
+camera_reid_node:
+  ros__parameters:
+    # Camera can be "0", "/dev/video0", RTSP URL, or video file path.
+    camera_source: "0"
+    frame_width: 640
+    frame_height: 480
+
+    # Leave empty to use the bundled files from model_assets/ after colcon install.
+    model_weights: ""
+    deepsort_ckpt: ""
+
+    # Use cpu first. Change to cuda + use_cuda=true only after torch CUDA works on your machine.
+    device: "cpu"
+    use_cuda: false
+    img_size: 640
+
+    det_conf_thres: 0.50
+    det_iou_thres: 0.50
+    person_class_id: 0
+
+    # DeepSORT internals. Increase max_age if ID disappears too quickly.
+    deepsort_max_age: 90
+    deepsort_n_init: 3
+    deepsort_max_dist: 0.20
+
+    # Target lock behavior.
+    min_stable_frames: 3
+    initial_select_mode: "largest_box"   # largest_box or center_largest
+    max_lost_sec: 5.0
+
+    # ReID recovery behavior. If it recovers wrong person, raise threshold to 0.78-0.85.
+    # If it refuses to recover the right person, lower to 0.65-0.70.
+    reid_threshold: 0.78
+    reid_margin: 0.10
+    reid_gallery_size: 30
+    update_gallery_every_n_frames: 5
+    spatial_gate_px: 220.0
+
+    # Strict target lock: periodically verify the current DeepSORT ID.
+    # This prevents the target bbox from silently jumping to another person when DeepSORT ID switches.
+    verify_current_track: true
+    verify_every_n_frames: 5
+    current_min_reid: 0.42
+    current_min_color: 0.18
+    current_min_combined: 0.48
+    verification_fail_limit: 2
+
+    # ReID recovery after target ID is lost. Raise these if it recovers the wrong person.
+    reid_match_mode: "max"
+    recover_min_combined: 0.66
+    recover_min_reid_for_combined: 0.45
+    recover_min_color: 0.20
+    reid_weight: 0.70
+    color_weight: 0.30
+    min_bbox_area: 1200
+
+    # Used only for publishing approximate horizontal angle from bbox center.
+    camera_fov_deg: 62.0
+
+    # By default, only target bbox is drawn. Set true for debugging all DeepSORT IDs.
+    draw_all_tracks: false
+    publish_debug_image: true
+    target_topic: "/person_reid/target"
+    debug_image_topic: "/person_reid/debug_image"
+
+    processing_hz: 15.0
+    frame_skip: 0
+    show_window: false

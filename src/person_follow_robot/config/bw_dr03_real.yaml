@@ -1,0 +1,19 @@
+bw_dr03_decoded_serial_node:
+  ros__parameters:
+    port: "/dev/bw_dr03"
+    baudrate: 115200
+
+    # Conservative real robot limits. These match your calibrated test package.
+    max_percent: 30
+    max_linear: 0.226
+    max_angular: 1.10
+    deadband: 0.02
+    stop_brake: 30
+    cmd_timeout: 1.0
+
+    wheel_radius: 0.0632
+    wheel_separation: 0.40
+    encoder_ppr_default: 750
+    odom_frame_id: "odom"
+    base_frame_id: "base_link"
+    publish_tf: true
