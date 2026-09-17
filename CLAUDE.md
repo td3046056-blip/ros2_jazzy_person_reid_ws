@@ -179,7 +179,7 @@ Vật bên trái là **tấm phẳng**, kiểm chứng bằng mô hình `d(θ) =
 
 Ba nguồn độc lập cùng cho `lidar_yaw_offset_deg = -90.0`: phép đo, `robot_rssi_ros2/SYSTEM_CONTEXT.md` (`lidar_front_center_deg: 90.0`), và bytecode khôi phục từ `vfh_rssi_controller.cpython-312.pyc`.
 
-**Tốc độ driver:** `scripts/measure_speed.py` đo 58% PWM → 0.475 m/s, 29% → 0.238, 13% → 0.107 — tuyến tính, không vùng chết. Thước 1.50 m so với odom 1.503 m. Xoay 43% → 1.763 rad/s (theo odom). `max_linear = 60 × 0.475 / 58 = 0.49`, `max_angular = 60 × 1.763 / 43 = 2.46`. Chi tiết trong `CALIBRATION.md`.
+**Tốc độ driver:** `scripts/measure_speed.py` đo 58% PWM → 0.475 m/s, 29% → 0.238, 13% → 0.107 — tuyến tính, không vùng chết. Thước 1.50 m so với odom 1.503 m. Xoay 43% → 1.763 rad/s (theo odom). `max_linear = 60 × 0.475 / 58 = 0.49`, `max_angular = 60 × 1.763 / 43 = 2.46`. **Kiểm chứng sau khi sửa (17/09):** lệnh 0.22 → thước 64.5 cm / odom 64.0 cm (~0.213 m/s); lệnh xoay 0.8 → thật 135° / odom 130.9° (~0.80 rad/s); ở 5% PWM bánh vẫn quay. Chi tiết trong `CALIBRATION.md`.
 
 ---
 
@@ -645,7 +645,7 @@ Các mục sau **chưa được kiểm chứng**. Không tự đoán, hãy hỏi
 
 8. **Nội dung chi tiết của `person_follow_identity`** — đã đọc `node.py` và `core.py` để lấy định dạng payload, nhưng **chưa kiểm chứng toàn bộ các trường** ở runtime.
 
-9. **Độ chính xác odom** (`encoder_ppr_default: 750`) — **quãng đường đã kiểm chứng** (16/09): thước 1.50 m / odom 1.503 m. **Góc xoay chưa kiểm chứng**: phụ thuộc `wheel_separation 0.40`, và `max_angular 2.46` được tính từ số này.
+9. **Độ chính xác odom** (`encoder_ppr_default: 750`) — **quãng đường đã kiểm chứng** (16/09): thước 1.50 m / odom 1.503 m. **Góc xoay: odom đếm thiếu ~3%** (thật 135° / odom 130.9°; 34° / 33°) → `wheel_separation` hiệu dụng ≈ 0.388 thay vì 0.40. **Chưa đổi** — đọc góc bằng mắt sai 1–3°, cần xoay ~2 vòng (`measure_speed.py 0.0 --w 0.8 --sec 15`) để chốt. Nếu đổi thì tính lại `max_angular` (≈ 2.52), vì 2.46 lấy từ odom.
 
 10. **Nguyên nhân lỗi giai đoạn 3 hiện tại** — chưa có kết quả `diagnose.py`.
 
@@ -653,4 +653,4 @@ Các mục sau **chưa được kiểm chứng**. Không tự đoán, hãy hỏi
 
 12. **Planner kẹt đứng yên vĩnh viễn cạnh vật cản (thấy trong mô phỏng, chưa sửa).** Test 5 của `test_sim.py` chỉ ĐẠT với đúng kịch bản gốc. Dời người chen ngang 5 cm, hoặc cho người đi 0.10 m/s, thì 11/18 biến thể xe dừng cách người chen ~0.28 m rồi đứng yên mãi ở `AVOID` (DWA chọn v=w=0). `stuck_time_sec` được khai báo nhưng không dùng → xe thật không có cơ chế thoát kẹt. Hạ `v_max` xuống ≤ 0.21 cũng làm test 5 `LOI` vì cùng lý do.
 
-13. **Bánh có quay ở 5% PWM không?** Sau khi sửa `max_linear`, lệnh nhỏ nhất của planner (`min_move_linear 0.035`, `min_move_angular 0.10`) đều ra 5% (trước là 9% và 5%). Nhỏ nhất đã đo là 13%. Kiểm tra: `measure_speed.py 0.035` và `measure_speed.py 0.0 --w 0.10`.
+13. **ĐÃ XÁC NHẬN 17/09 — bánh quay được ở 5% PWM.** Lệnh nhỏ nhất của planner (`min_move_linear 0.035`, `min_move_angular 0.10`) đều ra 5%. Đo: `measure_speed.py 0.035` → thước 11.5 cm / odom 11.4 cm; `--w 0.10` → thật 34° / odom 33°. Giữ nguyên hai tham số.

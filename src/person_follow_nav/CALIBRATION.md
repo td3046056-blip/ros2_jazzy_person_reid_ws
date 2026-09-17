@@ -388,12 +388,27 @@ Sau khi sửa: lệnh 0.22 m/s → 26% → ~0.213 m/s thật; lệnh xoay 0.80 �
 Thấp hơn lệnh ~3% do driver cắt phần lẻ, lệch về phía an toàn.
 
 Lệnh nhỏ nhất của planner (`min_move_linear 0.035`, `min_move_angular 0.10`) giờ đều ra 5%
-PWM (trước là 9% và 5%). **[CẦN XÁC NHẬN]** bánh có quay ở 5% không:
+PWM (trước là 9% và 5%).
 
-```bash
-python3 src/person_follow_nav/scripts/measure_speed.py 0.035
-python3 src/person_follow_nav/scripts/measure_speed.py 0.0 --w 0.10
-```
+### Kiểm chứng sau khi sửa (17/09/2026)
+
+| Lệnh | PWM | Odom ổn định | Odom tổng | Đo thật |
+|---|---|---|---|---|
+| v = 0.22 m/s | 26% | 0.211 m/s | 0.640 m | 0.645 m |
+| v = 0.035 m/s | 5% | 0.041 m/s | 0.114 m | 0.115 m |
+| w = 0.80 rad/s | ±19% | 0.773 rad/s | quay 130.9° | 135° |
+| w = 0.10 rad/s | ±5% | 0.204 rad/s | quay 33.0° | 34° |
+
+- **Đi thẳng đúng:** lệnh 0.22 → thật ~0.213 m/s, thấp hơn 3% do driver cắt phần lẻ như dự tính.
+- **Bánh vẫn quay ở 5% PWM** cả đi thẳng lẫn xoay → giữ `min_move_linear 0.035` và
+  `min_move_angular 0.10`. Lệnh xoay 0.10 thật ra ~0.21 rad/s vì driver ép tối thiểu 5%
+  (trước khi sửa cũng vậy).
+- **Xoay đúng lệnh:** tính theo góc đo thật, lệnh 0.80 → ~0.80 rad/s. Giữ `max_angular 2.46`.
+- **Odom đếm góc thiếu ~3%** ở cả hai lần (130.9° / 135°, 33° / 34°) → `wheel_separation`
+  hiệu dụng ≈ 0.40 × 130.9 / 135 = **0.388 m**. **[CẦN XÁC NHẬN] — chưa đổi**, vì đọc góc bằng
+  mắt cũng sai 1–3°. Muốn chốt: `measure_speed.py 0.0 --w 0.8 --sec 15` (~2 vòng) rồi so góc.
+  Nếu đổi `wheel_separation` thì phải tính lại `max_angular` (≈ 2.52) vì số đó lấy từ odom.
+  Ảnh hưởng hiện tại nhỏ: tracker chỉ nhớ vị trí người 2.5 s, quay 35° thì lệch ~1°.
 
 ## Khi nào phải đo lại
 
