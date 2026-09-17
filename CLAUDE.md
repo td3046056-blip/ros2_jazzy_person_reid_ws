@@ -463,9 +463,9 @@ Planner log mỗi 10 giây: `self-filter: bo N/M tia dap vao than xe` (M = số 
 - `preflight.sh`: `/scan` 9.9 Hz, `/odom` 50.2 Hz, đúng 1 nguồn ghi `/cmd_vel`, `/follow/stop` sẵn sàng. Cảnh báo "n_obstacles=0" là **báo sai** do `ros2 topic echo` cắt chuỗi — đã sửa bằng `--full-length`.
 - `diagnose.py`: LiDAR **đang quay** (33% tia thay đổi giữa hai vòng, 9.8 Hz, 66% tia hợp lệ); planner thấy 109 vật cản; bộ lọc bỏ 19/227 điểm; độ thoáng quanh footprint 0.838 m. `ros2 node list | grep -c sc_mini` = 1.
 - `fake_target.py 1.2`: xe dừng trước vật cản, không va chạm (3.1 đạt).
-- `fake_target.py 2.5`: xe **né được** vật cản. **[CẦN XÁC NHẬN]** bố trí nào trong bảng 3.2–3.7.
+- `fake_target.py 2.5`, vật cản **giữa đường** cách mũi ~1 m: xe **né ổn** (người dùng xác nhận). `diagnose.py` lần có vật cản: vật gần nhất trước mặt 1.12 m tại +2° (= 0.98 m từ mũi, khớp thực tế → kiểm chứng thêm hiệu chỉnh LiDAR); bộ lọc bỏ 22/220; `preflight.sh` đã sửa đọc đúng `n_obstacles=135`. (Lần `diagnose.py` đầu chưa đặt vật cản nên chỉ thấy vật ở 2.20 m.)
 
-**Còn lại:** chạy đủ và ghi từng kịch bản 3.2–3.7 trong README (nghiệm thu 6/6, không va chạm). Lỗi kẹt 13.12 dễ lộ ra ở 3.3/3.4.
+**Còn lại:** chạy đủ và ghi từng kịch bản 3.2–3.7 trong README (nghiệm thu 6/6, không va chạm) — vật cản giữa đường ở trên không nằm trong bảng; 3.3/3.4 là thùng **lệch 20 cm**. Lỗi kẹt 13.12 dễ lộ ra ở 3.3/3.4.
 
 ### Chưa làm
 
