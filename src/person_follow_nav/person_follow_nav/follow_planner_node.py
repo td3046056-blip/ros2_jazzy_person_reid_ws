@@ -234,6 +234,10 @@ class FollowPlannerNode(Node):
             # xoay tai cho ve huong nho cuoi truoc, xuong duoi mot nua goc nay moi tien toi.
             # 0 = tat.
             "occluded_turn_deg": 15.0,
+            # Kiem tra duong bi chan toi TAN CHO NGUOI (tru ban kinh nay quanh ho), khong
+            # chi toi dich. Dich cach nguoi follow_distance nen nguoi thu hai dung chen
+            # thuong dung dung tai dich -> kiem tra toi dich thoi thi khong thay chan.
+            "target_clear_radius_m": 0.45,
 
             # Chuyen trang thai
             # Tang chon khe (VFH) chay truoc DWA
@@ -337,6 +341,7 @@ class FollowPlannerNode(Node):
         self.fov_keep_rad = math.radians(float(g("fov_keep_deg")))
         self.fov_only_visible = bool(g("fov_cost_only_when_visible"))
         self.occluded_turn_rad = math.radians(float(g("occluded_turn_deg")))
+        self.target_clear_r = float(g("target_clear_radius_m"))
 
         self.probe_distances = [float(x) for x in g("probe_distances")]
         self.min_speed_scale = float(g("min_speed_scale"))
@@ -904,9 +909,14 @@ class FollowPlannerNode(Node):
         gx = goal_r * math.cos(goal_b)
         gy = goal_r * math.sin(goal_b)
 
-        # ── Duong thang toi dich co bi chan khong? ───────────────────────
+        # ── Duong thang toi NGUOI co bi chan khong? ──────────────────────
+        # Kiem tra toi cach nguoi target_clear_radius_m (bo qua chan chinh ho), khong chi toi
+        # dich: nguoi thu hai buoc vao giua thuong dung ngay diem dich (cach nguoi 1 m), nam
+        # ngoai doan xe->dich nen truoc day khong bi coi la chan -> xe di thang toi ho.
+        chk_r = max(goal_r, dist - self.target_clear_r)
         corridor = self.half_width * self.block_corridor_scale + self.margin_hard
-        blocked, block_dist = segment_blocked(self.obstacles, gx, gy, corridor)
+        blocked, block_dist = segment_blocked(
+            self.obstacles, chk_r * math.cos(goal_b), chk_r * math.sin(goal_b), corridor)
 
         if blocked:
             self.clear_since = 0.0
@@ -971,7 +981,9 @@ class FollowPlannerNode(Node):
             return
 
         # ── TANG 1: chon huong di qua khe (VFH) ──────────────────────────
-        phi, reach, _direct = self._choose_heading(goal_b, goal_r, bearing)
+        # Do khe toi tan cho nguoi (chk_r) de huong thang bi chan boi nguoi thu hai thi
+        # chon khe ben canh; dich phu ben duoi van gioi han trong goal_r.
+        phi, reach, _direct = self._choose_heading(goal_b, chk_r, bearing)
 
         if phi is None:
             # Khong huong nao di duoc: xoay tai cho tim loi, hoac dung han

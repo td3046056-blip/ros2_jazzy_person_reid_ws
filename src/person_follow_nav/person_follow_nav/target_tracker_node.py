@@ -181,6 +181,10 @@ class TargetTrackerNode(Node):
             "person_range_min_m": 0.30,
             "person_range_max_m": 6.0,
             "lidar_distance_max_jump_m": 0.60,
+            # Cong chan nhay giu hieu luc toi da bay lau sau lan cuoi lidar khop duoc nguoi
+            # (khi camera van thay nguoi). Qua moc nay nhan lai cum lidar de dong bo lai,
+            # phong du doan da troi. Nguoi thu hai dung chan lau hon moc nay se bi bam nham.
+            "lidar_reject_max_sec": 3.0,
 
             # Fallback bbox (chi dung khi lidar khong thay)
             "bbox_fallback_enabled": True,
@@ -270,6 +274,7 @@ class TargetTrackerNode(Node):
         self.person_r_min = float(g("person_range_min_m"))
         self.person_r_max = float(g("person_range_max_m"))
         self.max_jump = float(g("lidar_distance_max_jump_m"))
+        self.lidar_reject_max = float(g("lidar_reject_max_sec"))
 
         self.bbox_fallback = bool(g("bbox_fallback_enabled"))
         self.bbox_h_1m = float(g("bbox_height_at_1m_px"))
@@ -527,12 +532,16 @@ class TargetTrackerNode(Node):
 
                 if self.use_lidar_distance and scan_fresh and new_scan:
                     c = self._pick_person_cluster(bearing, expect)
-                    # Chan cum nhay xa bat thuong so voi du doan — vd. chan nguoi vua khuat sau
-                    # goc tuong, cua so ±assoc_window bat nham mot doan tuong: nguoi khong the
-                    # dich chuyen lidar_distance_max_jump_m giua hai vong quet. Chi chan khi lidar
-                    # vua bam duoc nguoi (< 1 s); mat lau hon thi du doan da sai, phai nhan lai.
+                    # Chan cum nhay xa bat thuong so voi du doan. Hai truong hop that:
+                    #  - chan nguoi vua khuat sau goc tuong, cua so ±assoc_window bat nham tuong
+                    #  - NGUOI THU HAI dung chen giua xe va nguoi dang bam: cua so quanh huong
+                    #    camera gap chan ho truoc (chan nguoi dang bam bi che) -> bam nham
+                    # Giu cong khi van con phep do gan day (bbox cua camera cung tinh), toi da
+                    # lidar_reject_max_sec sau lan cuoi lidar khop — qua do nhan lai de dong bo.
+                    last_any_fix = max(self.last_lidar_fix_time, self.last_camera_fix_time)
                     if (c is not None and exp_bx is not None and self.max_jump > 0.0
-                            and (now - self.last_lidar_fix_time) < 1.0
+                            and (now - last_any_fix) < 1.0
+                            and (now - self.last_lidar_fix_time) < self.lidar_reject_max
                             and math.hypot(c.cx - exp_bx, c.cy - exp_by) > self.max_jump):
                         c = None
                     if c is not None:

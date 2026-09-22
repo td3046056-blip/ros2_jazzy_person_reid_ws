@@ -26,6 +26,8 @@ CACH DUNG
     CAM_HALF=25 python3 sim_follow.py -q thang re_trai_gat re_phai_gat ne_ngang_nhanh cheo_thoat
     CAM_HALF=25 CORNER=1 python3 sim_follow.py -q goc_tuong
     CAM_HALF=25 HIDE_LEGS_DEG=25 python3 sim_follow.py -q thoat_khung
+    CAM_HALF=25 python3 sim_follow.py -q chan_giua cat_ngang chan_sat   # nguoi thu hai (22/09)
+    CAM_OCCLUDE=1 ...  nguoi thu hai che ca camera khi dung tren tia nhin toi muc tieu
 
   Moi kich ban mat 1-3 phut. Chi so: |goc| = lech giua mui xe va nguoi THAT (do),
   ngoai_khung = % thoi gian nguoi ngoai ±CAM_HALF, doi_chieu_w = so lan lenh xoay doi
@@ -125,9 +127,10 @@ class Person:
                 (x - c * swing + s * 0.11, y - s * swing - c * 0.11, 0.06)]
 
 
-def run(name, path, T, report_every=0.5, verbose=True):
+def run(name, path, T, report_every=0.5, verbose=True, intruder=None):
     tr, pl = make_nodes()
     person = Person(path)
+    other = Person(intruder) if intruder else None
     rob = dict(x=0.0, y=0.0, yaw=0.0, v=0.0, w=0.0, cv=0.0, cw=0.0)
 
     def cmd_cb(msg):
@@ -158,6 +161,7 @@ def run(name, path, T, report_every=0.5, verbose=True):
         rob["yaw"] = wrap(rob["yaw"] + rob["w"] * dt)
 
         px, py, ph, psp = person.path(t)
+        ipos = intruder(t) if intruder else None     # nguoi thu hai (x, y, huong, toc do) hoac None
         rel_b = wrap(math.atan2(py - rob["y"], px - rob["x"]) - rob["yaw"])
         rel_d = math.hypot(px - rob["x"], py - rob["y"])
 
@@ -172,7 +176,10 @@ def run(name, path, T, report_every=0.5, verbose=True):
             ly = rob["y"] + 0.10 * math.sin(rob["yaw"])
             world = rob["yaw"] + np.radians(np.arange(360.0) - 90.0)
             hide = os.environ.get("HIDE_LEGS_DEG") and abs(rel_b) > math.radians(float(os.environ["HIDE_LEGS_DEG"])) and t > 3.0
-            rr = raycast(lx, ly, world, [] if hide else person.legs(t))
+            circles = [] if hide else person.legs(t)
+            if ipos is not None:
+                circles = circles + other.legs(t)
+            rr = raycast(lx, ly, world, circles)
             rr = rr + RNG.normal(0, 0.01, rr.shape)
             rr[270:290] = 0.128                      # than xe
             rr[rr > 10.0] = np.inf
@@ -182,6 +189,12 @@ def run(name, path, T, report_every=0.5, verbose=True):
             pl._scan_cb(scan)
         if k % 75 == 0:      # camera 8 Hz, chup luc nay, giao sau 150 ms
             blk = raycast(rob["x"], rob["y"], np.array([math.atan2(py - rob["y"], px - rob["x"])]), [])[0] < rel_d - 0.05
+            if ipos is not None and os.environ.get("CAM_OCCLUDE"):
+                # nguoi thu hai che camera neu dung gan tia nhin toi muc tieu
+                ux, uy = (px - rob["x"]) / rel_d, (py - rob["y"]) / rel_d
+                qx, qy = ipos[0] - rob["x"], ipos[1] - rob["y"]
+                along = qx * ux + qy * uy
+                blk = blk or (0.0 < along < rel_d and abs(-qx * uy + qy * ux) < 0.25)
             found = (not blk) and abs(rel_b) <= math.radians(float(os.environ.get("CAM_HALF", "31"))) and 0.4 < rel_d < 8.0
             ang = -math.degrees(rel_b) + RNG.normal(0, 0.8)
             h = 420.0 / max(0.3, rel_d)
@@ -201,14 +214,22 @@ def run(name, path, T, report_every=0.5, verbose=True):
             eb = tj.get("bearing_deg")
             rows.append(dict(t=t, rx=rob["x"], ry=rob["y"], yaw=math.degrees(rob["yaw"]), d=rel_d,
                              b=math.degrees(rel_b), eb=eb, src=tj.get("source"), st=status.get("state"),
-                             v=rob["cv"], w=rob["cw"], spd=tj.get("speed")))
+                             v=rob["cv"], w=rob["cw"], spd=tj.get("speed"), px=px, py=py,
+                             ex=tj.get("odom_x"), ey=tj.get("odom_y"),
+                             ix=None if ipos is None else ipos[0], iy=None if ipos is None else ipos[1],
+                             rgap=None if ipos is None else math.hypot(ipos[0] - rob["x"], ipos[1] - rob["y"])))
     if verbose:
         print(f"\n=== {name} ===")
-        print("   t    xe_x  xe_y   yaw | d_that goc_that goc_uoc | nguon         trang_thai |   v     w    v_nguoi_uoc")
+        print("   t    xe_x  xe_y   yaw | d_that goc_that goc_uoc | nguon         trang_thai |   v     w    v_nguoi_uoc"
+              + (" | sai_uoc  xe->ng2" if intruder else ""))
         for r in rows:
             eb = "  -  " if r["eb"] is None else f"{r['eb']:6.1f}"
+            extra = ""
+            if intruder:
+                err = "  -  " if r["ex"] is None else f"{math.hypot(r['ex'] - r['px'], r['ey'] - r['py']):5.2f}"
+                extra = f" | {err}  " + ("  -  " if r["rgap"] is None else f"{r['rgap']:5.2f}")
             print(f"{r['t']:5.1f} {r['rx']:5.2f} {r['ry']:5.2f} {r['yaw']:6.1f} | {r['d']:5.2f} {r['b']:7.1f} {eb} | "
-                  f"{str(r['src']):13s} {str(r['st']):9s} | {r['v']:5.2f} {r['w']:5.2f}  {r['spd']}")
+                  f"{str(r['src']):13s} {str(r['st']):9s} | {r['v']:5.2f} {r['w']:5.2f}  {r['spd']}{extra}")
     return rows
 
 
@@ -260,6 +281,20 @@ def corner(t, v=0.5, x0=1.4, xt=3.4, R=0.3, walk=5.0):
     return (xt + R, R + s, math.pi / 2, v if t - t1 - al < walk else 0.0)
 
 
+def blocker(t, x=2.2, t_in=5.0, stay=6.0, v=1.0, y0=1.6):
+    """Nguoi thu hai: buoc tu ben TRAI vao dung chan tai (x, 0) `stay` giay roi buoc ra ben PHAI."""
+    tw = y0 / v
+    if t < t_in:
+        return None
+    if t < t_in + tw:
+        return (x, y0 - v * (t - t_in), -math.pi / 2, v)
+    if t < t_in + tw + stay:
+        return (x, 0.0, -math.pi / 2, 0.0)
+    if t < t_in + 2 * tw + stay:
+        return (x, -v * (t - t_in - tw - stay), -math.pi / 2, v)
+    return None
+
+
 SCEN = {
     "thang": (lambda t: straight(t), 24.0),
     "re_trai": (lambda t: turn(t, +1), 30.0),
@@ -272,6 +307,12 @@ SCEN = {
     "goc_tuong": (lambda t: corner(t), 22.0),
     "thoat_khung": (lambda t: sidestep(t, 1.2, 1.2, t1=4.0, x0=1.5), 16.0),
     "goc_tuong_rong": (lambda t: corner(t, v=0.35, x0=1.4, xt=3.2, R=0.6, walk=4.0), 26.0),
+    # nguoi thu hai buoc vao giua xe va muc tieu dang di thang (4.3/4.4)
+    "chan_giua": (lambda t: straight(t), 20.0, lambda t: blocker(t)),
+    # nguoi thu hai di cat ngang khong dung lai (4.3)
+    "cat_ngang": (lambda t: straight(t), 16.0, lambda t: blocker(t, stay=0.0)),
+    # nguoi thu hai dung sat truoc muc tieu (0.4 m) — vung cong chan nhay khong phan biet duoc
+    "chan_sat": (lambda t: straight(t, v=0.0, x0=2.6), 16.0, lambda t: blocker(t, x=2.2, t_in=4.0, stay=5.0)),
 }
 
 
@@ -296,6 +337,13 @@ def metrics(name, rows):
           f"predicted={100*np.mean(pred[m]):4.0f}% mat_cam_dai_nhat={best:4.1f}s "
           f"doi_chieu_w={flips:3d} d_cuoi={d[-1]:4.2f} yaw_cuoi={yaw[-1]:6.1f} goc_cuoi={b[-1]:6.1f} "
           f"SEARCH={'co' if 'SEARCH' in st else 'khong'} tt_cuoi={st[-1]}")
+    occ = [r for r in rows if r["ix"] is not None and r["ex"] is not None]
+    if occ:
+        err = [math.hypot(r["ex"] - r["px"], r["ey"] - r["py"]) for r in occ]
+        wrong = [math.hypot(r["ex"] - r["ix"], r["ey"] - r["iy"]) < math.hypot(r["ex"] - r["px"], r["ey"] - r["py"])
+                 for r in occ]
+        print(f"{'':15s} khi co nguoi thu hai: sai_uoc_max={max(err):4.2f} m, uoc_gan_ng2_hon={100*np.mean(wrong):4.0f}%, "
+              f"xe_gan_ng2_nhat={min(r['rgap'] for r in occ):4.2f} m (tam xe->tam nguoi)")
 
 
 if __name__ == "__main__":
@@ -303,6 +351,7 @@ if __name__ == "__main__":
     quiet = "-q" in args
     names = [a for a in args if a != "-q"] or list(SCEN)
     for nm in names:
-        f, T = SCEN[nm]
-        rows = run(nm, f, T, report_every=0.1, verbose=not quiet)
+        f, T = SCEN[nm][0], SCEN[nm][1]
+        intr = SCEN[nm][2] if len(SCEN[nm]) > 2 else None
+        rows = run(nm, f, T, report_every=0.1, verbose=not quiet, intruder=intr)
         metrics(nm, rows)

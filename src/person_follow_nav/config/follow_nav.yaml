@@ -64,6 +64,10 @@ target_tracker_node:
     # Cum lidar cach vi tri du doan hon muc nay -> bo (vd. bat nham canh tuong khi
     # nguoi vua khuat sau goc). Chi ap dung khi lidar vua bam duoc nguoi < 1 s.
     lidar_distance_max_jump_m: 0.60
+    # Cong tren giu hieu luc toi da bay lau sau lan cuoi lidar khop (khi camera van thay
+    # nguoi): nguoi thu hai dung chen giua xe va nguoi dang bam se khong bi bam nham trong
+    # khoang nay. Qua moc thi nhan lai cum lidar de dong bo, phong du doan troi.
+    lidar_reject_max_sec: 3.0
 
     # Chi dung khi LiDAR khong thay gi (nguoi bi ban che chan, ...)
     bbox_fallback_enabled: true
@@ -198,6 +202,9 @@ follow_planner_node:
     # tai cho ve huong nho cuoi truoc, xuong duoi mot nua goc nay moi tien toi. Goc du
     # doan thuong tre hon that ~10 do nen dat thap hon nua FOV (31). 0 = tat.
     occluded_turn_deg: 15.0
+    # Kiem tra duong bi chan toi tan cho nguoi dang bam (tru ban kinh nay quanh ho), khong
+    # chi toi dich — nguoi thu hai dung chen thuong dung ngay diem dich.
+    target_clear_radius_m: 0.45
 
     # ── Tang chon khe (VFH) chay TRUOC DWA ────────────────────────────────
     # Quet cac huong -100..+100 do, thu di duoc bao xa. Thu lan luot tu xa ve gan.
