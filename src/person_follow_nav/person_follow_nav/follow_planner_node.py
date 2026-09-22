@@ -584,6 +584,25 @@ class FollowPlannerNode(Node):
 
         return None, 0.0, False
 
+    def _gap_side(self, goal_bearing: float, reach_dist: float, target_bearing: float) -> int:
+        """Ben ne theo KHE DI DUOC that su: +1 trai, -1 phai, 0 = khong ro.
+
+        Chay tang chon khe khi CHUA thien vi ben nao, xem huong tot nhat lech ve phia nao so
+        voi huong dich. Tang chon khe kiem tra hanh lang rong bang xe nen biet khe cua o dau.
+        _choose_avoid_side chi so khoang trong trung binh hai ben — o khung cua hai ben gan
+        bang nhau, no roi vao nhanh "theo dau goc toi nguoi", tuc tung dong xu.
+        """
+        saved_side, saved_prev = self.avoid_side, self.last_heading
+        self.avoid_side = 0
+        phi, _reach, _direct = self._choose_heading(goal_bearing, reach_dist, target_bearing)
+        self.avoid_side, self.last_heading = saved_side, saved_prev
+        if phi is None:
+            return 0
+        d = wrap_pi(phi - goal_bearing)
+        if abs(d) < math.radians(2.0):
+            return 0
+        return 1 if d > 0 else -1
+
     def _choose_avoid_side(self, target_bearing: float) -> int:
         """Chon ne TRAI (+1) hay PHAI (-1).
 
@@ -909,14 +928,17 @@ class FollowPlannerNode(Node):
         gx = goal_r * math.cos(goal_b)
         gy = goal_r * math.sin(goal_b)
 
-        # ── Duong thang toi NGUOI co bi chan khong? ──────────────────────
-        # Kiem tra toi cach nguoi target_clear_radius_m (bo qua chan chinh ho), khong chi toi
-        # dich: nguoi thu hai buoc vao giua thuong dung ngay diem dich (cach nguoi 1 m), nam
-        # ngoai doan xe->dich nen truoc day khong bi coi la chan -> xe di thang toi ho.
+        # Tam do cho TANG CHON KHE: toi cach nguoi target_clear_radius_m (bo qua chan chinh ho).
+        # Nguoi thu hai buoc vao giua thuong dung ngay diem dich (cach nguoi 1 m) -> chi do toi
+        # dich thi huong thang van "thoang", xe di thang toi ho.
         chk_r = max(goal_r, dist - self.target_clear_r)
+
+        # ── Duong thang toi dich co bi chan khong? ───────────────────────
+        # CHI toi dich (khong toi chk_r): do toi tan cho nguoi thi di qua khung cua hep, tia
+        # nhin toi nguoi sat thanh cua -> vao AVOID, khoa nham ben tuong -> xe ep vao thanh cua.
+        # Tang chon khe (do toi chk_r) du de lai vong nguoi thu hai ma khong khoa ben.
         corridor = self.half_width * self.block_corridor_scale + self.margin_hard
-        blocked, block_dist = segment_blocked(
-            self.obstacles, chk_r * math.cos(goal_b), chk_r * math.sin(goal_b), corridor)
+        blocked, block_dist = segment_blocked(self.obstacles, gx, gy, corridor)
 
         if blocked:
             self.clear_since = 0.0
@@ -932,10 +954,15 @@ class FollowPlannerNode(Node):
 
         # ── Chon trang thai ──────────────────────────────────────────────
         if want_avoid:
+            # Chon ben theo khe di duoc (_gap_side); khong ro thi moi dung khoang trong hai ben.
+            # Het avoid_side_hold_sec thi chon LAI ca khi van bi chan — truoc day khoa chet ben da
+            # chon suot luc bi chan: o khung cua lo chon ben tuong la ep vao thanh cua mai.
             if self.avoid_side == 0 or (now - self.avoid_side_time) > self.avoid_hold:
-                if self.avoid_side == 0 or not blocked:
-                    self.avoid_side = self._choose_avoid_side(bearing)
-                    self.avoid_side_time = now
+                side = self._gap_side(goal_b, chk_r, bearing)
+                if side == 0:
+                    side = self.avoid_side if self.avoid_side != 0 else self._choose_avoid_side(bearing)
+                self.avoid_side = side
+                self.avoid_side_time = now
             self._set_state(S_AVOID)
         elif can_exit_avoid and self.state == S_AVOID:
             self.avoid_side = 0
@@ -946,6 +973,12 @@ class FollowPlannerNode(Node):
             self._set_state(S_ARRIVED)
         elif self.state not in (S_AVOID,):
             self._set_state(S_FOLLOW)
+
+        # Roi AVOID bang duong khac nhanh can_exit_avoid (OCCLUDED khi xoay ve phia nguoi,
+        # SEARCH, BLOCKED...) thi avoid_side van con -> c_side tiep tuc PHAT quay ve phia da ne:
+        # ne xong nguoi re ve phia do la xe xoay rat cham. Duong da thoang thi xoa.
+        if self.state != S_AVOID and not blocked:
+            self.avoid_side = 0
 
         # ── NGUOI RA KHOI CAMERA: xoay ve huong nho cuoi truoc ───────────
         # Camera co dinh nen phai QUAY XE moi thay lai nguoi. Camera khong thay (chi con

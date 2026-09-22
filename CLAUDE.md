@@ -331,6 +331,8 @@ Nguồn dữ liệu, ưu tiên giảm dần:
 
 **Chặn nhảy vị trí:** cụm LiDAR cách vị trí dự đoán > `lidar_distance_max_jump_m` (0.6 m) bị bỏ — khi còn phép đo gần đây (< 1 s, **bbox của camera cũng tính**) và chưa quá `lidar_reject_max_sec` (3 s) kể từ lần cuối LiDAR khớp. Nhờ vậy người thứ hai đứng chen giữa xe và người đang bám (chân họ nằm trong cửa sổ ±10° quanh hướng camera, chân người đang bám bị che) **không bị nhận nhầm** trong 3 s đầu; khoảng cách lấy từ bbox. Quá 3 s thì nhận lại cụm LiDAR để đồng bộ, phòng dự đoán trôi. Tham số max_jump trước 17/09 khai báo nhưng **không dùng**; bản 17/09 tự tắt sau 1 s không có LiDAR → vẫn bám nhầm (7.2-V).
 
+**Chặn vật che trước người (sửa 22/09, lần 2):** cụm LiDAR **gần xe hơn** vị trí dự đoán quá `occluder_margin_m` (0.3 m) bị bỏ — nó nằm giữa xe và người đang bám nên không thể là người đó. Áp cho cả ghép theo camera (cùng điều kiện với cổng nhảy ở trên) lẫn `_nearest_cluster_to` của `lidar_track`. Bắt được: người thứ hai đứng **sát** < 0.6 m trước người đang bám (cổng nhảy bỏ lọt), người đi ngang **che camera** (trước đây `lidar_track` vơ chân họ → xe bám theo người đi ngang), thanh cửa khi người đã qua cửa.
+
 **Vận tốc giảm dần khi mất hẳn:** hết `measurement_hold_sec` mà không có phép đo → `vx, vy *= e^(-dt/predict_velocity_decay_sec)` (1.0 s). Dự đoán dừng gần chỗ thấy người lần cuối thay vì trôi thẳng theo hướng cũ.
 
 ### 6.3 `follow_planner_node` — nguồn DUY NHẤT ghi `/cmd_vel`
@@ -375,7 +377,9 @@ Hàm chi phí:
 
 **Máy trạng thái:** `IDLE`, `FOLLOW`, `AVOID`, `OCCLUDED`, `SEARCH`, `ARRIVED`, `BLOCKED`, `ESTOP`.
 
-**Đường bị chắn tính tới tận chỗ người (sửa 22/09):** `segment_blocked` và tầng chọn khe kiểm tra tới `max(goal_r, dist − target_clear_radius_m)` (0.45 m), không chỉ tới điểm đích. Đích cách người `follow_distance` nên người thứ hai chen vào thường đứng **đúng tại đích** — trước đây nằm ngoài đoạn xe→đích nên không bị coi là chắn, xe cứ đi thẳng tới họ. Dịch phụ của DWA vẫn giới hạn trong `goal_r`.
+**Tầng chọn khe dò tới tận chỗ người (sửa 22/09):** `_choose_heading` dò tới `chk_r = max(goal_r, dist − target_clear_radius_m)` (0.45 m), không chỉ tới điểm đích. Đích cách người `follow_distance` nên người thứ hai chen vào thường đứng **đúng tại đích** → trước đây hướng thẳng vẫn "thoáng", xe đi thẳng tới họ. Dịch phụ của DWA vẫn giới hạn trong `goal_r`. **Điều kiện vào `AVOID` (`segment_blocked`) vẫn chỉ tới điểm đích** — bản đầu 22/09 đo tới `chk_r` làm tia ngắm qua khung cửa hẹp sát thanh cửa bị coi là chắn → vào `AVOID` → ép vào thanh cửa (7.2-W).
+
+**Chọn bên né (sửa 22/09, lần 2):** `_gap_side` chạy tầng chọn khe khi chưa thiên vị bên nào, lấy phía mà hướng tốt nhất lệch khỏi hướng đích; không rõ (< 2°) mới dùng `_choose_avoid_side` (khoảng trống trung bình hai bên — ở khung cửa hai bên gần bằng nhau nên nó rơi vào "theo dấu góc tới người", tức tung đồng xu). Hết `avoid_side_hold_sec` thì **chọn lại cả khi vẫn bị chắn** (trước đây khoá chết). Rời `AVOID` bằng bất kỳ đường nào (`OCCLUDED`, `SEARCH`…) mà đường tới đích đã thoáng thì **xoá `avoid_side`** — trước đây chỉ xoá ở nhánh `AVOID → FOLLOW`, còn lại `c_side` phạt mãi việc quay về phía đã né (7.2-X).
 
 **Vùng chết hướng (sửa 17/09):** người lệch < `bearing_deadband_deg` (4°) → đích coi như thẳng trước mũi (`goal_b = 0`). Góc cụm chân rung vài độ mỗi bước; không có vùng chết thì DWA bẻ lái ±0.1 rad/s liên tục.
 
@@ -457,6 +461,9 @@ Planner log mỗi 10 giây: `self-filter: bo N/M tia dap vao than xe` (M = số 
 | S | **Dự đoán vận tốc không đổi + không quay về phía người** | Người dùng báo: *"khi predicted xe chỉ đi thẳng"*. Mô phỏng góc tường: người rẽ khuất, dự đoán trôi thẳng, xe đi thẳng `w=0` rồi đứng yên | Giảm dần vận tốc; xoay về hướng nhớ cuối khi camera không thấy; SEARCH lái tới chỗ thấy lần cuối |
 | T | **`lidar_distance_max_jump_m` khai báo nhưng không dùng** | Mô phỏng: chân người khuất sau góc tường → cửa sổ ±10° bắt nhầm đoạn tường → vận tốc ước lượng vọt 1.75 m/s, dự đoán bay 75° | Cổng chặn nhảy vị trí (xem 6.2) |
 | V | **Bám nhầm người thứ hai đứng chen giữa + đích rơi đúng chỗ họ** (22/09) | Người dùng báo: *"người thứ 2 bước vào giữa thì xe cứ chạy thẳng về chân người thứ 2 dù camera vẫn thấy người đang bám"*. Mô phỏng: cổng chặn nhảy tự tắt sau 1 s không có LiDAR → nhận chân người thứ hai (58% thời gian ước lượng gần họ hơn, lệch tới 2.1 m), xe tới cách họ 0.62 m rồi đứng chờ | Cổng giữ khi camera còn thấy, tối đa `lidar_reject_max_sec`; kiểm tra đường chắn tới tận chỗ người (`target_clear_radius_m`) → xe `AVOID` vòng qua. **Đừng** tắt `lidar_track` khi camera còn thấy — đã thử, làm bước ngang nhanh mất camera 0.2 → 1.0 s |
+| W | **Khung cửa hẹp: có lần qua, có lần ép vào thanh cửa** (22/09) | Người dùng báo: *"có lần đi thẳng vào thanh cửa dù camera vẫn detect, như nhầm thanh cửa là chân người"*. Mô phỏng cửa 0.82 m, người đi lệch: **không phải nhầm chân** (sai ước lượng 0.23 m) — tia ngắm sát thanh cửa → `AVOID` → `_choose_avoid_side` hai bên bằng nhau → chọn theo dấu góc (+8.6° → trái = phía tường), khoá chết bên đó → xe quay +46° ép vào thanh cửa. Bản đầu 22/09 (vào `AVOID` khi đo tới tận người) làm hay gặp hơn | `_gap_side` chọn bên theo khe đi được; cho chọn lại sau `avoid_side_hold_sec`; `AVOID` chỉ xét tới điểm đích |
+| X | **Né xong người rẽ về phía đã né thì xe xoay rất chậm** (22/09) | Người dùng báo. Mô phỏng: sau khi rời `AVOID` qua `OCCLUDED`, `avoid_side` vẫn còn → mọi lệnh quay về phía đó bị cộng `0.9·\|w\|/0.8` → xe chỉ quay 0.10 rad/s dù người lệch 22° | Xoá `avoid_side` khi không còn `AVOID` và đường đã thoáng. Mô phỏng: lệch TB 20.8° → 11.3°, cuối kịch bản 20.5° → 2.5° |
+| Y | **Xe bám theo người đi ngang** (22/09) | Người dùng báo. Mô phỏng: người đi ngang che camera → `lidar_track` lấy cụm gần dự đoán nhất = chân người đi ngang → ước lượng lệch 0.92 m. Cổng nhảy sau đó còn "bảo vệ" dự đoán sai | Bỏ cụm gần xe hơn dự đoán quá `occluder_margin_m` (cả ghép camera lẫn `lidar_track`) → 0% bám nhầm |
 | U | **Xe lắc qua lại khi bám thẳng** | Người dùng báo: *"không bám thẳng theo người"*. Mô phỏng: `w` đổi chiều 42 lần / 22 s | Vùng chết hướng → 25 lần. Còn lắc nhẹ do góc cụm chân rung |
 
 ### 7.3 Lỗi môi trường / build
@@ -501,6 +508,8 @@ Trước đây người dùng báo *"lidar không xoay mà xe chỉ chạy thẳ
 **Kết quả 17/09:** bước 1–2 đạt — `/person_reid/target` 8.0 Hz, `/cmd_vel` ~14.8 Hz (ReID chạy CPU), `source = camera+lidar`. Chạy thử bám người, người dùng báo 3 vấn đề: xe không bám thẳng (lắc), rẽ theo không kịp, và khi `predicted` xe đi thẳng thay vì quay về hướng thấy người lần cuối. Đã sửa tracker + planner (lỗi 7.2-Q…U), kiểm bằng `scripts/sim_follow.py`. **[CẦN XÁC NHẬN] chưa chạy lại trên xe.**
 
 **Kết quả 22/09 (xe thật, sau bản 17/09):** người dùng xác nhận bám người "cải thiện rất tốt"; có `SEARCH` → `FOLLOW` khi mất rồi thấy lại. Lỗi còn: **người thứ hai chủ động bước vào giữa** thì xe đa số lần chạy thẳng tới chân họ dù camera vẫn thấy người đang bám; họ bước ra thì bám tốt lại. Log nguồn lúc đó nhảy `lidar_track`/`camera+bbox`. Đã sửa (7.2-V), kiểm bằng `sim_follow.py` kịch bản `chan_giua`/`cat_ngang`/`chan_sat`. **[CẦN XÁC NHẬN] chưa chạy lại trên xe.**
+
+**Kết quả 22/09 lần 2 (xe thật, bản 8f4b15c; log `source_*.txt`, `state_*.txt` ở gốc workspace):** trường hợp 1 (đứng chen giữa) xe vòng qua được. Người dùng báo thêm: (a) người thứ hai **đi ngang** thì xe như bám theo họ; (b) **qua khung cửa vừa xe**: có lần qua, có lần ép vào thanh cửa; (c) **né xong người rẽ nhanh** thì xe xoay chậm, dù bám bình thường rẽ tốt. Cả ba tái hiện được trong mô phỏng và đã sửa (7.2-W, X, Y). **[CẦN XÁC NHẬN] chưa chạy lại trên xe.**
 
 ### Chưa làm
 
@@ -645,6 +654,7 @@ ros2 service call /follow/stop std_srvs/srv/Trigger {}
 | Dự đoán "bay" theo hướng người đi khi mất hình | Giảm `predict_velocity_decay_sec` (1.0) |
 | Người thứ hai đứng chen lâu thì xe bám nhầm họ | Tăng `lidar_reject_max_sec` (3) — đổi lại lâu đồng bộ lại hơn nếu dự đoán trôi |
 | Xe đi vòng cả khi người thứ hai đứng xa ngoài đường / vòng nhầm chính người đang bám | Tăng `target_clear_radius_m` (0.45) |
+| Người đang bám đi về phía xe nhanh mà nguồn nhảy sang `camera+bbox` | Tăng `occluder_margin_m` (0.3) — đổi lại người thứ hai đứng sát trước dễ bị nhận nhầm hơn |
 | Xe quá rụt rè trong hành lang | Giảm `margin_soft` |
 | Xe cọ tường | Tăng `margin_hard` |
 
@@ -702,4 +712,4 @@ Các mục sau **chưa được kiểm chứng**. Không tự đoán, hãy hỏi
 
 15. **Tham số khai báo nhưng không dùng:** `fov_cost_only_when_visible` (DWA luôn bật chi phí FOV) và `stuck_time_sec` (xem 13.12). Chưa sửa.
 
-16. **Người thứ hai đứng SÁT trước người đang bám (< `lidar_distance_max_jump_m` = 0.6 m)** — cổng chặn không phân biệt được hai người; mô phỏng `chan_sat` (0.4 m): tracker vẫn bám nhầm 65% thời gian, xe dừng cách người thứ hai ~1 m và chờ, họ đi thì bám lại đúng. Chấp nhận được (không va chạm) nhưng chưa giải quyết. Khi xe vòng qua người thứ hai, khe hở với chân họ có thể chỉ cỡ `margin_hard` (6 cm) — margin đã hiệu chỉnh (mục 3), không đổi tự ý.
+16. **Người thứ hai đứng SÁT trước người đang bám** — bản 8f4b15c bám nhầm (mô phỏng `chan_sat` 0.4 m: 65%). Bản 22/09 lần 2 có cổng vật che (`occluder_margin_m`): mô phỏng **0%**. Vẫn chưa phân biệt được nếu người thứ hai đứng **ngang hàng** (cùng khoảng cách, lệch < ~10°) với người đang bám. Khi xe vòng qua người thứ hai, khe hở với chân họ có thể chỉ cỡ `margin_hard` (6 cm) — margin đã hiệu chỉnh (mục 3), không đổi tự ý.

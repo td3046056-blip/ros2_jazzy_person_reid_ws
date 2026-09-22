@@ -185,6 +185,9 @@ class TargetTrackerNode(Node):
             # (khi camera van thay nguoi). Qua moc nay nhan lai cum lidar de dong bo lai,
             # phong du doan da troi. Nguoi thu hai dung chan lau hon moc nay se bi bam nham.
             "lidar_reject_max_sec": 3.0,
+            # Cum lidar GAN XE HON vi tri du doan qua muc nay la vat CHAN TRUOC nguoi (nguoi thu
+            # hai di ngang/dung sat, thanh cua) — nguoi dang bam o SAU no, khong phai no. 0 = tat.
+            "occluder_margin_m": 0.30,
 
             # Fallback bbox (chi dung khi lidar khong thay)
             "bbox_fallback_enabled": True,
@@ -275,6 +278,7 @@ class TargetTrackerNode(Node):
         self.person_r_max = float(g("person_range_max_m"))
         self.max_jump = float(g("lidar_distance_max_jump_m"))
         self.lidar_reject_max = float(g("lidar_reject_max_sec"))
+        self.occluder_margin = float(g("occluder_margin_m"))
 
         self.bbox_fallback = bool(g("bbox_fallback_enabled"))
         self.bbox_h_1m = float(g("bbox_height_at_1m_px"))
@@ -473,6 +477,10 @@ class TargetTrackerNode(Node):
         for c in clusters:
             if not (self.person_w_min <= c.width_m <= self.person_w_max):
                 continue
+            # Camera thuong mat nguoi DUNG LUC co nguoi/vat di ngang truoc mat: cum do gan xe hon
+            # du doan -> la vat che, khong phai nguoi dang bam (truoc day xe bam theo nguoi di ngang)
+            if self.occluder_margin > 0.0 and c.range_m < rng - self.occluder_margin:
+                continue
             d = math.hypot(c.cx - tx, c.cy - ty)
             if d < best_d:
                 best_d = d
@@ -539,11 +547,15 @@ class TargetTrackerNode(Node):
                     # Giu cong khi van con phep do gan day (bbox cua camera cung tinh), toi da
                     # lidar_reject_max_sec sau lan cuoi lidar khop — qua do nhan lai de dong bo.
                     last_any_fix = max(self.last_lidar_fix_time, self.last_camera_fix_time)
-                    if (c is not None and exp_bx is not None and self.max_jump > 0.0
-                            and (now - last_any_fix) < 1.0
-                            and (now - self.last_lidar_fix_time) < self.lidar_reject_max
-                            and math.hypot(c.cx - exp_bx, c.cy - exp_by) > self.max_jump):
-                        c = None
+                    gate_on = (exp_bx is not None and (now - last_any_fix) < 1.0
+                               and (now - self.last_lidar_fix_time) < self.lidar_reject_max)
+                    if c is not None and gate_on:
+                        jump = self.max_jump > 0.0 and math.hypot(c.cx - exp_bx, c.cy - exp_by) > self.max_jump
+                        # Vat chan TRUOC nguoi (gan xe hon du doan qua occluder_margin): nguoi thu
+                        # hai dung sat < max_jump truoc nguoi dang bam van bi cong tren bo lot.
+                        occluder = self.occluder_margin > 0.0 and c.range_m < expect - self.occluder_margin
+                        if jump or occluder:
+                            c = None
                     if c is not None:
                         dist = c.range_m
                         # dung luon bearing cua cum — chinh xac hon ca camera o gan

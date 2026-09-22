@@ -27,6 +27,9 @@ CACH DUNG
     CAM_HALF=25 CORNER=1 python3 sim_follow.py -q goc_tuong
     CAM_HALF=25 HIDE_LEGS_DEG=25 python3 sim_follow.py -q thoat_khung
     CAM_HALF=25 python3 sim_follow.py -q chan_giua cat_ngang chan_sat   # nguoi thu hai (22/09)
+    CAM_HALF=25 CAM_OCCLUDE=1 python3 sim_follow.py -q cat_ngang_gan    # di ngang che camera
+    CAM_HALF=25 python3 sim_follow.py -q sau_ne_re                      # ne xong nguoi re gat
+    CAM_HALF=25 DOOR=3.2:0.82 python3 sim_follow.py -q qua_cua qua_cua_lech   # khung cua
     CAM_OCCLUDE=1 ...  nguoi thu hai che ca camera khi dung tren tia nhin toi muc tieu
 
   Moi kich ban mat 1-3 phut. Chi so: |goc| = lech giua mui xe va nguoi THAT (do),
@@ -87,6 +90,12 @@ def room(x0, y0, x1, y1):
 room(-4.0, -7.0, 14.0, 7.0)
 if os.environ.get("CORNER"):
     WALLS.append((-1.0, 1.0, float(os.environ.get("CORNER_X", "3.0")), 1.0))
+DOOR = None
+if os.environ.get("DOOR"):
+    # DOOR="x:rong" — tuong ngang qua x, chua mot cua rong `rong` o giua (y = 0)
+    _dx, _dw = (float(v) for v in os.environ["DOOR"].split(":"))
+    WALLS.extend([(_dx, -6.0, _dx, -_dw / 2), (_dx, _dw / 2, _dx, 6.0)])
+    DOOR = (_dx, _dw)
 WALLS_A = np.array(WALLS)
 
 
@@ -295,6 +304,25 @@ def blocker(t, x=2.2, t_in=5.0, stay=6.0, v=1.0, y0=1.6):
     return None
 
 
+def straight_then_turn(t, v1=0.20, x0=1.6, t1=12.0, v2=0.35, R=0.5, side=+1):
+    """Di thang cham toi t1 roi re gat 90 do (ban kinh R) nhanh hon, di tiep."""
+    if t < t1:
+        return (x0 + v1 * t, 0.0, 0.0, v1)
+    xs = x0 + v1 * t1
+    al = (math.pi / 2) * R / v2
+    if t < t1 + al:
+        th = (t - t1) * v2 / R
+        return (xs + R * math.sin(th), side * R * (1 - math.cos(th)), side * th, v2)
+    s_ = (t - t1 - al) * v2
+    return (xs + R, side * (R + s_), side * math.pi / 2, v2)
+
+
+def through_door(t, v=0.25, x0=1.6, y=0.0, x_end=6.0):
+    """Di thang qua cua (DOOR) theo duong y, toi x_end thi dung."""
+    x = min(x0 + v * t, x_end)
+    return (x, y, 0.0, v if x < x_end else 0.0)
+
+
 SCEN = {
     "thang": (lambda t: straight(t), 24.0),
     "re_trai": (lambda t: turn(t, +1), 30.0),
@@ -313,6 +341,13 @@ SCEN = {
     "cat_ngang": (lambda t: straight(t), 16.0, lambda t: blocker(t, stay=0.0)),
     # nguoi thu hai dung sat truoc muc tieu (0.4 m) — vung cong chan nhay khong phan biet duoc
     "chan_sat": (lambda t: straight(t, v=0.0, x0=2.6), 16.0, lambda t: blocker(t, x=2.2, t_in=4.0, stay=5.0)),
+    # 22/09 — nguoi thu hai di cat ngang SAT truoc muc tieu, cham (nen chay kem CAM_OCCLUDE=1)
+    "cat_ngang_gan": (lambda t: straight(t), 18.0, lambda t: blocker(t, x=2.55, t_in=5.0, stay=0.0, v=0.6)),
+    # vong qua nguoi thu hai xong, muc tieu re trai gat va nhanh hon
+    "sau_ne_re": (lambda t: straight_then_turn(t), 26.0, lambda t: blocker(t)),
+    # qua khung cua (chay kem DOOR=3.2:0.9)
+    "qua_cua": (lambda t: through_door(t), 26.0),
+    "qua_cua_lech": (lambda t: through_door(t, y=0.22), 26.0),
 }
 
 
@@ -337,6 +372,13 @@ def metrics(name, rows):
           f"predicted={100*np.mean(pred[m]):4.0f}% mat_cam_dai_nhat={best:4.1f}s "
           f"doi_chieu_w={flips:3d} d_cuoi={d[-1]:4.2f} yaw_cuoi={yaw[-1]:6.1f} goc_cuoi={b[-1]:6.1f} "
           f"SEARCH={'co' if 'SEARCH' in st else 'khong'} tt_cuoi={st[-1]}")
+    if DOOR is not None:
+        dx, dw = DOOR
+        jambs = [(dx, dw / 2), (dx, -dw / 2)]
+        jgap = min(math.hypot(r["rx"] - jx, r["ry"] - jy) for r in rows for (jx, jy) in jambs)
+        jerr = [math.hypot(r["ex"] - r["px"], r["ey"] - r["py"]) for r in rows if r["ex"] is not None]
+        print(f"{'':15s} qua cua: {'CO' if rows[-1]['rx'] > dx + 0.4 else 'KHONG'} (xe_x cuoi={rows[-1]['rx']:.2f}), "
+              f"tam_xe_gan_thanh_cua_nhat={jgap:.2f} m, sai_uoc_max={max(jerr) if jerr else float('nan'):.2f} m")
     occ = [r for r in rows if r["ix"] is not None and r["ex"] is not None]
     if occ:
         err = [math.hypot(r["ex"] - r["px"], r["ey"] - r["py"]) for r in occ]

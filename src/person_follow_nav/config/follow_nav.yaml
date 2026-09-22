@@ -61,13 +61,17 @@ target_tracker_node:
     person_width_max_m: 0.90
     person_range_min_m: 0.30
     person_range_max_m: 6.0
-    # Cum lidar cach vi tri du doan hon muc nay -> bo (vd. bat nham canh tuong khi
-    # nguoi vua khuat sau goc). Chi ap dung khi lidar vua bam duoc nguoi < 1 s.
+    # Cum lidar cach vi tri du doan hon muc nay -> bo (vd. bat nham canh tuong khi nguoi
+    # vua khuat sau goc, nguoi thu hai dung chen). Ap dung khi con phep do < 1 s (bbox camera
+    # cung tinh) va chua qua lidar_reject_max_sec ke tu lan cuoi lidar khop.
     lidar_distance_max_jump_m: 0.60
     # Cong tren giu hieu luc toi da bay lau sau lan cuoi lidar khop (khi camera van thay
     # nguoi): nguoi thu hai dung chen giua xe va nguoi dang bam se khong bi bam nham trong
     # khoang nay. Qua moc thi nhan lai cum lidar de dong bo, phong du doan troi.
     lidar_reject_max_sec: 3.0
+    # Cum lidar gan xe hon vi tri du doan qua muc nay = vat CHAN TRUOC nguoi (nguoi thu hai
+    # di ngang/dung sat, thanh cua) -> bo, ca khi ghep theo camera lan lidar_track. 0 = tat.
+    occluder_margin_m: 0.30
 
     # Chi dung khi LiDAR khong thay gi (nguoi bi ban che chan, ...)
     bbox_fallback_enabled: true
@@ -202,8 +206,9 @@ follow_planner_node:
     # tai cho ve huong nho cuoi truoc, xuong duoi mot nua goc nay moi tien toi. Goc du
     # doan thuong tre hon that ~10 do nen dat thap hon nua FOV (31). 0 = tat.
     occluded_turn_deg: 15.0
-    # Kiem tra duong bi chan toi tan cho nguoi dang bam (tru ban kinh nay quanh ho), khong
-    # chi toi dich — nguoi thu hai dung chen thuong dung ngay diem dich.
+    # Tang chon khe do toi tan cho nguoi dang bam (tru ban kinh nay quanh ho), khong chi toi
+    # dich — nguoi thu hai dung chen thuong dung ngay diem dich. (Dieu kien vao AVOID van do
+    # toi dich: do xa hon thi qua khung cua hep hay bi vao AVOID va ep vao thanh cua.)
     target_clear_radius_m: 0.45
 
     # ── Tang chon khe (VFH) chay TRUOC DWA ────────────────────────────────
