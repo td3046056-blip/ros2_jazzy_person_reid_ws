@@ -214,6 +214,27 @@ follow_planner_node:
     # 2*margin_hard) den muc nay, ngam vao truc vuong goc cua khe de canh xe roi chui qua.
     # Xe khong the di cheo qua khe hep (xem CLAUDE.md muc 9). 0 = tat.
     gap_waypoint_max_width_m: 1.20
+    # Canh truc khe TRUOC khi chui. Duoi xe dai 0.33 m nen di cheo la goc sau quet ra
+    # ngoai khung cua: lech 20 do o cua 0.81 m la cham. Khi xe lech truc duoi gap_axis_tol_m
+    # thi coi nhu da vao truc; neu luc do mui xe con lech qua gap_align_deg va con cach mat
+    # khe duoi gap_align_range_m, xe DUNG LAI XOAY cho vuong roi moi tien qua.
+    # Khe phai mo ra it nhat ngan nay goc nhin tu xe. Chan "khe gia": tia lidar quet DOC
+    # theo tuong o goc rat cheo lam hai tia lien nhau cach nhau ca met tren mat tuong,
+    # nhin ra nhu khe rong 0.8 m — xe bam vao do roi lao vao tuong canh cua.
+    gap_min_span_deg: 10.0
+    # Toc do khi chui qua khe (va khi lui ra de vao lai truc khe). Cham de con kip
+    # sua lech ngang: o cua 0.81 m, xe rong 0.60 m chi du moi ben ~10 cm.
+    gap_cross_speed: 0.12
+    # Chi lam dong tac chui khe khi mat khe da o trong tam nay; xa hon thi tang chon khe
+    # + DWA lai nhu binh thuong (khong thi xe chay cham suot ca doan duong dai).
+    gap_engage_range_m: 1.60
+    # Quang duong lui toi da khi phai canh lai truc khe. Lidar KHONG nhin thay gi thang
+    # phia sau (cung sau nam trong blind_sectors_deg) nen chi lui dung doan vua di qua.
+    gap_back_max_m: 0.40
+    gap_axis_tol_m: 0.12
+    gap_align_deg: 10.0
+    gap_align_range_m: 0.90
+    w_gap_align: 3.0
 
     # ── Tang chon khe (VFH) chay TRUOC DWA ────────────────────────────────
     # Quet cac huong -100..+100 do, thu di duoc bao xa. Thu lan luot tu xa ve gan.

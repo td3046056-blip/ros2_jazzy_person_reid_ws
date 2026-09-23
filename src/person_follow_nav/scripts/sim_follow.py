@@ -21,6 +21,7 @@ CACH DUNG
     CORNER=1           them tuong y=+1.0 tu x=-1 toi x=CORNER_X (mac dinh 3.0) — dung cho goc_tuong
     CORRIDOR=1         them hai vach doc hai ben dan vao cua (CORRIDOR_W, mac dinh 0.9 m)
     SIDE_DOOR="x0:rong:y"  tuong DOC theo y=const co o cua — nguoi di thang roi RE vao cua
+    START="x:y:yaw_do"     tu the xuat phat cua xe (de thu rieng dong tac chui cua)
     HIDE_LEGS_DEG=25   lidar khong thay chan nguoi khi lech qua goc nay (ep lidar_track that bai)
     PKG_DIR=...        chay voi ban package khac (vd. ban cu lay tu git) de so sanh
 
@@ -34,6 +35,13 @@ CACH DUNG
     CAM_HALF=25 DOOR=3.2:0.81 python3 sim_follow.py -q qua_cua qua_cua_lech qua_cua_cheo  # cua that 0.81 m
     CAM_HALF=25 DOOR=3.2:0.81 CORRIDOR=1 python3 sim_follow.py -q qua_cua_cheo   # co hanh lang dan vao
     CAM_HALF=25 SIDE_DOOR=3.0:0.81:-0.9 python3 sim_follow.py -q cua_ben   # re vao cua ben hong
+    CAM_HALF=25 SIDE_DOOR=3.0:0.81:-0.9 python3 sim_follow.py -q cua_ben_dung  # re vao roi dung lai
+    # Thu RIENG dong tac chui cua (nguoi dung yen ben kia, xe xuat phat lech truc/lech goc):
+    CAM_HALF=25 SIDE_DOOR=3.0:0.81:-0.9 START="3.1:0.0:-75" python3 sim_follow.py -q cua_ben_yen
+
+Moi lan chay deu in "ho_nho_nhat_voi_tuong": khoang ho THAT giua footprint chu nhat cua xe
+va tuong (<= 0 la da cham). Co DOOR/SIDE_DOOR thi in them do thoang va goc lech truc cua
+DUNG LUC XE DANG TRONG KHUNG CUA — do la con so quyet dinh xe co ca vao khung cua khong.
     CAM_OCCLUDE=1 ...  nguoi thu hai che ca camera khi dung tren tia nhin toi muc tieu
 
   Moi kich ban mat 1-3 phut. Chi so: |goc| = lech giua mui xe va nguoi THAT (do),
@@ -115,6 +123,36 @@ if os.environ.get("SIDE_DOOR"):
 WALLS_A = np.array(WALLS)
 
 
+def _wall_points(step=0.02):
+    """Roi rac hoa tuong thanh diem — de do khoang ho THAT cua footprint chu nhat."""
+    out = []
+    for (x1, y1, x2, y2) in WALLS_A:
+        L = math.hypot(x2 - x1, y2 - y1)
+        k = max(2, int(L / step) + 1)
+        u = np.linspace(0.0, 1.0, k)
+        out.append(np.stack([x1 + (x2 - x1) * u, y1 + (y2 - y1) * u], axis=1))
+    return np.concatenate(out) if out else np.zeros((0, 2))
+
+
+WALL_PTS = _wall_points()
+
+
+def wall_clearance(rx, ry, yaw, F, R, HW):
+    """Khoang ho nho nhat tu footprint chu nhat toi tuong. <= 0 la DA CHAM."""
+    if WALL_PTS.shape[0] == 0:
+        return 10.0
+    dx = WALL_PTS[:, 0] - rx
+    dy = WALL_PTS[:, 1] - ry
+    near = (np.abs(dx) < 1.5) & (np.abs(dy) < 1.5)
+    if not np.any(near):
+        return 10.0
+    dx, dy = dx[near], dy[near]
+    c, s = math.cos(yaw), math.sin(yaw)
+    lx = c * dx + s * dy
+    ly = -s * dx + c * dy
+    return float(np.min(G.rect_clearance(lx, ly, F, R, HW)))
+
+
 def raycast(ox, oy, ang, circles):
     """ang: mang goc the gioi. Tra ve khoang cach (inf neu khong trung)."""
     dx, dy = np.cos(ang), np.sin(ang)
@@ -156,7 +194,12 @@ def run(name, path, T, report_every=0.5, verbose=True, intruder=None):
     tr, pl = make_nodes()
     person = Person(path)
     other = Person(intruder) if intruder else None
-    rob = dict(x=0.0, y=0.0, yaw=0.0, v=0.0, w=0.0, cv=0.0, cw=0.0)
+    _st = os.environ.get("START")
+    if _st:
+        _sx, _sy, _syaw = (float(v) for v in _st.split(":"))
+        rob = dict(x=_sx, y=_sy, yaw=math.radians(_syaw), v=0.0, w=0.0, cv=0.0, cw=0.0)
+    else:
+        rob = dict(x=0.0, y=0.0, yaw=0.0, v=0.0, w=0.0, cv=0.0, cw=0.0)
 
     def cmd_cb(msg):
         rob["cv"], rob["cw"] = msg.linear.x, msg.angular.z
@@ -173,6 +216,8 @@ def run(name, path, T, report_every=0.5, verbose=True, intruder=None):
     dt = 1.0 / 600.0
     t0 = CLK.t
     rows = []
+    hit = dict(clear=10.0, t=0.0, x=0.0, y=0.0, yaw=0.0)
+    gate = dict(clear=10.0, yaw_err=0.0, n=0)
     n = int(T / dt)
     for k in range(n):
         CLK.t = t0 + k * dt
@@ -184,6 +229,23 @@ def run(name, path, T, report_every=0.5, verbose=True, intruder=None):
         rob["x"] += rob["v"] * math.cos(rob["yaw"]) * dt
         rob["y"] += rob["v"] * math.sin(rob["yaw"]) * dt
         rob["yaw"] = wrap(rob["yaw"] + rob["w"] * dt)
+
+        if k % 10 == 0:      # do khoang ho voi tuong o 60 Hz
+            wc = wall_clearance(rob["x"], rob["y"], rob["yaw"], pl.front_len, pl.rear_len, pl.half_width)
+            if wc < hit["clear"]:
+                hit.update(clear=wc, t=t, x=rob["x"], y=rob["y"], yaw=math.degrees(rob["yaw"]))
+            # Rieng LUC DANG TRONG KHUNG CUA: do khoang ho va goc lech so voi phap tuyen cua
+            if SIDE_DOOR is not None:
+                _sx, _sw, _sy = SIDE_DOOR
+                if abs(rob["y"] - _sy) < 0.28 and _sx - 0.15 < rob["x"] < _sx + _sw + 0.15:
+                    gate.update(clear=min(gate["clear"], wc), n=gate["n"] + 1,
+                                yaw_err=max(gate["yaw_err"],
+                                            abs(math.degrees(wrap(rob["yaw"] + math.pi / 2)))))
+            if DOOR is not None:
+                _dx, _dw = DOOR
+                if abs(rob["x"] - _dx) < 0.28 and abs(rob["y"]) < _dw / 2 + 0.15:
+                    gate.update(clear=min(gate["clear"], wc), n=gate["n"] + 1,
+                                yaw_err=max(gate["yaw_err"], abs(math.degrees(wrap(rob["yaw"])))))
 
         px, py, ph, psp = person.path(t)
         ipos = intruder(t) if intruder else None     # nguoi thu hai (x, y, huong, toc do) hoac None
@@ -239,6 +301,7 @@ def run(name, path, T, report_every=0.5, verbose=True, intruder=None):
             eb = tj.get("bearing_deg")
             rows.append(dict(t=t, rx=rob["x"], ry=rob["y"], yaw=math.degrees(rob["yaw"]), d=rel_d,
                              b=math.degrees(rel_b), eb=eb, src=tj.get("source"), st=status.get("state"),
+                             note=status.get("note"),
                              v=rob["cv"], w=rob["cw"], spd=tj.get("speed"), px=px, py=py,
                              ex=tj.get("odom_x"), ey=tj.get("odom_y"),
                              ix=None if ipos is None else ipos[0], iy=None if ipos is None else ipos[1],
@@ -254,8 +317,10 @@ def run(name, path, T, report_every=0.5, verbose=True, intruder=None):
                 err = "  -  " if r["ex"] is None else f"{math.hypot(r['ex'] - r['px'], r['ey'] - r['py']):5.2f}"
                 extra = f" | {err}  " + ("  -  " if r["rgap"] is None else f"{r['rgap']:5.2f}")
             print(f"{r['t']:5.1f} {r['rx']:5.2f} {r['ry']:5.2f} {r['yaw']:6.1f} | {r['d']:5.2f} {r['b']:7.1f} {eb} | "
-                  f"{str(r['src']):13s} {str(r['st']):9s} | {r['v']:5.2f} {r['w']:5.2f}  {r['spd']}{extra}")
-    return rows
+                  f"{str(r['src']):13s} {str(r['st']):9s} | {r['v']:5.2f} {r['w']:5.2f}  {r['spd']}{extra}"
+                  f" | {str(r['note'])[:44]}")
+    hit["gate"] = gate
+    return rows, hit
 
 
 # ── Kich ban ──────────────────────────────────────────────────────────────
@@ -393,10 +458,19 @@ SCEN = {
     "qua_cua_cheo": (lambda t: door_diag(t), 30.0),
     # 23/09 — nguoi di thang roi RE PHAI vao o cua ben hong (chay kem SIDE_DOOR=3.0:0.81:-0.9)
     "cua_ben": (lambda t: side_door(t), 34.0),
+    # 23/09 lan 2 — nguoi di CHAM hon xe nen xe bam kip, camera con thay nguoi khi vao cua:
+    # dung kich ban that cua nguoi dung (nguon camera+lidar, trang thai AVOID o khung cua)
+    "cua_ben_cham": (lambda t: side_door(t, v=0.18), 40.0),
+    # Nguoi re vao cua roi DUNG LAI phia trong: camera van thay nguoi qua o cua nen xe o
+    # nhanh chui khe (nguon camera+lidar, trang thai AVOID) — dung nhu nguoi dung quan sat.
+    "cua_ben_dung": (lambda t: side_door(t, v=0.16, y_end=-2.2), 45.0),
+    # Nguoi DUNG YEN ben kia cua — de thu rieng dong tac chui cua tu nhieu tu the xuat phat
+    # (dung kem START="x:y:yaw" va SIDE_DOOR). Khong lan voi chuyen mat nguoi.
+    "cua_ben_yen": (lambda t: (3.405, -2.4, -math.pi / 2, 0.0), 30.0),
 }
 
 
-def metrics(name, rows):
+def metrics(name, rows, hit):
     half = float(os.environ.get("CAM_HALF", "31"))
     t = np.array([r["t"] for r in rows]); b = np.array([r["b"] for r in rows])
     yaw = np.array([r["yaw"] for r in rows]); d = np.array([r["d"] for r in rows])
@@ -417,13 +491,22 @@ def metrics(name, rows):
           f"predicted={100*np.mean(pred[m]):4.0f}% mat_cam_dai_nhat={best:4.1f}s "
           f"doi_chieu_w={flips:3d} d_cuoi={d[-1]:4.2f} yaw_cuoi={yaw[-1]:6.1f} goc_cuoi={b[-1]:6.1f} "
           f"SEARCH={'co' if 'SEARCH' in st else 'khong'} tt_cuoi={st[-1]}")
+    tag = "CHAM TUONG" if hit["clear"] <= 0.0 else ("sat mep" if hit["clear"] < 0.03 else "khong cham")
+    print(f"{'':15s} ho_nho_nhat_voi_tuong={hit['clear']:5.2f} m ({tag}) luc t={hit['t']:4.1f}s "
+          f"tai ({hit['x']:.2f},{hit['y']:.2f}) yaw={hit['yaw']:6.1f}")
+    g_ = hit["gate"]
+    if g_["n"]:
+        gtag = "CHAM" if g_["clear"] <= 0.0 else ("sat mep" if g_["clear"] < 0.03 else "ok")
+        print(f"{'':15s} LUC TRONG KHUNG CUA: ho={g_['clear']:5.2f} m ({gtag}), "
+              f"lech truc cua toi da={g_['yaw_err']:4.1f} do")
     if SIDE_DOOR is not None:
         sx, sw, sy = SIDE_DOOR
         posts = [(sx, sy), (sx + sw, sy)]
         pgap = min(math.hypot(r["rx"] - px_, r["ry"] - py_) for r in rows for (px_, py_) in posts)
         perr = [math.hypot(r["ex"] - r["px"], r["ey"] - r["py"]) for r in rows if r["ex"] is not None]
-        qua = rows[-1]["ry"] < sy - 0.4
-        print(f"{'':15s} qua cua ben: {'CO' if qua else 'KHONG'} (xe_y cuoi={rows[-1]['ry']:.2f}, can < {sy - 0.4:.2f}), "
+        y_min = min(r["ry"] for r in rows)
+        qua = y_min < sy - 0.15      # tam xe da qua han mat cua
+        print(f"{'':15s} qua cua ben: {'CO' if qua else 'KHONG'} (xe_y xa nhat={y_min:.2f}, can < {sy - 0.15:.2f}), "
               f"tam_xe_gan_thanh_cua_nhat={pgap:.2f} m, sai_uoc_max={max(perr) if perr else float('nan'):.2f} m")
     if DOOR is not None:
         dx, dw = DOOR
@@ -448,5 +531,5 @@ if __name__ == "__main__":
     for nm in names:
         f, T = SCEN[nm][0], SCEN[nm][1]
         intr = SCEN[nm][2] if len(SCEN[nm]) > 2 else None
-        rows = run(nm, f, T, report_every=0.1, verbose=not quiet, intruder=intr)
-        metrics(nm, rows)
+        rows, hit = run(nm, f, T, report_every=0.1, verbose=not quiet, intruder=intr)
+        metrics(nm, rows, hit)
