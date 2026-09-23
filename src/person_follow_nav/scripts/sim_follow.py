@@ -20,6 +20,7 @@ CACH DUNG
                        ReID thuong mat nguoi truoc mep khung.
     CORNER=1           them tuong y=+1.0 tu x=-1 toi x=CORNER_X (mac dinh 3.0) — dung cho goc_tuong
     CORRIDOR=1         them hai vach doc hai ben dan vao cua (CORRIDOR_W, mac dinh 0.9 m)
+    SIDE_DOOR="x0:rong:y"  tuong DOC theo y=const co o cua — nguoi di thang roi RE vao cua
     HIDE_LEGS_DEG=25   lidar khong thay chan nguoi khi lech qua goc nay (ep lidar_track that bai)
     PKG_DIR=...        chay voi ban package khac (vd. ban cu lay tu git) de so sanh
 
@@ -32,6 +33,7 @@ CACH DUNG
     CAM_HALF=25 python3 sim_follow.py -q sau_ne_re                      # ne xong nguoi re gat
     CAM_HALF=25 DOOR=3.2:0.81 python3 sim_follow.py -q qua_cua qua_cua_lech qua_cua_cheo  # cua that 0.81 m
     CAM_HALF=25 DOOR=3.2:0.81 CORRIDOR=1 python3 sim_follow.py -q qua_cua_cheo   # co hanh lang dan vao
+    CAM_HALF=25 SIDE_DOOR=3.0:0.81:-0.9 python3 sim_follow.py -q cua_ben   # re vao cua ben hong
     CAM_OCCLUDE=1 ...  nguoi thu hai che ca camera khi dung tren tia nhin toi muc tieu
 
   Moi kich ban mat 1-3 phut. Chi so: |goc| = lech giua mui xe va nguoi THAT (do),
@@ -103,6 +105,13 @@ if os.environ.get("DOOR"):
         _cw = float(os.environ.get("CORRIDOR_W", "0.9")) / 2
         WALLS.extend([(_dx - 2.0, _cw, _dx, _cw), (_dx - 2.0, -_cw, _dx, -_cw)])
     DOOR = (_dx, _dw)
+SIDE_DOOR = None
+if os.environ.get("SIDE_DOOR"):
+    # SIDE_DOOR="x0:rong:y" — tuong DOC theo y=const, co o cua tu x0 den x0+rong.
+    # Giong cua that cua nguoi dung: dang di thang roi RE vao cua ben hong.
+    _sx, _sw, _sy = (float(v) for v in os.environ["SIDE_DOOR"].split(":"))
+    WALLS.extend([(-2.0, _sy, _sx, _sy), (_sx + _sw, _sy, 9.0, _sy)])
+    SIDE_DOOR = (_sx, _sw, _sy)
 WALLS_A = np.array(WALLS)
 
 
@@ -324,6 +333,20 @@ def straight_then_turn(t, v1=0.20, x0=1.6, t1=12.0, v2=0.35, R=0.5, side=+1):
     return (xs + R, side * (R + s_), side * math.pi / 2, v2)
 
 
+def side_door(t, v=0.25, x0=1.4, y0=0.0, x_turn=3.4, y_end=-2.6, R=0.45):
+    """Di thang +x theo hanh lang, den x_turn thi RE PHAI (ban kinh R) qua o cua ben hong."""
+    d1 = x_turn - R - x0
+    if v * t < d1:
+        return (x0 + v * t, y0, 0.0, v)
+    al = (math.pi / 2) * R
+    s_ = v * t - d1
+    if s_ < al:
+        th = s_ / R
+        return (x_turn - R + R * math.sin(th), y0 - R * (1 - math.cos(th)), -th, v)
+    yy = max(y_end, y0 - R - (s_ - al))
+    return (x_turn, yy, -math.pi / 2, v if yy > y_end else 0.0)
+
+
 def door_diag(t, v=0.25, x0=1.4, y0=-0.55, x_align=2.9, x_end=6.0):
     """Di CHEO tu (x0, y0) toi tam cua (x_align, 0) roi di thang qua cua."""
     dx, dy = x_align - x0, -y0
@@ -368,6 +391,8 @@ SCEN = {
     "qua_cua_lech": (lambda t: through_door(t, y=0.22), 26.0),
     # 23/09 — nguoi di CHEO toi cua roi qua cua: xe toi cua o the khong thang hang
     "qua_cua_cheo": (lambda t: door_diag(t), 30.0),
+    # 23/09 — nguoi di thang roi RE PHAI vao o cua ben hong (chay kem SIDE_DOOR=3.0:0.81:-0.9)
+    "cua_ben": (lambda t: side_door(t), 34.0),
 }
 
 
@@ -392,6 +417,14 @@ def metrics(name, rows):
           f"predicted={100*np.mean(pred[m]):4.0f}% mat_cam_dai_nhat={best:4.1f}s "
           f"doi_chieu_w={flips:3d} d_cuoi={d[-1]:4.2f} yaw_cuoi={yaw[-1]:6.1f} goc_cuoi={b[-1]:6.1f} "
           f"SEARCH={'co' if 'SEARCH' in st else 'khong'} tt_cuoi={st[-1]}")
+    if SIDE_DOOR is not None:
+        sx, sw, sy = SIDE_DOOR
+        posts = [(sx, sy), (sx + sw, sy)]
+        pgap = min(math.hypot(r["rx"] - px_, r["ry"] - py_) for r in rows for (px_, py_) in posts)
+        perr = [math.hypot(r["ex"] - r["px"], r["ey"] - r["py"]) for r in rows if r["ex"] is not None]
+        qua = rows[-1]["ry"] < sy - 0.4
+        print(f"{'':15s} qua cua ben: {'CO' if qua else 'KHONG'} (xe_y cuoi={rows[-1]['ry']:.2f}, can < {sy - 0.4:.2f}), "
+              f"tam_xe_gan_thanh_cua_nhat={pgap:.2f} m, sai_uoc_max={max(perr) if perr else float('nan'):.2f} m")
     if DOOR is not None:
         dx, dw = DOOR
         jambs = [(dx, dw / 2), (dx, -dw / 2)]

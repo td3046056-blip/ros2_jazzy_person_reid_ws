@@ -238,6 +238,9 @@ class FollowPlannerNode(Node):
             # chi toi dich. Dich cach nguoi follow_distance nen nguoi thu hai dung chen
             # thuong dung dung tai dich -> kiem tra toi dich thoi thi khong thay chan.
             "target_clear_radius_m": 0.45,
+            # Duong thang khong lot -> tim khe kieu khung cua rong tu 0.72 m den muc nay, ngam
+            # vao truc vuong goc cua khe de canh xe roi chui qua. 0 = tat.
+            "gap_waypoint_max_width_m": 1.20,
 
             # Chuyen trang thai
             # Tang chon khe (VFH) chay truoc DWA
@@ -342,6 +345,7 @@ class FollowPlannerNode(Node):
         self.fov_only_visible = bool(g("fov_cost_only_when_visible"))
         self.occluded_turn_rad = math.radians(float(g("occluded_turn_deg")))
         self.target_clear_r = float(g("target_clear_radius_m"))
+        self.gap_wp_max_w = float(g("gap_waypoint_max_width_m"))
 
         self.probe_distances = [float(x) for x in g("probe_distances")]
         self.min_speed_scale = float(g("min_speed_scale"))
@@ -602,6 +606,60 @@ class FollowPlannerNode(Node):
         if abs(d) < math.radians(2.0):
             return 0
         return 1 if d > 0 else -1
+
+    def _gap_target(self, goal_bearing: float, goal_dist: float) -> Optional[Tuple[float, float]]:
+        """Diem ngam de CHUI QUA KHE HEP kieu khung cua. None = khong thay khe nao hop.
+
+        Xe KHONG the di cheo qua khe hep: dai kiem tra rong 2*(half_width+margin_hard)=0.72 m,
+        di cheo goc th thi no cat mat cua thanh doan 0.72/cos(th) — o cua 0.81 m chi lech 27 do
+        la khong huong nao lot (xem CLAUDE.md muc 9). Vi vay phai TOI NGANG TAM CUA theo phuong
+        vuong goc roi moi chui qua, thay vi cu ngam thang vao nguoi o ben kia cua.
+
+        Tim hai diem lidar ke nhau theo goc, cach nhau tu 0.72 m den gap_waypoint_max_width_m
+        (khe rong hon nua thi la cho trong, khong can canh truc).
+        """
+        P = self.obstacles
+        if self.gap_wp_max_w <= 0.0 or P.shape[0] < 2:
+            return None
+        need = 2.0 * (self.half_width + self.margin_hard)
+        rng = np.hypot(P[:, 0], P[:, 1])
+        sel = (rng < max(2.5, goal_dist + 1.0)) & (P[:, 0] > -0.2)
+        if int(np.count_nonzero(sel)) < 2:
+            return None
+        Q = P[sel]
+        Q = Q[np.argsort(np.arctan2(Q[:, 1], Q[:, 0]))]
+
+        best, best_cost = None, float("inf")
+        for i in range(Q.shape[0] - 1):
+            A, B = Q[i], Q[i + 1]
+            w = float(math.hypot(B[0] - A[0], B[1] - A[1]))
+            if not (need + 0.02 <= w <= self.gap_wp_max_w):
+                continue
+            mx, my = 0.5 * (A[0] + B[0]), 0.5 * (A[1] + B[1])
+            m_r = math.hypot(mx, my)
+            # Khe phai nam GIUA xe va nguoi, va khong lech huong nguoi qua nhieu
+            if m_r < 0.2 or m_r > goal_dist + self.follow_distance:
+                continue
+            d_ang = abs(wrap_pi(math.atan2(my, mx) - goal_bearing))
+            if d_ang > math.radians(80.0):
+                continue
+            cost = d_ang + 0.3 * m_r
+            if cost < best_cost:
+                best_cost, best = cost, (A, B, mx, my)
+        if best is None:
+            return None
+
+        A, B, mx, my = best
+        ux, uy = B[0] - A[0], B[1] - A[1]
+        un = max(1e-6, math.hypot(ux, uy))
+        nx, ny = -uy / un, ux / un                     # phap tuyen cua khe
+        if nx * mx + ny * my > 0.0:                    # phai huong TU khe VE PHIA xe
+            nx, ny = -nx, -ny
+        along = -(nx * mx + ny * my)                   # khoang cach tu xe toi mat khe
+        if along <= 0.15:                              # da sat mat khe -> ngam thang tam khe
+            return mx, my
+        back = min(self.front_len + self.margin_soft + 0.25, along - 0.10)
+        return mx + nx * back, my + ny * back
 
     def _choose_avoid_side(self, target_bearing: float) -> int:
         """Chon ne TRAI (+1) hay PHAI (-1).
@@ -1021,6 +1079,22 @@ class FollowPlannerNode(Node):
             v, w = self._emit(0.0, w_cmd, dt)
             self._report(status, v, w, "canh huong tai cho", now, dist, bearing, source)
             return
+
+        # ── CHUI KHE HEP (khung cua): canh truc truoc roi moi qua ────────
+        # Chi khi duong thang KHONG lot (blocked). Ngam vao truc vuong goc cua khe de xe toi
+        # ngang tam cua roi moi quay vao — ngam thang vao nguoi o ben kia cua thi lao vao mep.
+        if blocked:
+            gap_wp = self._gap_target(goal_b, goal_r)
+            if gap_wp is not None:
+                res = self._dwa(gap_wp, (tx, ty), dt, allow_reverse=False, fov_active=True)
+                if res is not None:
+                    self.avoid_side = 0        # dung khoa ben: c_side se keo xe lech khoi truc khe
+                    v, w = self._emit(res[0], res[1], dt)
+                    self._report(status, v, w, "chui khe hep — ngam truc giua khe",
+                                 now, dist, bearing, source, res[2])
+                    if self.publish_markers:
+                        self._publish_markers(gap_wp[0], gap_wp[1], tx, ty)
+                    return
 
         # ── TANG 1: chon huong di qua khe (VFH) ──────────────────────────
         # Do khe toi tan cho nguoi (chk_r) de huong thang bi chan boi nguoi thu hai thi

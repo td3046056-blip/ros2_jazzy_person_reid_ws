@@ -210,6 +210,10 @@ follow_planner_node:
     # dich — nguoi thu hai dung chen thuong dung ngay diem dich. (Dieu kien vao AVOID van do
     # toi dich: do xa hon thi qua khung cua hep hay bi vao AVOID va ep vao thanh cua.)
     target_clear_radius_m: 0.45
+    # Duong thang khong lot -> tim khe kieu khung cua rong tu 0.72 m (= be ngang xe +
+    # 2*margin_hard) den muc nay, ngam vao truc vuong goc cua khe de canh xe roi chui qua.
+    # Xe khong the di cheo qua khe hep (xem CLAUDE.md muc 9). 0 = tat.
+    gap_waypoint_max_width_m: 1.20
 
     # ── Tang chon khe (VFH) chay TRUOC DWA ────────────────────────────────
     # Quet cac huong -100..+100 do, thu di duoc bao xa. Thu lan luot tu xa ve gan.
