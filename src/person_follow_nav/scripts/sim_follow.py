@@ -19,6 +19,7 @@ CACH DUNG
     CAM_HALF=25        camera chi nhan ra nguoi trong ±25 do (mac dinh 31). Ngoai doi
                        ReID thuong mat nguoi truoc mep khung.
     CORNER=1           them tuong y=+1.0 tu x=-1 toi x=CORNER_X (mac dinh 3.0) — dung cho goc_tuong
+    CORRIDOR=1         them hai vach doc hai ben dan vao cua (CORRIDOR_W, mac dinh 0.9 m)
     HIDE_LEGS_DEG=25   lidar khong thay chan nguoi khi lech qua goc nay (ep lidar_track that bai)
     PKG_DIR=...        chay voi ban package khac (vd. ban cu lay tu git) de so sanh
 
@@ -29,7 +30,8 @@ CACH DUNG
     CAM_HALF=25 python3 sim_follow.py -q chan_giua cat_ngang chan_sat   # nguoi thu hai (22/09)
     CAM_HALF=25 CAM_OCCLUDE=1 python3 sim_follow.py -q cat_ngang_gan    # di ngang che camera
     CAM_HALF=25 python3 sim_follow.py -q sau_ne_re                      # ne xong nguoi re gat
-    CAM_HALF=25 DOOR=3.2:0.82 python3 sim_follow.py -q qua_cua qua_cua_lech   # khung cua
+    CAM_HALF=25 DOOR=3.2:0.81 python3 sim_follow.py -q qua_cua qua_cua_lech qua_cua_cheo  # cua that 0.81 m
+    CAM_HALF=25 DOOR=3.2:0.81 CORRIDOR=1 python3 sim_follow.py -q qua_cua_cheo   # co hanh lang dan vao
     CAM_OCCLUDE=1 ...  nguoi thu hai che ca camera khi dung tren tia nhin toi muc tieu
 
   Moi kich ban mat 1-3 phut. Chi so: |goc| = lech giua mui xe va nguoi THAT (do),
@@ -95,6 +97,11 @@ if os.environ.get("DOOR"):
     # DOOR="x:rong" — tuong ngang qua x, chua mot cua rong `rong` o giua (y = 0)
     _dx, _dw = (float(v) for v in os.environ["DOOR"].split(":"))
     WALLS.extend([(_dx, -6.0, _dx, -_dw / 2), (_dx, _dw / 2, _dx, 6.0)])
+    if os.environ.get("CORRIDOR"):
+        # HANH_LANG=1: them hai vach doc hai ben dan vao cua (giong luc di RA cua that:
+        # hai ben co vat chan doc nen xe bi ep thang hang truoc khi toi cua)
+        _cw = float(os.environ.get("CORRIDOR_W", "0.9")) / 2
+        WALLS.extend([(_dx - 2.0, _cw, _dx, _cw), (_dx - 2.0, -_cw, _dx, -_cw)])
     DOOR = (_dx, _dw)
 WALLS_A = np.array(WALLS)
 
@@ -317,6 +324,17 @@ def straight_then_turn(t, v1=0.20, x0=1.6, t1=12.0, v2=0.35, R=0.5, side=+1):
     return (xs + R, side * (R + s_), side * math.pi / 2, v2)
 
 
+def door_diag(t, v=0.25, x0=1.4, y0=-0.55, x_align=2.9, x_end=6.0):
+    """Di CHEO tu (x0, y0) toi tam cua (x_align, 0) roi di thang qua cua."""
+    dx, dy = x_align - x0, -y0
+    leg = math.hypot(dx, dy)
+    if v * t < leg:
+        k = v * t / leg
+        return (x0 + k * dx, y0 + k * dy, math.atan2(dy, dx), v)
+    x = min(x_align + (v * t - leg), x_end)
+    return (x, 0.0, 0.0, v if x < x_end else 0.0)
+
+
 def through_door(t, v=0.25, x0=1.6, y=0.0, x_end=6.0):
     """Di thang qua cua (DOOR) theo duong y, toi x_end thi dung."""
     x = min(x0 + v * t, x_end)
@@ -348,6 +366,8 @@ SCEN = {
     # qua khung cua (chay kem DOOR=3.2:0.9)
     "qua_cua": (lambda t: through_door(t), 26.0),
     "qua_cua_lech": (lambda t: through_door(t, y=0.22), 26.0),
+    # 23/09 — nguoi di CHEO toi cua roi qua cua: xe toi cua o the khong thang hang
+    "qua_cua_cheo": (lambda t: door_diag(t), 30.0),
 }
 
 

@@ -938,7 +938,16 @@ class FollowPlannerNode(Node):
         # nhin toi nguoi sat thanh cua -> vao AVOID, khoa nham ben tuong -> xe ep vao thanh cua.
         # Tang chon khe (do toi chk_r) du de lai vong nguoi thu hai ma khong khoa ben.
         corridor = self.half_width * self.block_corridor_scale + self.margin_hard
-        blocked, block_dist = segment_blocked(self.obstacles, gx, gy, corridor)
+        blocked, _block_dist = segment_blocked(self.obstacles, gx, gy, corridor)
+
+        # Khe vua du rong cho xe di THANG (vd. khung cua 0.81 m) thi KHONG vao AVOID. Hanh lang
+        # kiem tra AVOID rong hon thuc te (half_width * 1.15 + margin_hard = 0.405 moi ben) nen o
+        # cua hep no LUON bao bi chan du xe dang thang hang va thua suc lot: xe be ra mot ben roi
+        # ket o mep cua. Tang chon khe van nham giua khe, DWA van giu margin_hard.
+        if blocked:
+            fit, _d = segment_blocked(self.obstacles, gx, gy, self.half_width + self.margin_hard)
+            if not fit:
+                blocked = False
 
         if blocked:
             self.clear_since = 0.0

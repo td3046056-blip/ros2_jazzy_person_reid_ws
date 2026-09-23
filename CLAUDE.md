@@ -379,6 +379,8 @@ Hàm chi phí:
 
 **Tầng chọn khe dò tới tận chỗ người (sửa 22/09):** `_choose_heading` dò tới `chk_r = max(goal_r, dist − target_clear_radius_m)` (0.45 m), không chỉ tới điểm đích. Đích cách người `follow_distance` nên người thứ hai chen vào thường đứng **đúng tại đích** → trước đây hướng thẳng vẫn "thoáng", xe đi thẳng tới họ. Dịch phụ của DWA vẫn giới hạn trong `goal_r`. **Điều kiện vào `AVOID` (`segment_blocked`) vẫn chỉ tới điểm đích** — bản đầu 22/09 đo tới `chk_r` làm tia ngắm qua khung cửa hẹp sát thanh cửa bị coi là chắn → vào `AVOID` → ép vào thanh cửa (7.2-W).
 
+**Khe vừa đủ rộng thì KHÔNG né (sửa 23/09):** nếu đường thẳng tới đích lọt được hành lang `half_width + margin_hard` (0.72 m — đúng mức DWA đòi) thì `blocked = False`, xe cứ đi thẳng. Hành lang xét `AVOID` rộng hơn thực tế (`× block_corridor_scale 1.15` → 0.81 m) nên ở cửa 0.81 m nó **luôn** báo bị chắn dù xe đang thẳng hàng và thừa sức lọt → xe bẻ ra một bên rồi kẹt ở mép cửa (7.2-Z). Khe hẹp hơn 0.72 m vẫn bị chắn nên vẫn né như cũ.
+
 **Chọn bên né (sửa 22/09, lần 2):** `_gap_side` chạy tầng chọn khe khi chưa thiên vị bên nào, lấy phía mà hướng tốt nhất lệch khỏi hướng đích; không rõ (< 2°) mới dùng `_choose_avoid_side` (khoảng trống trung bình hai bên — ở khung cửa hai bên gần bằng nhau nên nó rơi vào "theo dấu góc tới người", tức tung đồng xu). Hết `avoid_side_hold_sec` thì **chọn lại cả khi vẫn bị chắn** (trước đây khoá chết). Rời `AVOID` bằng bất kỳ đường nào (`OCCLUDED`, `SEARCH`…) mà đường tới đích đã thoáng thì **xoá `avoid_side`** — trước đây chỉ xoá ở nhánh `AVOID → FOLLOW`, còn lại `c_side` phạt mãi việc quay về phía đã né (7.2-X).
 
 **Vùng chết hướng (sửa 17/09):** người lệch < `bearing_deadband_deg` (4°) → đích coi như thẳng trước mũi (`goal_b = 0`). Góc cụm chân rung vài độ mỗi bước; không có vùng chết thì DWA bẻ lái ±0.1 rad/s liên tục.
@@ -464,6 +466,7 @@ Planner log mỗi 10 giây: `self-filter: bo N/M tia dap vao than xe` (M = số 
 | W | **Khung cửa hẹp: có lần qua, có lần ép vào thanh cửa** (22/09) | Người dùng báo: *"có lần đi thẳng vào thanh cửa dù camera vẫn detect, như nhầm thanh cửa là chân người"*. Mô phỏng cửa 0.82 m, người đi lệch: **không phải nhầm chân** (sai ước lượng 0.23 m) — tia ngắm sát thanh cửa → `AVOID` → `_choose_avoid_side` hai bên bằng nhau → chọn theo dấu góc (+8.6° → trái = phía tường), khoá chết bên đó → xe quay +46° ép vào thanh cửa. Bản đầu 22/09 (vào `AVOID` khi đo tới tận người) làm hay gặp hơn | `_gap_side` chọn bên theo khe đi được; cho chọn lại sau `avoid_side_hold_sec`; `AVOID` chỉ xét tới điểm đích |
 | X | **Né xong người rẽ về phía đã né thì xe xoay rất chậm** (22/09) | Người dùng báo. Mô phỏng: sau khi rời `AVOID` qua `OCCLUDED`, `avoid_side` vẫn còn → mọi lệnh quay về phía đó bị cộng `0.9·\|w\|/0.8` → xe chỉ quay 0.10 rad/s dù người lệch 22° | Xoá `avoid_side` khi không còn `AVOID` và đường đã thoáng. Mô phỏng: lệch TB 20.8° → 11.3°, cuối kịch bản 20.5° → 2.5° |
 | Y | **Xe bám theo người đi ngang** (22/09) | Người dùng báo. Mô phỏng: người đi ngang che camera → `lidar_track` lấy cụm gần dự đoán nhất = chân người đi ngang → ước lượng lệch 0.92 m. Cổng nhảy sau đó còn "bảo vệ" dự đoán sai | Bỏ cụm gần xe hơn dự đoán quá `occluder_margin_m` (cả ghép camera lẫn `lidar_track`) → 0% bám nhầm |
+| Z | **Cửa 0.81 m: xe bẻ ra mép cửa rồi kẹt** (23/09) | Người dùng báo: cửa thật 0.81 m, hai bên trống thì **không vào được**, bám vào một bên khung cửa; có hành lang dẫn vào thì qua tốt. Mô phỏng đúng cửa 0.81 m: lúc xe **thẳng hàng hoàn hảo** (lệch tâm 0.00 m) vẫn vào `AVOID` vì hành lang xét `AVOID` rộng 0.81 m = đúng bề rộng cửa → bẻ lái ra khỏi tâm (w −0.42) → kẹt, tâm xe cách thanh cửa 0.23 m | Đường thẳng lọt hành lang 0.72 m thì không vào `AVOID` (xem 6.3). Mô phỏng: 0.81 m đi thẳng / đi lệch / đi chéo / có hành lang đều qua; 0.55 m vẫn không chui |
 | U | **Xe lắc qua lại khi bám thẳng** | Người dùng báo: *"không bám thẳng theo người"*. Mô phỏng: `w` đổi chiều 42 lần / 22 s | Vùng chết hướng → 25 lần. Còn lắc nhẹ do góc cụm chân rung |
 
 ### 7.3 Lỗi môi trường / build
@@ -509,6 +512,8 @@ Trước đây người dùng báo *"lidar không xoay mà xe chỉ chạy thẳ
 
 **Kết quả 22/09 (xe thật, sau bản 17/09):** người dùng xác nhận bám người "cải thiện rất tốt"; có `SEARCH` → `FOLLOW` khi mất rồi thấy lại. Lỗi còn: **người thứ hai chủ động bước vào giữa** thì xe đa số lần chạy thẳng tới chân họ dù camera vẫn thấy người đang bám; họ bước ra thì bám tốt lại. Log nguồn lúc đó nhảy `lidar_track`/`camera+bbox`. Đã sửa (7.2-V), kiểm bằng `sim_follow.py` kịch bản `chan_giua`/`cat_ngang`/`chan_sat`. **[CẦN XÁC NHẬN] chưa chạy lại trên xe.**
 
+**Kết quả 23/09 (xe thật, bản 6ddbe62):** trường hợp 1 (người thứ hai đứng chen giữa) và 3 (đứng sát trước) **đều đạt**. Còn lại: **cửa thật 0.81 m**, hai bên trống thì xe không vào được mà bám vào một bên khung cửa (người dùng thấy nguồn nhảy `lidar_track`/`camera+bbox` nên nghĩ nhầm thanh cửa là chân — thực ra nhảy nguồn là **đúng**: chân người bị khung cửa che nên tracker dùng bbox, và lỗi nằm ở planner). Có vách dọc hai bên (lúc đi ra) thì qua tốt. Đã sửa (7.2-Z), kiểm bằng `sim_follow.py` với `DOOR=3.2:0.81` (đi thẳng/lệch/chéo/hành lang) — **[CẦN XÁC NHẬN] chưa chạy lại trên xe.**
+
 **Kết quả 22/09 lần 2 (xe thật, bản 8f4b15c; log `source_*.txt`, `state_*.txt` ở gốc workspace):** trường hợp 1 (đứng chen giữa) xe vòng qua được. Người dùng báo thêm: (a) người thứ hai **đi ngang** thì xe như bám theo họ; (b) **qua khung cửa vừa xe**: có lần qua, có lần ép vào thanh cửa; (c) **né xong người rẽ nhanh** thì xe xoay chậm, dù bám bình thường rẽ tốt. Cả ba tái hiện được trong mô phỏng và đã sửa (7.2-W, X, Y). **[CẦN XÁC NHẬN] chưa chạy lại trên xe.**
 
 ### Chưa làm
@@ -547,6 +552,16 @@ Xe rộng **0.60 m** nên đây là vấn đề thật. Kết quả quét tham s
 Đang dùng `0.15 / 0.06`. Hạ `margin_hard` dưới 0.06 **không** giúp thêm, chỉ bớt an toàn.
 
 Cửa phòng tiêu chuẩn 0.80 m là **sát nút**. Test với khe ≥ 0.90 m trước, rồi mới thử cửa thật. **Đừng test 0.75 m rồi tưởng thuật toán hỏng.**
+
+**Vì sao cửa hẹp khó (hình học, 23/09).** Tầng chọn khe kiểm tra một **dải thẳng rộng 0.72 m** từ xe tới đích. Ở cửa rộng `W`, dải đó cắt mặt cửa thành đoạn dài `0.72 / cos θ` với θ là góc lệch của hướng đi so với pháp tuyến cửa. Với `W = 0.81`:
+
+| θ | Bề rộng dải cắt mặt cửa | Điểm cắt được phép lệch tâm cửa |
+|---|---|---|
+| 0° | 0.72 m | ±4.5 cm |
+| 20° | 0.77 m | ±2 cm |
+| ≥ 27° | > 0.81 m | **không hướng nào lọt** |
+
+Khi không hướng nào lọt ở tầm dò xa, code lùi về tầm dò ngắn hơn; lúc đó mặt cửa còn xa hơn tầm dò nên mọi hướng đều "thoáng" và xe nhắm thẳng vào người, tức nhắm vào vùng có thanh cửa. Vì vậy **xe phải gần thẳng hàng trước khi tới cửa**. Hành lang hoặc vật chắn dọc hai bên giúp ép xe vào thế thẳng hàng — đúng như quan sát thực tế: đi ra (có vách hai bên) thì qua tốt hơn đi vào (hai bên trống).
 
 ---
 
