@@ -38,6 +38,8 @@ CACH DUNG
     CAM_HALF=25 SIDE_DOOR=3.0:0.81:-0.9 python3 sim_follow.py -q cua_ben_dung  # re vao roi dung lai
     # Thu RIENG dong tac chui cua (nguoi dung yen ben kia, xe xuat phat lech truc/lech goc):
     CAM_HALF=25 SIDE_DOOR=3.0:0.81:-0.9 START="3.1:0.0:-75" python3 sim_follow.py -q cua_ben_yen
+    # Xe DA lo sat khung cua 3 cm (duoi margin_hard) — co tu thoat ra duoc khong:
+    CAM_HALF=31 SIDE_DOOR=3.0:0.81:-0.9 START="3.465:-0.820:-75.0" python3 sim_follow.py -q cua_ben_yen
 
 Moi lan chay deu in "ho_nho_nhat_voi_tuong": khoang ho THAT giua footprint chu nhat cua xe
 va tuong (<= 0 la da cham). Co DOOR/SIDE_DOOR thi in them do thoang va goc lech truc cua
