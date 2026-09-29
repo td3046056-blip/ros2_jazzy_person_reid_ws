@@ -22,6 +22,10 @@ CACH DUNG
     CORRIDOR=1         them hai vach doc hai ben dan vao cua (CORRIDOR_W, mac dinh 0.9 m)
     SIDE_DOOR="x0:rong:y"  tuong DOC theo y=const co o cua — nguoi di thang roi RE vao cua
     START="x:y:yaw_do"     tu the xuat phat cua xe (de thu rieng dong tac chui cua)
+    WALL_T=0.12        tuong DAY (m) cho DOOR/SIDE_DOOR: o cua thanh duong ham nhu cua that. Tuong mong
+                       (mac dinh 0) KHONG tai hien duoc loi xe dung im giua cua 29/09
+    LIDAR_NOISE=0.02   nhieu lidar (m, mac dinh 0.01). Qua cua hep phu thuoc manh vao so nay
+    CHEN="x:t_in:giay:y" TGT=di|dung   kich ban "chen": nguoi thu hai buoc vao DUNG chen o (x, y)
     HIDE_LEGS_DEG=25   lidar khong thay chan nguoi khi lech qua goc nay (ep lidar_track that bai)
     PKG_DIR=...        chay voi ban package khac (vd. ban cu lay tu git) de so sanh
 
@@ -38,6 +42,12 @@ CACH DUNG
     CAM_HALF=25 SIDE_DOOR=3.0:0.81:-0.9 python3 sim_follow.py -q cua_ben_dung  # re vao roi dung lai
     # Thu RIENG dong tac chui cua (nguoi dung yen ben kia, xe xuat phat lech truc/lech goc):
     CAM_HALF=25 SIDE_DOOR=3.0:0.81:-0.9 START="3.1:0.0:-75" python3 sim_follow.py -q cua_ben_yen
+    # 29/09 — xe da o GAN GIUA cua tuong day, lech vai cm/vai do (dung loi nguoi dung gap):
+    CAM_HALF=31 LIDAR_NOISE=0.02 WALL_T=0.12 SIDE_DOOR=3.0:0.81:-0.9 START="3.44:-0.62:-90" python3 sim_follow.py -q cua_ben_yen
+    # Nguoi thu hai dung chen truoc nguoi dang bam dung yen (truoc 29/09: tracker nhan nham 73%):
+    CAM_HALF=25 CAM_OCCLUDE=1 TGT=dung CHEN=2.45:8.0:6.0:-0.15 python3 sim_follow.py -q chen
+    # Nguoi re voi toc do di binh thuong:
+    CAM_HALF=25 python3 sim_follow.py -q vong_nhanh_trai vong_nhanh_phai ne_ngang_nhanh
     # Xe DA lo sat khung cua 3 cm (duoi margin_hard) — co tu thoat ra duoc khong:
     CAM_HALF=31 SIDE_DOOR=3.0:0.81:-0.9 START="3.465:-0.820:-75.0" python3 sim_follow.py -q cua_ben_yen
 
@@ -109,6 +119,10 @@ if os.environ.get("DOOR"):
     # DOOR="x:rong" — tuong ngang qua x, chua mot cua rong `rong` o giua (y = 0)
     _dx, _dw = (float(v) for v in os.environ["DOOR"].split(":"))
     WALLS.extend([(_dx, -6.0, _dx, -_dw / 2), (_dx, _dw / 2, _dx, 6.0)])
+    _wt = float(os.environ.get("WALL_T", "0"))
+    if _wt > 0:   # tuong day: mat sau + hai mat khung cua -> o cua la mot duong ham
+        WALLS.extend([(_dx + _wt, -6.0, _dx + _wt, -_dw / 2), (_dx + _wt, _dw / 2, _dx + _wt, 6.0),
+                      (_dx, -_dw / 2, _dx + _wt, -_dw / 2), (_dx, _dw / 2, _dx + _wt, _dw / 2)])
     if os.environ.get("CORRIDOR"):
         # HANH_LANG=1: them hai vach doc hai ben dan vao cua (giong luc di RA cua that:
         # hai ben co vat chan doc nen xe bi ep thang hang truoc khi toi cua)
@@ -121,6 +135,10 @@ if os.environ.get("SIDE_DOOR"):
     # Giong cua that cua nguoi dung: dang di thang roi RE vao cua ben hong.
     _sx, _sw, _sy = (float(v) for v in os.environ["SIDE_DOOR"].split(":"))
     WALLS.extend([(-2.0, _sy, _sx, _sy), (_sx + _sw, _sy, 9.0, _sy)])
+    _wt = float(os.environ.get("WALL_T", "0"))
+    if _wt > 0:
+        WALLS.extend([(-2.0, _sy - _wt, _sx, _sy - _wt), (_sx + _sw, _sy - _wt, 9.0, _sy - _wt),
+                      (_sx, _sy, _sx, _sy - _wt), (_sx + _sw, _sy, _sx + _sw, _sy - _wt)])
     SIDE_DOOR = (_sx, _sw, _sy)
 WALLS_A = np.array(WALLS)
 
@@ -219,7 +237,7 @@ def run(name, path, T, report_every=0.5, verbose=True, intruder=None):
     t0 = CLK.t
     rows = []
     hit = dict(clear=10.0, t=0.0, x=0.0, y=0.0, yaw=0.0)
-    gate = dict(clear=10.0, yaw_err=0.0, n=0)
+    gate = dict(clear=10.0, yaw_err=0.0, n=0, run=0.0, stall=0.0)
     n = int(T / dt)
     for k in range(n):
         CLK.t = t0 + k * dt
@@ -232,27 +250,44 @@ def run(name, path, T, report_every=0.5, verbose=True, intruder=None):
         rob["y"] += rob["v"] * math.sin(rob["yaw"]) * dt
         rob["yaw"] = wrap(rob["yaw"] + rob["w"] * dt)
 
+        px, py, ph, psp = person.path(t)
+        ipos = intruder(t) if intruder else None     # nguoi thu hai (x, y, huong, toc do) hoac None
+        rel_b = wrap(math.atan2(py - rob["y"], px - rob["x"]) - rob["yaw"])
+        rel_d = math.hypot(px - rob["x"], py - rob["y"])
         if k % 10 == 0:      # do khoang ho voi tuong o 60 Hz
             wc = wall_clearance(rob["x"], rob["y"], rob["yaw"], pl.front_len, pl.rear_len, pl.half_width)
+            if ipos is not None:
+                lg = np.array([[c[0], c[1]] for c in other.legs(t)])
+                ddx, ddy = lg[:, 0] - rob["x"], lg[:, 1] - rob["y"]
+                cc, ss = math.cos(rob["yaw"]), math.sin(rob["yaw"])
+                ic = float(np.min(G.rect_clearance(cc * ddx + ss * ddy, -ss * ddx + cc * ddy,
+                                                   pl.front_len, pl.rear_len, pl.half_width))) - 0.06
+                hit["ng2"] = min(hit.get("ng2", 10.0), ic)
+                if ipos[3] == 0.0:        # nguoi thu hai DUNG YEN chen giua: xe tu lai toi sat ho?
+                    hit["ng2_dung"] = min(hit.get("ng2_dung", 10.0), ic)
             if wc < hit["clear"]:
                 hit.update(clear=wc, t=t, x=rob["x"], y=rob["y"], yaw=math.degrees(rob["yaw"]))
             # Rieng LUC DANG TRONG KHUNG CUA: do khoang ho va goc lech so voi phap tuyen cua
             if SIDE_DOOR is not None:
                 _sx, _sw, _sy = SIDE_DOOR
+                if abs(rob["y"] - _sy) < 0.40 and _sx - 0.15 < rob["x"] < _sx + _sw + 0.15:
+                    still = abs(rob["v"]) < 0.01 and rel_d > 1.25   # le ra phai dang di
+                    gate["run"] = gate["run"] + 10 * dt if still else 0.0
+                    gate["stall"] = max(gate["stall"], gate["run"])
                 if abs(rob["y"] - _sy) < 0.28 and _sx - 0.15 < rob["x"] < _sx + _sw + 0.15:
                     gate.update(clear=min(gate["clear"], wc), n=gate["n"] + 1,
                                 yaw_err=max(gate["yaw_err"],
                                             abs(math.degrees(wrap(rob["yaw"] + math.pi / 2)))))
             if DOOR is not None:
                 _dx, _dw = DOOR
+                if abs(rob["x"] - _dx) < 0.40 and abs(rob["y"]) < _dw / 2 + 0.15:
+                    still = abs(rob["v"]) < 0.01 and rel_d > 1.25   # le ra phai dang di
+                    gate["run"] = gate["run"] + 10 * dt if still else 0.0
+                    gate["stall"] = max(gate["stall"], gate["run"])
                 if abs(rob["x"] - _dx) < 0.28 and abs(rob["y"]) < _dw / 2 + 0.15:
                     gate.update(clear=min(gate["clear"], wc), n=gate["n"] + 1,
                                 yaw_err=max(gate["yaw_err"], abs(math.degrees(wrap(rob["yaw"])))))
 
-        px, py, ph, psp = person.path(t)
-        ipos = intruder(t) if intruder else None     # nguoi thu hai (x, y, huong, toc do) hoac None
-        rel_b = wrap(math.atan2(py - rob["y"], px - rob["x"]) - rob["yaw"])
-        rel_d = math.hypot(px - rob["x"], py - rob["y"])
 
         if k % 12 == 0:      # odom 50 Hz
             od = types.SimpleNamespace(pose=types.SimpleNamespace(pose=types.SimpleNamespace(
@@ -269,7 +304,7 @@ def run(name, path, T, report_every=0.5, verbose=True, intruder=None):
             if ipos is not None:
                 circles = circles + other.legs(t)
             rr = raycast(lx, ly, world, circles)
-            rr = rr + RNG.normal(0, 0.01, rr.shape)
+            rr = rr + RNG.normal(0, float(os.environ.get("LIDAR_NOISE", "0.01")), rr.shape)
             rr[270:290] = 0.128                      # than xe
             rr[rr > 10.0] = np.inf
             scan = types.SimpleNamespace(ranges=rr.tolist(), angle_min=0.0,
@@ -373,18 +408,25 @@ def corner(t, v=0.5, x0=1.4, xt=3.4, R=0.3, walk=5.0):
     return (xt + R, R + s, math.pi / 2, v if t - t1 - al < walk else 0.0)
 
 
-def blocker(t, x=2.2, t_in=5.0, stay=6.0, v=1.0, y0=1.6):
-    """Nguoi thu hai: buoc tu ben TRAI vao dung chan tai (x, 0) `stay` giay roi buoc ra ben PHAI."""
-    tw = y0 / v
+def blocker(t, x=2.2, t_in=5.0, stay=6.0, v=1.0, y0=1.6, ys=0.0):
+    """Nguoi thu hai: buoc tu ben TRAI vao dung chan tai (x, ys) `stay` giay roi buoc ra ben PHAI."""
+    tw = (y0 - ys) / v
     if t < t_in:
         return None
     if t < t_in + tw:
         return (x, y0 - v * (t - t_in), -math.pi / 2, v)
     if t < t_in + tw + stay:
-        return (x, 0.0, -math.pi / 2, 0.0)
-    if t < t_in + 2 * tw + stay:
-        return (x, -v * (t - t_in - tw - stay), -math.pi / 2, v)
+        return (x, ys, -math.pi / 2, 0.0)
+    if t < t_in + tw + stay + (ys + y0) / v:
+        return (x, ys - v * (t - t_in - tw - stay), -math.pi / 2, v)
     return None
+
+
+def _env_chen():
+    """CHEN="x:t_in:stay:ys" TGT=di|dung — nguoi thu hai buoc vao chen, tham so tu bien moi truong."""
+    x, t_in, stay, ys = (float(v) for v in os.environ.get("CHEN", "2.2:5.0:6.0:0.0").split(":"))
+    tgt = (lambda t: straight(t, v=0.0, x0=2.8)) if os.environ.get("TGT") == "dung" else (lambda t: straight(t))
+    return tgt, (lambda t: blocker(t, x=x, t_in=t_in, stay=stay, ys=ys))
 
 
 def straight_then_turn(t, v1=0.20, x0=1.6, t1=12.0, v2=0.35, R=0.5, side=+1):
@@ -453,6 +495,18 @@ SCEN = {
     "cat_ngang_gan": (lambda t: straight(t), 18.0, lambda t: blocker(t, x=2.55, t_in=5.0, stay=0.0, v=0.6)),
     # vong qua nguoi thu hai xong, muc tieu re trai gat va nhanh hon
     "sau_ne_re": (lambda t: straight_then_turn(t), 26.0, lambda t: blocker(t)),
+    # 29/09 — nguoi thu hai CHU DONG buoc vao chen, vi tri/thoi diem tu CHEN, TGT (xem _env_chen)
+    "chen": (lambda t: _env_chen()[0](t), 20.0, lambda t: _env_chen()[1](t)),
+    # 29/09 — nguoi RE BINH THUONG (khong gat): ban kinh 0.8 m, 0.25 m/s. Nguoi dung thay xe xoay
+    # theo "hoi cham" so voi toc do di binh thuong.
+    "vong_trai": (lambda t: turn(t, side=+1, v=0.25, t1=4.0, R=0.8), 16.0),
+    "vong_phai": (lambda t: turn(t, side=-1, v=0.25, t1=4.0, R=0.8), 16.0),
+    # Nguoi rE voi toc do di BINH THUONG cua nguoi (0.6 m/s) — can xe xoay ~0.7 rad/s
+    "vong_nhanh_trai": (lambda t: turn(t, side=+1, v=0.6, t1=1.5, R=0.9), 10.0),
+    "vong_nhanh_phai": (lambda t: turn(t, side=-1, v=0.6, t1=1.5, R=0.9), 10.0),
+    # Nguoi di NHU NGUOI BINH THUONG (1.0 m/s) re ban kinh 1.0 m: can xe xoay ~0.8-1 rad/s
+    "vong_nguoi_trai": (lambda t: turn(t, side=+1, v=1.0, x0=1.3, t1=0.5, R=1.0), 6.0),
+    "vong_nguoi_phai": (lambda t: turn(t, side=-1, v=1.0, x0=1.3, t1=0.5, R=1.0), 6.0),
     # qua khung cua (chay kem DOOR=3.2:0.9)
     "qua_cua": (lambda t: through_door(t), 26.0),
     "qua_cua_lech": (lambda t: through_door(t, y=0.22), 26.0),
@@ -500,7 +554,7 @@ def metrics(name, rows, hit):
     if g_["n"]:
         gtag = "CHAM" if g_["clear"] <= 0.0 else ("sat mep" if g_["clear"] < 0.03 else "ok")
         print(f"{'':15s} LUC TRONG KHUNG CUA: ho={g_['clear']:5.2f} m ({gtag}), "
-              f"lech truc cua toi da={g_['yaw_err']:4.1f} do")
+              f"lech truc cua toi da={g_['yaw_err']:4.1f} do, dung im trong cua lau nhat={g_['stall']:4.1f}s")
     if SIDE_DOOR is not None:
         sx, sw, sy = SIDE_DOOR
         posts = [(sx, sy), (sx + sw, sy)]
@@ -523,7 +577,8 @@ def metrics(name, rows, hit):
         wrong = [math.hypot(r["ex"] - r["ix"], r["ey"] - r["iy"]) < math.hypot(r["ex"] - r["px"], r["ey"] - r["py"])
                  for r in occ]
         print(f"{'':15s} khi co nguoi thu hai: sai_uoc_max={max(err):4.2f} m, uoc_gan_ng2_hon={100*np.mean(wrong):4.0f}%, "
-              f"xe_gan_ng2_nhat={min(r['rgap'] for r in occ):4.2f} m (tam xe->tam nguoi)")
+              f"xe_gan_ng2_nhat={min(r['rgap'] for r in occ):4.2f} m (tam xe->tam nguoi), "
+              f"ho_than_xe_chan_ng2={hit.get('ng2', 10.0):5.2f} m, luc_ng2_dung_yen={hit.get('ng2_dung', 10.0):5.2f} m")
 
 
 if __name__ == "__main__":

@@ -188,6 +188,7 @@ class TargetTrackerNode(Node):
             # Cum lidar GAN XE HON vi tri du doan qua muc nay la vat CHAN TRUOC nguoi (nguoi thu
             # hai di ngang/dung sat, thanh cua) — nguoi dang bam o SAU no, khong phai no. 0 = tat.
             "occluder_margin_m": 0.30,
+            "lidar_track_occluder_margin_m": 0.15,
 
             # Fallback bbox (chi dung khi lidar khong thay)
             "bbox_fallback_enabled": True,
@@ -279,6 +280,7 @@ class TargetTrackerNode(Node):
         self.max_jump = float(g("lidar_distance_max_jump_m"))
         self.lidar_reject_max = float(g("lidar_reject_max_sec"))
         self.occluder_margin = float(g("occluder_margin_m"))
+        self.track_occluder_margin = float(g("lidar_track_occluder_margin_m"))
 
         self.bbox_fallback = bool(g("bbox_fallback_enabled"))
         self.bbox_h_1m = float(g("bbox_height_at_1m_px"))
@@ -478,8 +480,17 @@ class TargetTrackerNode(Node):
             if not (self.person_w_min <= c.width_m <= self.person_w_max):
                 continue
             # Camera thuong mat nguoi DUNG LUC co nguoi/vat di ngang truoc mat: cum do gan xe hon
-            # du doan -> la vat che, khong phai nguoi dang bam (truoc day xe bam theo nguoi di ngang)
-            if self.occluder_margin > 0.0 and c.range_m < rng - self.occluder_margin:
+            # du doan -> la vat che, khong phai nguoi dang bam (truoc day xe bam theo nguoi di ngang).
+            # Nguong CO GIAN THEO TOC DO nguoi: dung yen thi CHAT (lidar_track_occluder_margin_m),
+            # dang di nhanh thi noi toi occluder_margin_m.
+            #  - Nguoi dang bam DUNG YEN, nguoi thu hai buoc vao chen ngay truoc: CHAN SAU cua nguoi
+            #    thu hai chi gan xe hon 0.25 m, lot nguong 0.3 m -> tracker bam luon ho (29/09, 73%).
+            #    Nguoi dung yen khong the "nhay" 25 cm ve phia xe trong mot vong quet.
+            #  - Nguoi dang bam BUOC NGANG NHANH ve phia xe: cum chan cung gan hon du doan. Nguong
+            #    chat co dinh 0.15 m lam mat nguoi: lech toi da 23 -> 31 do (mo phong).
+            spd = math.hypot(self.filter.vx, self.filter.vy)
+            margin = min(self.occluder_margin, self.track_occluder_margin + 0.25 * spd)
+            if self.track_occluder_margin > 0.0 and c.range_m < rng - margin:
                 continue
             d = math.hypot(c.cx - tx, c.cy - ty)
             if d < best_d:

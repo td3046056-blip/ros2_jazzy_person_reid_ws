@@ -72,6 +72,11 @@ target_tracker_node:
     # Cum lidar gan xe hon vi tri du doan qua muc nay = vat CHAN TRUOC nguoi (nguoi thu hai
     # di ngang/dung sat, thanh cua) -> bo, ca khi ghep theo camera lan lidar_track. 0 = tat.
     occluder_margin_m: 0.30
+    # Nhu tren nhung cho LUC CAMERA KHONG THAY (lidar_track), khi nguoi DUNG YEN; nguoi cang di
+    # nhanh nguong cang noi (+0.25 m moi m/s, toi da occluder_margin_m). Chat hon vi du doan da tinh
+    # van toc nguoi. 0.3 m de lot chan SAU cua nguoi thu hai dung chen ngay truoc nguoi
+    # dang bam (chi gan xe hon 0.25 m) -> tracker bam luon nguoi thu hai (29/09).
+    lidar_track_occluder_margin_m: 0.15
 
     # Chi dung khi LiDAR khong thay gi (nguoi bi ban che chan, ...)
     bbox_fallback_enabled: true
@@ -163,9 +168,11 @@ follow_planner_node:
     # ── Gioi han dong hoc — toc do THAT (driver da hieu chinh max_linear 0.49) ─
     v_max: 0.22
     v_min: -0.06
-    w_max: 0.80
+    # 29/09: 0.80 -> 1.00, accel_ang 1.60 -> 2.40 — nguoi dung thay xe xoay theo nguoi hoi cham.
+    # Nguoi di 0.6-1 m/s cach 1 m can ~0.7-1 rad/s. Driver lam duoc 2.46 rad/s (muc 3 CLAUDE.md).
+    w_max: 1.00
     accel_lin: 0.35
-    accel_ang: 1.60
+    accel_ang: 2.40
     min_move_linear: 0.035              # duoi nguong nay banh khong quay
     min_move_angular: 0.10
 
@@ -190,6 +197,9 @@ follow_planner_node:
     w_speed: 0.55
     w_smooth: 0.45
     w_fov: 1.6
+    # Giu nguoi GIUA khung hinh suot quy dao DWA (khong chi o diem cuoi 1.2 s). Tang -> xe xoay theo
+    # nguoi nhay hon khi nguoi re; qua lon -> luc ne vat can xe cu muon quay ve phia nguoi.
+    w_center: 0.8
     w_side: 0.9
 
     # ── Hanh vi bam ───────────────────────────────────────────────────────
@@ -231,6 +241,13 @@ follow_planner_node:
     # Quang duong lui toi da khi phai canh lai truc khe. Lidar KHONG nhin thay gi thang
     # phia sau (cung sau nam trong blind_sectors_deg) nen chi lui dung doan vua di qua.
     gap_back_max_m: 0.40
+    # Khoang ho DO DUOC toi thieu giua footprint va vat, CHI trong dong tac chui khe (ngoai do
+    # van la margin_hard). Thap hon margin_hard vi xe lay so NHO NHAT trong ~15 tia chieu vao
+    # thanh cua: nhieu lidar 1-2 cm keo so do thap hon that 2-3 cm. De 0.06 thi o cua 0.81 m
+    # xe tuong chi con 3-4 cm (that 7 cm) va dung im giua cua (nguoi dung bao 29/09).
+    # Viec CO NEN chui (da vao truc chua) van tinh bang margin_hard.
+    # [CAN XAC NHAN] tren xe that; muon an toan nhu cu thi dat lai 0.06.
+    gap_cross_margin_m: 0.03
     gap_axis_tol_m: 0.12
     gap_align_deg: 10.0
     gap_align_range_m: 0.90

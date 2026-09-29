@@ -333,6 +333,8 @@ Nguồn dữ liệu, ưu tiên giảm dần:
 
 **Chặn vật che trước người (sửa 22/09, lần 2):** cụm LiDAR **gần xe hơn** vị trí dự đoán quá `occluder_margin_m` (0.3 m) bị bỏ — nó nằm giữa xe và người đang bám nên không thể là người đó. Áp cho cả ghép theo camera (cùng điều kiện với cổng nhảy ở trên) lẫn `_nearest_cluster_to` của `lidar_track`. Bắt được: người thứ hai đứng **sát** < 0.6 m trước người đang bám (cổng nhảy bỏ lọt), người đi ngang **che camera** (trước đây `lidar_track` vơ chân họ → xe bám theo người đi ngang), thanh cửa khi người đã qua cửa.
 
+**Cổng vật che lúc camera không thấy (29/09):** ở `lidar_track`, ngưỡng co giãn theo tốc độ người: `lidar_track_occluder_margin_m` (0.15 m) + 0.25 m cho mỗi m/s, tối đa `occluder_margin_m` (0.3). Người đang bám **đứng yên** mà người thứ hai bước vào đứng chen ngay trước: **chân sau** của người thứ hai chỉ gần xe hơn 0.25 m, lọt ngưỡng 0.3 → tracker bám luôn họ (mô phỏng 73% thời gian). Ngưỡng chặt cố định 0.15 thì lại làm mất người **bước ngang nhanh về phía xe** (lệch tối đa 23° → 31°) — nên phải co giãn theo tốc độ.
+
 **Vận tốc giảm dần khi mất hẳn:** hết `measurement_hold_sec` mà không có phép đo → `vx, vy *= e^(-dt/predict_velocity_decay_sec)` (1.0 s). Dự đoán dừng gần chỗ thấy người lần cuối thay vì trôi thẳng theo hướng cũ.
 
 ### 6.3 `follow_planner_node` — nguồn DUY NHẤT ghi `/cmd_vel`
@@ -358,7 +360,8 @@ Chi phí chọn khe: `2.2*c_goal + 0.45*c_prev + 0.8*c_fov + 0.7*c_side`.
 - `n_samples_v: 7`, `n_samples_w: 17` → ~130 cặp
 - Chân trời: `horizon_steps 12 × horizon_dt 0.10` = 1.2 s
 - Va chạm: **footprint chữ nhật thật** ở từng tư thế (`rect_clearance`)
-- `admissible = min_clear > margin_hard`
+- `admissible = min_clear > margin_hard` (kèm luật thoát kẹt, xem dưới)
+- `w_max` 1.0 rad/s, `accel_ang` 2.4 (sửa 29/09, trước 0.8 / 1.6)
 
 Hàm chi phí:
 
@@ -371,6 +374,7 @@ Hàm chi phí:
 | `c_smooth` | `w_smooth 0.45` | Bậc hai của thay đổi `v`, `w` chuẩn hoá theo cửa sổ lấy mẫu |
 | `c_fov` | `w_fov 1.6` | Phạt khi người ra ngoài `±fov_keep_deg (22°)` — **giải pháp cho camera cố định** |
 | `c_side` | `w_side 0.9` | Phạt quay ngược bên né đã cam kết |
+| `c_center` | `w_center 0.8` | Trung bình **dọc cả quỹ đạo** của `max(0, \|góc tới người\| − 4°) / fov_keep`. **Chỉ bật khi đường tới đích thoáng và không `AVOID`** (29/09) |
 | tie-break | `1e-3` | `\|W\|/w_max` — ưu tiên đi thẳng khi hoà |
 
 **Không có ràng buộc phanh riêng.** Chân trời 1.2 s đã đủ: thời gian phanh `v_max/accel = 0.63 s`, quãng đường phanh `v²/2a = 0.069 m` < quãng đường mô phỏng 0.26 m.
@@ -386,7 +390,10 @@ Hàm chi phí:
 3. Ba pha theo đúng thứ tự:
    - **Lùi ra** — còn lệch trục mà đã quá gần mặt khe: không lùi thì tự nhốt mình (tường ngay trước mũi, góc trước quét 0.33 m nên hết chỗ xoay, mà DWA không cho lùi). Giới hạn `gap_back_max_m` (0.40 m) vì **LiDAR mù thẳng phía sau** (`blind_sectors_deg`).
    - **Vào trục** — ngắm điểm trên trục khe theo kiểu pure-pursuit, nhìn trước 0.45–0.9 m. Ngắm ngang hông xe thì lệch 13 cm cũng ra lệnh quay 90° để "trượt ngang" → xe quay vòng tại chỗ.
-   - **Qua khe** — giữ mũi theo pháp tuyến khe, vừa đi vừa sửa lệch ngang; chỉ bò `gap_cross_speed` (0.12 m/s) khi đã sát mặt khe.
+   - **Qua khe** (`_gap_cross`) — giữ mũi theo pháp tuyến khe, vừa đi vừa sửa lệch ngang; chỉ bò `gap_cross_speed` (0.12 m/s) khi đã sát mặt khe. Lấy lệnh **đầu tiên an toàn** trong: đi tới theo luật lái → **đi thẳng** (bẻ lái trong khe làm đuôi văng) → xoay vuông mặt cửa → **lùi về trục** → (chỉ khi đã sát dưới ngưỡng) xoay nhẹ cho thoáng. Không bao giờ đứng im khi còn cách gỡ.
+   - **"Đã vào trục"** tính theo bề rộng khe thật: `0.5·(khe − 2·half_width) − margin_hard − 0.01` (cửa 0.81 m → **3.5 cm**, trần `gap_axis_tol_m`), có trễ +3 cm khi đang chui. Dung sai cố định 12 cm cũ cho xe lệch 7.5 cm vào pha chui — vật lý không lọt → đứng im giữa cửa (7.2-AD).
+   - **Lùi về trục** theo cung (pure-pursuit cho chiều lùi) tới một điểm trên trục khe phía sau, không lùi thẳng; đã bắt đầu lùi thì lùi đủ tới chỗ đứng chờ mới tiến lại.
+   - Khi đang chui, mỗi nhịp chấp nhận khoảng hở **đo được** ≥ `gap_cross_margin_m` (**0.03**, không phải 0.06): xe lấy số nhỏ nhất trong ~15 tia chiếu vào thanh cửa nên nhiễu LiDAR kéo số đo thấp hơn thật 2–3 cm. Việc **có nên chui** (đã vào trục chưa) vẫn tính bằng `margin_hard`. Tách hai việc này là mấu chốt — gộp chung (hạ cả hai xuống 3 cm) thì kết quả **tệ hơn**.
 4. **Mọi lệnh đều qua `_arc_clearance`** — mô phỏng đúng lệnh (v, w) đó trong 1.2 s và đo footprint chữ nhật, giống hệt bộ lọc va chạm của DWA. Không lệnh nào an toàn thì trả về `None` và rơi về đường cũ.
 
 Đặt **trước** nhánh "xoay về hướng nhớ cuối" và dùng cả trong pha đi tới của `SEARCH`: người rẽ vào cửa bên hông thì tường che camera ngay, xe mà đứng xoay tại chỗ tìm người thì không bao giờ tới được cửa.
@@ -406,10 +413,10 @@ Hàm chi phí:
 
 **Vùng chết hướng (sửa 17/09):** người lệch < `bearing_deadband_deg` (4°) → đích coi như thẳng trước mũi (`goal_b = 0`). Góc cụm chân rung vài độ mỗi bước; không có vùng chết thì DWA bẻ lái ±0.1 rad/s liên tục.
 
-**Camera không thấy người** (`source` không bắt đầu bằng `camera` — tức `lidar_track`, `predicted`, `rssi_bearing`) và lệch > `occluded_turn_deg` (15°) → **xoay tại chỗ về phía đó trước** (trễ: tới dưới 7.5°), rồi mới tiến. Chỉ khi `_can_rotate_in_place()`. Ngưỡng thấp hơn nửa FOV vì góc dự đoán thường trễ hơn góc thật ~10°.
+**Camera không thấy người** (`source` không bắt đầu bằng `camera` — tức `lidar_track`, `predicted`, `rssi_bearing`) và lệch > `occluded_turn_deg` (15°) → **xoay tại chỗ về phía đó trước** (trễ: tới dưới 7.5°), rồi mới tiến. Chỉ khi `_can_turn()` (quét footprint đúng góc cần xoay). Tốc độ `clip(2.2·góc, ±0.9·w_max)` — trước 29/09 là `1.5·góc, ±0.6·w_max` = tối đa 0.48 rad/s, người dùng thấy xoay theo người chậm. Ngưỡng thấp hơn nửa FOV vì góc dự đoán thường trễ hơn góc thật ~10°.
 
 **SEARCH (sửa 17/09)** tính từ lần cuối có mục tiêu **hợp lệ** (`last_valid_time`), bắt đầu ngay khi mất nếu đã lưu vị trí người:
-1. **Pha đi tới:** lái (chọn khe + DWA) tới cách chỗ thấy người lần cuối (`last_target_odom`, khung odom) một `follow_distance`, tối đa `search_goto_max_sec` (8 s). Chỉ xoay tại chỗ khi đích lệch > 60°.
+1. **Pha đi tới:** lái (chọn khe + DWA) tới cách chỗ thấy người lần cuối (`last_target_odom`, khung odom) một `follow_distance`, tối đa `search_goto_max_sec` (8 s). Chỉ xoay tại chỗ khi đích lệch > 60°. **Đường tới chỗ người bị chắn** (người thứ hai đứng chen che mất người đang bám) thì coi như chưa tới nơi và dò hướng tới tận chỗ người (như `chk_r`) để **vòng qua** — trước 29/09 điểm đích rơi đúng chỗ người thứ hai, xe bò tới sát chân họ rồi đứng quay tìm (7.2-AE).
 2. **Pha quét:** xoay qua lại như cũ. Hết `search_max_sec` hoặc không đủ chỗ xoay → `IDLE`, `last_valid_time = 0` → không quét lại tới khi thấy người. `/follow/enable` xoá vị trí đã lưu.
 
 ### 6.4 Ba kỹ thuật cốt lõi
@@ -491,6 +498,9 @@ Planner log mỗi 10 giây: `self-filter: bo N/M tia dap vao than xe` (M = số 
 | AA | **Người rẽ vào cửa bên hông: xe kẹt ở mép cửa** (23/09) | Người dùng báo: đang đi thẳng rồi **rẽ phải vào cửa** 0.81 m thì xe kẹt, cứ hướng vào khung cửa (log: `AVOID` liên tục ~23 s, vài nhịp `BLOCKED`, nguồn vẫn `camera+lidar`). Mô phỏng `cua_ben`: xe dừng cách thanh cửa 0.39 m, mất người 21.6 s rồi `IDLE`. Đi chéo qua khe hẹp là **bất khả thi về hình học** — phải tới ngang tâm cửa rồi mới quay vào | `_gap_target`: ngắm trục vuông góc giữa khe (xem 6.3). Mô phỏng: qua được cửa bên hông; người chen giữa mất camera 3.8 → 1.5 s |
 | AB | **Người rẽ vào cửa bên hông: xe canh góc rồi vẫn kẹt ở một bên khung cửa** (23/09, lần 2) | Người dùng báo sau khi thử bản `4765acb`: *"khi xe bắt đầu tự chỉnh góc để đi vào cửa 0.81 m thì nó chia khoảng cách không đều, góc phải rộng hơn góc trái nên xe bị kẹt ngay góc bên trái; tôi chủ động xoay xe sang phải một tí thì đi qua được"*. Mô phỏng: xe tới được trục cửa nhưng **mũi chưa vuông với mặt cửa** (lệch 40–50°), khoảng hở với khung cửa chỉ 0.02 m. Ba nguyên nhân độc lập: (a) `_gap_target` lấy **chân người** làm mép khe → trục sai hẳn 0.6 m; (b) tia LiDAR quét dọc tường ở góc chéo tạo **khe giả** rộng 0.8 m; (c) DWA không giữ nổi độ chính xác ±14° mà cửa 0.81 m đòi hỏi | `_gap_maneuver` — bộ điều khiển hình học ba pha, mọi lệnh qua `_arc_clearance` (xem 6.3). Lưới thử riêng động tác chui cửa (15 tư thế xuất phát): **8/15 → 15/15**, hở nhỏ nhất với tường **0.02 → 0.07 m** |
 | AC | **Xe lỡ sát khung cửa thì đứng im mãi, dù chỉ cần xoay nhẹ là qua** (26/09) | Người dùng báo: kẹt góc trái ở thanh cửa trái; xoay tay xe tại chỗ một chút về phía rộng thì qua; bước sang phải để xe xoay theo thì xe **không làm gì được**. Mô phỏng 12 tư thế đã sát khung cửa 3–4.5 cm: bản `5285377` chỉ 4/12 tự thoát, các ca sát 3 cm đứng `BLOCKED` mãi | Luật thoát kẹt `_admissible`; `_can_turn` quét đúng góc thay cho luật 360°; nhích tới khi đuôi chặn; lùi–xoay là cách cuối (xem 6.3). Mô phỏng: **8/12** tự thoát, cả 8 ca đều bám tiếp được người (`ARRIVED`/`FOLLOW`). 4 ca còn lại xem 13.19 |
+| AD | **Xe đứng im giữa cửa 0.81 m, "lệch −3..−7 độ"** (29/09) | Người dùng báo sau bản `bc3dcdf`: xe gần như đã ở giữa cửa, thực tế đi được, nhưng đứng mãi với `note` = `chui khe hep — qua khe theo truc (lech -3 do)`; có lần qua có lần không. Mô phỏng **chỉ tái hiện được khi tường có độ dày** (`WALL_T=0.12`) — tường mỏng như giấy thì không. Ba nguyên nhân: (a) luật lái `psi + 1.2·lệch_ngang`: lệch tâm và lệch góc trái dấu nhau, cộng lại ~2° rơi vào vùng chết → `w=0`, tiến thì sát khung → `v=0`; (b) dung sai "đã vào trục" 12 cm cố định trong khi cửa 0.81 m chỉ cho ~4 cm; (c) nhiễu LiDAR: xe lấy số nhỏ nhất trong ~15 tia nên tưởng hở 3–4 cm khi thật là 7 cm | `_gap_cross` (chuỗi lệnh dự phòng, ưu tiên đi thẳng), dung sai vào trục theo khe thật, lùi theo cung về trục, `gap_cross_margin_m` 0.03 (xem 6.3). Xe gần giữa cửa tường dày: nhiễu 2 cm **7/30 → 28/30**, nhiễu 1 cm **20/30 → 30/30**; chui từ xa tường dày **6/15 → 15/15** |
+| AE | **Người thứ hai chủ động bước vào: lúc né, lúc bò tới sát chân họ** (29/09) | Người dùng báo. Hai nguyên nhân: (a) người thứ hai che kín cả camera lẫn chân người đang bám → `SEARCH` lái tới "cách chỗ thấy cuối 1 m" = đúng chỗ người thứ hai → xe bò tới sát họ; (b) tracker nhận nhầm chân sau của người thứ hai (chỉ gần hơn 0.25 m, lọt cổng 0.3 m) — mô phỏng 73%. Lúc camera còn thấy một phần người đang bám thì `AVOID` vẫn né được → "lúc né lúc không" | `SEARCH` dò đường tới tận chỗ người; cổng vật che `lidar_track` co giãn theo tốc độ người. Lưới 24 ca: lỗi **7 → 3**, nhận nhầm **73% → 0%**. 3 ca còn lại xem 13.22 |
+| AF | **Xe xoay theo người chậm khi người đi tốc độ bình thường** (29/09) | Người dùng báo. Mô phỏng người đi 1 m/s rẽ: DWA chỉ chọn `w` ≈ 0.28 rad/s dù được phép 0.8 — chi phí hướng chỉ xét **tư thế cuối** (1.2 s) nên xe quay từ từ cho vừa hết 1.2 s, người đi tiếp → trễ ~15°. Xoay tìm người khi ra khỏi camera bị chặn 0.48 rad/s. Tăng `w_heading` hay hạ `fov_keep_deg` **không có tác dụng** (đã thử) | `c_center` trung bình dọc quỹ đạo, chỉ bật khi đường thoáng; `w_max` 1.0, `accel_ang` 2.4; xoay tìm người `2.2·góc, ±0.9·w_max`. Người đi 1 m/s: lệch 15.1° → **13.3°**, giữ khung hình 92–95% → **100%**; bước ngang nhanh 6.4° → **3.6°**; đi thẳng 1.6° → 0.6°. Bật `c_center` cả lúc né thì xe lao vào người chen (test 5 LỖI) — phải chặn |
 | U | **Xe lắc qua lại khi bám thẳng** | Người dùng báo: *"không bám thẳng theo người"*. Mô phỏng: `w` đổi chiều 42 lần / 22 s | Vùng chết hướng → 25 lần. Còn lắc nhẹ do góc cụm chân rung |
 
 ### 7.3 Lỗi môi trường / build
@@ -535,6 +545,8 @@ Trước đây người dùng báo *"lidar không xoay mà xe chỉ chạy thẳ
 **Kết quả 17/09:** bước 1–2 đạt — `/person_reid/target` 8.0 Hz, `/cmd_vel` ~14.8 Hz (ReID chạy CPU), `source = camera+lidar`. Chạy thử bám người, người dùng báo 3 vấn đề: xe không bám thẳng (lắc), rẽ theo không kịp, và khi `predicted` xe đi thẳng thay vì quay về hướng thấy người lần cuối. Đã sửa tracker + planner (lỗi 7.2-Q…U), kiểm bằng `scripts/sim_follow.py`. **[CẦN XÁC NHẬN] chưa chạy lại trên xe.**
 
 **Kết quả 22/09 (xe thật, sau bản 17/09):** người dùng xác nhận bám người "cải thiện rất tốt"; có `SEARCH` → `FOLLOW` khi mất rồi thấy lại. Lỗi còn: **người thứ hai chủ động bước vào giữa** thì xe đa số lần chạy thẳng tới chân họ dù camera vẫn thấy người đang bám; họ bước ra thì bám tốt lại. Log nguồn lúc đó nhảy `lidar_track`/`camera+bbox`. Đã sửa (7.2-V), kiểm bằng `sim_follow.py` kịch bản `chan_giua`/`cat_ngang`/`chan_sat`. **[CẦN XÁC NHẬN] chưa chạy lại trên xe.**
+
+**29/09 (xe thật, bản `bc3dcdf`):** người dùng báo ba việc: (1) cửa 0.81 m khi người rẽ vào: xe gần như ở giữa cửa, thực tế lọt, nhưng đứng im với `note` "qua khe theo truc (lech -3..-5 do)", lúc qua lúc không — muốn sửa tuyệt đối; (2) xoay theo người hơi chậm so với tốc độ đi bình thường; (3) người thứ hai chủ động bước vào: lúc né, lúc bò tới sát chân họ. Cả ba tái hiện được và đã sửa (7.2-AD, AE, AF). Mô phỏng thêm tường dày (`WALL_T`), nhiễu LiDAR (`LIDAR_NOISE`), kịch bản người thứ hai tham số hoá (`chen`) và người đi 1 m/s (`vong_nguoi_*`). **[CẦN XÁC NHẬN] chưa chạy lại trên xe.**
 
 **26/09 — câu hỏi của người dùng về logic lùi xe** (chưa chạy thật bản `5285377`): *"lúc kẹt tôi chỉ xoay tay xe tại chỗ một chút về phía rộng là qua, không đẩy tới hay lùi; tôi bước sang phải để xe xoay theo thì xe không làm được"*. Đúng: hai luật an toàn khoá chết xe khi đã sát khung cửa (7.2-AC). Đã sửa, và đổi thứ tự: xoay nhẹ về phía rộng trước, lùi là cách cuối. **[CẦN XÁC NHẬN] chưa chạy lại trên xe.**
 
@@ -594,6 +606,16 @@ Cửa phòng tiêu chuẩn 0.80 m là **sát nút**. Test với khe ≥ 0.90 m t
 Khi không hướng nào lọt ở tầm dò xa, code lùi về tầm dò ngắn hơn; lúc đó mặt cửa còn xa hơn tầm dò nên mọi hướng đều "thoáng" và xe nhắm thẳng vào người, tức nhắm vào vùng có thanh cửa. Vì vậy **xe phải gần thẳng hàng trước khi tới cửa**. Hành lang hoặc vật chắn dọc hai bên giúp ép xe vào thế thẳng hàng — đúng như quan sát thực tế: đi ra (có vách hai bên) thì qua tốt hơn đi vào (hai bên trống).
 
 Từ 23/09, `_gap_maneuver` (mục 6.3) tự lo việc canh trục: khi đường thẳng không lọt, xe lái tới trục vuông góc của khe, canh mũi cho vuông mặt cửa, rồi mới bò qua. Lưới mô phỏng 15 tư thế xuất phát (lệch trục tới ±0.6 m, lệch góc ±15°) qua được **15/15**, hở nhỏ nhất với tường 0.07 m.
+
+**Cửa hẹp phụ thuộc mạnh vào nhiễu LiDAR (29/09).** Xe lấy khoảng cách **nhỏ nhất** trong ~15 tia chiếu vào thanh cửa, nên nhiễu kéo số đo thấp hơn thật khoảng 1.7 lần độ lệch chuẩn. Xe đã ở gần giữa cửa 0.81 m tường dày 12 cm (30 tư thế, bản sau 29/09):
+
+| Nhiễu LiDAR | Qua cửa | Đứng im > 3 s |
+|---|---|---|
+| 1 cm | 30/30 | 0 |
+| 2 cm | 28/30 | 3 |
+| 3 cm | 16/30 | 0 |
+
+Hồ sơ hiệu chỉnh đo tấm phẳng sai 0.6 cm trung bình (mục 3) nên xe thật có lẽ ở mức ~1 cm — **[CẦN XÁC NHẬN]** (13.21).
 
 Giới hạn vật lý vẫn còn và **không sửa được bằng phần mềm**: cửa hẹp hơn 0.72 m thì không có cách nào lọt; cửa 0.81 m chỉ dư mỗi bên ~10 cm, và lệch trục 14° là hết lề — đó là lý do phải canh vuông trước khi chui, không đi chéo.
 
@@ -709,6 +731,10 @@ ros2 service call /follow/stop std_srvs/srv/Trigger {}
 | Xe bắt nhầm "khe" khi chạy dọc tường (tia quét chéo) | Tăng `gap_min_span_deg` (10) |
 | Xe lùi ra vào nhiều lần trước cửa | Giảm `gap_back_max_m` (0.40); 0 = cấm lùi — đổi lại dễ kẹt sát cửa hơn |
 | Xe qua cửa nhưng lệch hẳn một bên | Giảm `gap_axis_tol_m` (0.12) — đổi lại xe canh trục lâu hơn |
+| Xe đứng im / lắt nhắt giữa cửa dù thực tế lọt | Kiểm tra nhiễu LiDAR (mục 9); hạ `gap_cross_margin_m` (0.03) — **đừng** hạ `margin_hard` |
+| Xe cà vào khung cửa khi chui | Tăng `gap_cross_margin_m` (0.03 → tối đa 0.06 như trước 29/09) — đổi lại dễ đứng im giữa cửa hơn |
+| Xe xoay theo người vẫn chậm khi người rẽ | Tăng `w_center` (0.8) — quá lớn thì ảnh hưởng bước né |
+| Người đứng yên, người thứ hai chen sát trước mà tracker bám nhầm họ | Giảm `lidar_track_occluder_margin_m` (0.15) — đổi lại người bước nhanh về phía xe dễ bị coi là vật che |
 | Người đang bám đi về phía xe nhanh mà nguồn nhảy sang `camera+bbox` | Tăng `occluder_margin_m` (0.3) — đổi lại người thứ hai đứng sát trước dễ bị nhận nhầm hơn |
 | Xe quá rụt rè trong hành lang | Giảm `margin_soft` |
 | Xe cọ tường | Tăng `margin_hard` |
@@ -774,3 +800,11 @@ Các mục sau **chưa được kiểm chứng**. Không tự đoán, hãy hỏi
 18. **Người thứ hai đứng SÁT trước người đang bám** — bản 8f4b15c bám nhầm (mô phỏng `chan_sat` 0.4 m: 65%). Bản 22/09 lần 2 có cổng vật che (`occluder_margin_m`): mô phỏng **0%**. Vẫn chưa phân biệt được nếu người thứ hai đứng **ngang hàng** (cùng khoảng cách, lệch < ~10°) với người đang bám. Khi xe vòng qua người thứ hai, khe hở với chân họ có thể chỉ cỡ `margin_hard` (6 cm) — margin đã hiệu chỉnh (mục 3), không đổi tự ý.
 
 19. **Xe kẹt với góc xe đã chìa QUA thanh cửa, lơ lửng trên đoạn tường bên cạnh** (mô phỏng 26/09, mũi lệch ~25° so với pháp tuyến cửa). Xoay về phía cửa sẽ ép góc đó xuống tường, xoay ngược lại thì an toàn nhưng quay lưng với cửa; lùi–xoay trong mô phỏng cũng chưa gỡ được. 4/12 ca của lưới "đã kẹt" rơi vào đây. Khác với ca người dùng mô tả (góc xe tì vào **mặt trong** thanh cửa — ca đó đã tự thoát được). Nếu gặp ngoài đời, ghi lại `note` và tư thế xe.
+
+20. **`gap_cross_margin_m` = 0.03 (29/09)** — khoảng hở **đo được** tối thiểu khi đang chui khe, thấp hơn `margin_hard` 0.06. Lý do: số đo luôn bị nhiễu kéo thấp hơn thật (mục 9); để 0.06 thì xe đứng im giữa cửa 0.81 m dù thật hở 7 cm. Mô phỏng: khoảng hở **thật** nhỏ nhất vẫn ≥ 5 cm. Ngoài động tác chui khe vẫn là 0.06. **Chưa chạy xe thật** — muốn an toàn như cũ thì đặt lại 0.06.
+
+21. **Độ nhiễu thật của SC-Mini ở tầm 0.3–0.5 m chưa đo.** Qua cửa 0.81 m phụ thuộc mạnh vào nó (bảng mục 9). Cách đo: đặt xe đứng yên cách tường phẳng 0.4 m, ghi 100 vòng quét, tính độ lệch chuẩn của tia vuông góc.
+
+22. **Người thứ hai bước ngang SÁT mũi xe khi xe đang chạy tới** (mô phỏng 29/09, 3/24 ca): xe phanh và dừng cách chân họ ~9 cm (trên `margin_hard` 6 cm, không chạm), rồi bò quanh. Người đi 1 m/s vào đường xe ở 35 cm thì không cách nào tránh rộng hơn. Không sửa.
+
+23. **Test 5 của `test_sim.py` nhạy hỗn loạn với `w_max`/`accel_ang`** (29/09): lưới lấy mẫu `w` của DWA đổi theo hai số này. 1.0/2.4 ĐẠT, 1.1/2.4 và 0.8/2.4 LỖI (xe đi thẳng `w=0` dù người lệch 20°). Cùng loại mong manh với 13.12. Đổi hai số này thì phải chạy lại test 5.
