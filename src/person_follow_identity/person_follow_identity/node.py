@@ -1,10 +1,22 @@
 from __future__ import annotations
 
 import json
-from typing import Any, Dict
+import os
+import threading
+import time
+from typing import Any, Dict, Optional, Tuple
+
+# BLAS cua numpy chi 1 luong. DeepSORT tinh khoang cach bang tich ma tran voi toi 100
+# feature/track; OpenBLAS da luong cho cac phep nho nay roi quay cho ban, tranh CPU voi
+# torch -> YOLO cham dan: do bang webcam 29 ms/khung luc dau -> 53-59 ms sau vai giay;
+# gioi han 1 luong: on dinh 29 ms, 15 Hz. Phai dat TRUOC khi import numpy/cv2.
+# KHONG dat MKL_NUM_THREADS/OMP_NUM_THREADS: torch doc hai bien do -> YOLO chay 1 luong (66 ms).
+os.environ.setdefault("OPENBLAS_NUM_THREADS", "1")
 
 import cv2
+import numpy as np
 import rclpy
+from rcl_interfaces.msg import ParameterDescriptor
 from rclpy.node import Node
 from std_msgs.msg import String
 from std_srvs.srv import Trigger
@@ -21,6 +33,45 @@ except Exception:
     CV_BRIDGE_AVAILABLE = False
 
 
+class LatestFrameGrabber:
+    """Doc camera lien tuc trong luong rieng, chi giu khung MOI NHAT + thoi diem chup.
+
+    Truoc day timer 8 Hz goi cap.read() truc tiep: camera chay 30 fps nen bo dem V4L2
+    luon day va read() tra khung CU (tre them ~100+ ms), va thoi gian cho doc chan
+    luon luong xu ly.
+    """
+
+    def __init__(self, cap: cv2.VideoCapture) -> None:
+        self.cap = cap
+        self._lock = threading.Lock()
+        self._frame: Optional[np.ndarray] = None
+        self._stamp = 0.0
+        self._seq = 0
+        self.failures = 0
+        self._running = True
+        self._thread = threading.Thread(target=self._run, daemon=True)
+        self._thread.start()
+
+    def _run(self) -> None:
+        while self._running:
+            ok, frame = self.cap.read()
+            stamp = time.time()
+            if not ok or frame is None:
+                self.failures += 1
+                time.sleep(0.02)
+                continue
+            with self._lock:
+                self._frame, self._stamp, self._seq = frame, stamp, self._seq + 1
+
+    def latest(self) -> Tuple[Optional[np.ndarray], float, int]:
+        with self._lock:
+            return self._frame, self._stamp, self._seq
+
+    def stop(self) -> None:
+        self._running = False
+        self._thread.join(timeout=1.0)
+
+
 class IdentityLockNode(Node):
     def __init__(self) -> None:
         super().__init__("identity_lock_node")
@@ -34,8 +85,18 @@ class IdentityLockNode(Node):
         self.cap = cv2.VideoCapture(parse_camera_source(params["camera_source"]))
         self.cap.set(cv2.CAP_PROP_FRAME_WIDTH, int(params["frame_width"]))
         self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT, int(params["frame_height"]))
+        self.cap.set(cv2.CAP_PROP_BUFFERSIZE, 1)
+        self.grabber: Optional[LatestFrameGrabber] = None
         if not self.cap.isOpened():
             self.get_logger().warning(f"Could not open camera source: {params['camera_source']}")
+        else:
+            self.grabber = LatestFrameGrabber(self.cap)
+        self.last_seq = 0
+        self.last_fail_log = 0.0
+        self.stat_t0 = time.time()
+        self.stat_n = 0
+        self.stat_proc = 0.0
+        self.stat_seq0 = 0
 
         self.target_pub = self.create_publisher(String, str(params["target_topic"]), 10)
         self.command_sub = self.create_subscription(String, str(params["command_topic"]), self._command_cb, 10)
@@ -51,6 +112,7 @@ class IdentityLockNode(Node):
             self.get_logger().warning("cv_bridge is not available; debug image topic is disabled")
 
         self.show_window = bool(params["show_window"])
+        self.stats_period = float(params["stats_period_sec"])
         self.window_name = "identity_lock"
         self.frame_skip = max(0, int(params["frame_skip"]))
         self.frame_count = 0
@@ -139,9 +201,35 @@ class IdentityLockNode(Node):
             "processing_hz": 15.0,
             "frame_skip": 0,
             "show_window": False,
+            # --- Toi uu dam dong / camera goc rong (29/09) ---
+            "rect_inference": True,
+            "occlusion_ratio_max": 0.35,
+            "occluded_fail_weight": 0.25,
+            "learn_min_quality": 0.75,
+            "eval_min_quality": 0.45,
+            "switch_margin": 0.08,
+            "strong_negative_margin": 0.04,
+            "current_negative_margin": 0.0,
+            "self_consistency_min": 0.72,
+            "recover_strong_reid": 0.88,
+            "view_bucket_min_samples": 5,
+            "bucket_bootstrap_frames": 8,
+            "suspect_penalty": 2.0,
+            "edge_margin_px": 6,
+            "occluded_loss_hold_sec": 2.5,
+            "recovery_probation_sec": 3.0,
+            "camera_angle_model": "pinhole",
+            # 9 so (hang theo hang) tu scripts/calibrate_camera.py; fx = 0 nghia la chua hieu chinh
+            "camera_matrix": [0.0] * 9,
+            "dist_coeffs": [0.0] * 5,
+            "camera_fisheye": False,
+            "undistort_frame": False,
+            "undistort_balance": 0.0,
+            "stats_period_sec": 10.0,
         }
+        # dynamic_typing: yaml/-p ghi 15 hay 15.0 deu duoc (ROS 2 phan biet INTEGER/DOUBLE)
         for name, value in defaults.items():
-            self.declare_parameter(name, value)
+            self.declare_parameter(name, value, ParameterDescriptor(dynamic_typing=True))
 
     def _read_parameters(self) -> Dict[str, Any]:
         names = [p.name for p in self._parameters.values()]
@@ -183,25 +271,35 @@ class IdentityLockNode(Node):
         self.target_pub.publish(msg)
 
     def _timer_cb(self) -> None:
-        if self.cap is None or not self.cap.isOpened():
+        if self.grabber is None:
             return
-        ok, frame = self.cap.read()
-        if not ok or frame is None:
-            self.get_logger().warning("Failed to read camera frame")
+        frame, stamp, seq = self.grabber.latest()
+        if frame is None or seq == self.last_seq:
+            # Chua co khung moi: khong xu ly lai khung cu (target_tracker coi moi tin la mot phep do)
+            now = time.time()
+            if self.grabber.failures > 0 and now - self.last_fail_log > 5.0:
+                self.get_logger().warning(f"Failed to read camera frame ({self.grabber.failures} lan)")
+                self.last_fail_log = now
             return
+        self.last_seq = seq
 
         self.frame_count += 1
         if self.frame_skip > 0 and (self.frame_count % (self.frame_skip + 1)) != 1:
             return
 
+        need_debug = self.show_window or self.debug_img_pub is not None
+        t0 = time.time()
         try:
-            debug, payload, _, _ = self.core.process_frame(frame)
+            debug, payload, _, _ = self.core.process_frame(frame, capture_ts=stamp, draw_debug=need_debug)
         except Exception as exc:
             self.get_logger().error(f"Processing error: {exc}")
             return
 
         self._publish_payload(payload)
+        self._log_stats(time.time() - t0, payload)
 
+        if debug is None:
+            return
         if self.debug_img_pub is not None and self.bridge is not None:
             img_msg = self.bridge.cv2_to_imgmsg(debug, encoding="bgr8")
             img_msg.header.stamp = self.get_clock().now().to_msg()
@@ -223,7 +321,25 @@ class IdentityLockNode(Node):
             elif key == ord("q"):
                 rclpy.shutdown()
 
+    def _log_stats(self, proc_sec: float, payload: Dict[str, Any]) -> None:
+        self.stat_n += 1
+        self.stat_proc += proc_sec
+        now = time.time()
+        if self.stats_period <= 0 or now - self.stat_t0 < self.stats_period:
+            return
+        span = now - self.stat_t0
+        # fps camera THUC gui ve (thieu sang thi nhieu webcam tu giam fps -> tre tang)
+        cam_fps = (self.last_seq - self.stat_seq0) / span if self.stat_seq0 else float("nan")
+        self.stat_seq0 = self.grabber.latest()[2] if self.grabber is not None else 0
+        self.get_logger().info(
+            f"camera: nhan {cam_fps:.1f} fps, xu ly {self.stat_n / span:.1f} Hz, TB {1000.0 * self.stat_proc / max(1, self.stat_n):.0f} ms/khung, "
+            f"tre tu luc chup {payload.get('latency_ms')} ms, {payload.get('num_tracks')} nguoi, status {payload.get('status')}"
+        )
+        self.stat_t0, self.stat_n, self.stat_proc = now, 0, 0.0
+
     def destroy_node(self) -> bool:
+        if self.grabber is not None:
+            self.grabber.stop()
         if self.cap is not None:
             self.cap.release()
         if self.show_window:

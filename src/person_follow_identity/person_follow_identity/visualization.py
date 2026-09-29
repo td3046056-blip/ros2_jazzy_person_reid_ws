@@ -54,10 +54,12 @@ def draw_identity_debug_frame(
 
     cv2.rectangle(out, (0, 0), (out.shape[1], 90), (0, 0, 0), -1)
     cv2.putText(out, f"{result.status}", (10, 24), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 255, 255), 2)
+    # rival: nguoi khac giong muc tieu nhat trong khung; ev: diem bang chung khoa/tim lai;
+    # occ: ti le bi nguoi dung truoc che; view: 0 toan than, 1 cat dau, 2 cat chan, 3 ca hai
     msg = (
-        f"pos={result.reid_similarity:.2f} color={result.color_similarity:.2f} "
-        f"gait={result.gait_similarity:.2f} neg={result.negative_similarity:.2f} "
-        f"margin={result.identity_margin:.2f}"
+        f"pos={result.reid_similarity:.2f} rival={result.second_similarity:.2f} "
+        f"neg={result.negative_similarity:.2f} color={result.color_similarity:.2f} "
+        f"ev={result.evidence:.1f} occ={result.occlusion:.2f} view={result.view_bucket}"
     )
     cv2.putText(out, msg, (10, 52), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (230, 230, 230), 1)
     gait_txt = "gait:ready" if result.gait_ready else "gait:collecting"

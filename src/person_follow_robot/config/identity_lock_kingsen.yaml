@@ -9,6 +9,8 @@ identity_lock_node:
     device: "auto"
     use_cuda: true
     img_size: 640
+    # YOLO chay khung 640x480 thay vi dem thanh 640x640 (~20 ms -> ~15 ms tren CPU)
+    rect_inference: true
 
     det_conf_thres: 0.55
     det_iou_thres: 0.50
@@ -27,55 +29,86 @@ identity_lock_node:
     enroll_sample_every_n_frames: 3
 
     positive_gallery_size: 160
-    negative_gallery_size: 160
+    negative_gallery_size: 320   # gallery am tach theo nguoi (~40 nguoi); nguoi mac giong can nhieu mau
     color_gallery_size: 100
     reid_match_mode: "topk_mean"
     reid_top_k: 5
 
-    reid_threshold: 0.82
-    current_min_reid: 0.60
-    current_min_combined: 0.64
-    current_min_color: 0.28
-    recover_min_combined: 0.80
-    recover_min_reid: 0.78
+    # ── Nguong ReID (29/09) ──────────────────────────────────────────────
+    # Dat theo phan bo do tren Market-1501 SAU KHI sua loi nap BGR vao mang RGB
+    # (gallery 10 mau, top-5 mean): nguoi that trung vi 0.90 (p5 0.83); nguoi la 0.72
+    # (p99 0.83); nguoi GIONG NHAT trong ~300 nguoi 0.84. Mau: nguoi that 0.51 (p1 0.27),
+    # nguoi la 0.27. Nguong tuyet doi khong tach duoc nguoi mac giong -> quyet dinh chinh
+    # dua vao SO SANH voi nguoi khac trong khung + tich luy bang chung nhieu khung.
+    reid_threshold: 0.82          # "khop chac": duoi muc nay moi xet track doi ngoai hinh dot ngot
+    current_min_reid: 0.70        # giu khoa (anh nua nguoi khi dung gan, truoc khi hoc: p1 0.70)
+    current_min_combined: 0.62
+    current_min_color: 0.20       # chi loai khi lech mau ro (truoc 0.28 = p1 cua nguoi that)
+    recover_min_combined: 0.72    # truoc 0.80 loai ~40% khung cua chinh nguoi that
+    recover_min_reid: 0.80
     recover_min_color: 0.25
-    reid_margin: 0.06
-    combined_margin: 0.06
-    negative_margin: 0.10
-    verification_fail_limit: 1
+    recover_strong_reid: 0.88     # khop manh: +2 bang chung
+    reid_margin: 0.04             # hon nguoi giong thu hai it nhat bay nhieu (moi khung)
+    combined_margin: 0.03
+    negative_margin: 0.03         # pos - (giong nguoi da biet) khi tim lai
+    current_negative_margin: 0.0  # giu khoa: khong duoc giong nguoi da biet hon muc tieu
+    strong_negative_margin: 0.04  # anh sach ma giong nguoi da biet hon muc tieu 0.04 -> bo khoa ngay
+    switch_margin: 0.08           # nguoi khac giong muc tieu hon track dang khoa 0.08 -> bo khoa ngay
+    self_consistency_min: 0.72    # cung nguoi cung camera p1 0.75; nguoi khac trung vi 0.70
+    # So lan kiem tra hong LIEN TIEP (anh sach) truoc khi bo khoa. Truoc 1: mot khung bi
+    # che mot phan / quay lung la mat khoa -> phai tim lai tu dau.
+    verification_fail_limit: 3
+    occluded_fail_weight: 0.25    # khung bi che chi tru 1/4 bang chung
+    occlusion_ratio_max: 0.35
+    learn_min_quality: 0.75
+    eval_min_quality: 0.45
 
-    verify_every_n_frames: 4
-    update_gallery_every_n_frames: 4
-    target_update_min_similarity: 0.62
+    verify_every_n_frames: 1      # feature lay lai tu DeepSORT nen kiem tra moi khung gan nhu mien phi
+    update_gallery_every_n_frames: 3
+    target_update_min_similarity: 0.70
     max_duplicate_similarity: 0.985
-    negative_add_max_reid: 0.55
-    negative_add_min_margin: 0.12
+    negative_add_max_reid: 0.65
+    # Khi khoa da tin cay: hoc MOI nguoi khac lam 'khong phai muc tieu', ke ca nguoi giong
+    # hon track dang khoa toi 0.05. Hoc nham chi lam kho nhan lai (an toan); khong hoc nguoi
+    # mac giong thi luc muc tieu khuat se nhan nham ho (nguy hiem).
+    negative_add_min_margin: -0.05
+    view_bucket_min_samples: 5
+    bucket_bootstrap_frames: 8
+    edge_margin_px: 6
 
     # Strict policy: A lost => robot/controller stop. Do not auto-lock B.
     # spatial_gate_px vẫn dùng cho mất dấu ngắn/tại chỗ (nhanh, rẻ).
     # Sau khi robot XOAY LỚN để né vật (lidar_enhancer), vị trí pixel cũ của A
     # không còn ý nghĩa nữa -> nếu global recovery tắt, hệ thống sẽ luôn trả
     # về "spatial_gate_rejected" dù camera đã thấy đúng A. Mở global recovery
-    # với ngưỡng ReID/gait vẫn NGHIÊM (0.90/0.82/0.94 + bắt buộc gait) để bù lại
-    # việc bỏ điều kiện vị trí pixel.
+    # với ngưỡng ReID vẫn NGHIÊM để bù lại việc bỏ điều kiện vị trí pixel.
     spatial_gate_px: 140.0
     global_search_after_sec: 1.5
-    global_search_min_reid: 0.94
+    global_search_min_reid: 0.86
     enable_global_recovery: true
     allow_single_candidate_global_recovery: false
-    recovery_confirm_frames: 4
-    recovery_single_candidate_min_reid: 0.90
-    recovery_single_candidate_min_combined: 0.82
+    # Diem bang chung can de nhan lai (khop thuong +1, khop manh +2, hong -1).
+    # Track vua bi nghi tron ID bat dau tu -suspect_penalty.
+    recovery_confirm_frames: 3
+    suspect_penalty: 2.0
+    # Muc tieu bien mat khi dang chong voi nguoi khac -> coi la dang nup sau ho trong ngan
+    # nay giay: can them 1 diem bang chung, nguoi da thay cung luc voi muc tieu bi chan.
+    occluded_loss_hold_sec: 2.5
+    # Vua nhan lai: trong ngan nay giay, ai giong muc tieu hon track dang khoa >= 0.03 la
+    # mot lan hong -> nhan nham nguoi mac giong thi chuyen nhanh sang nguoi dung.
+    recovery_probation_sec: 3.0
+    recovery_single_candidate_min_reid: 0.85
+    recovery_single_candidate_min_combined: 0.75
     max_lost_keep_id_sec: 3.0
 
     reid_weight: 0.75
     color_weight: 0.20
     gait_identity_weight: 0.10
 
-
-    # Gait / body-shape identity check from uploaded gait repo.
-    # During enrollment ask target A to walk slowly / shift weight for a few seconds.
-    enable_gait: true
+    # Gait TAT (29/09): mediapipe 0.10.35 da bo mp.solutions -> MediaPipe Pose khong chay,
+    # "gait" chi con dac trung bong (Otsu, ti le bbox) — doi theo khoang cach/bi cat khung
+    # hon la theo nguoi, lai BAT BUOC khi tim lai (cho du 6 khung) -> nhan lai cham, hay loai nham.
+    enable_gait: false
     gait_required_for_recovery: true
     gait_required_for_enrollment: true
     gait_sample_every_n_frames: 1
@@ -90,6 +123,14 @@ identity_lock_node:
     gait_min_landmark_visibility: 0.0
 
     camera_fov_deg: 62.0
+    # pinhole: goc = atan(dx/fx) (dung hinh hoc); "linear" = cach cu; "calibrated" dung
+    # camera_matrix/dist_coeffs tu scripts/calibrate_camera.py (can cho camera goc rong).
+    camera_angle_model: "pinhole"
+    camera_matrix: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+    dist_coeffs: [0.0, 0.0, 0.0, 0.0, 0.0]
+    camera_fisheye: false
+    undistort_frame: false
+    undistort_balance: 0.0
 
     draw_all_tracks: true
     publish_debug_image: true
@@ -100,6 +141,9 @@ identity_lock_node:
     finish_enroll_service: "/person_reid/finish_enroll"
     reset_service: "/person_reid/reset"
 
-    processing_hz: 8.0
+    # Truoc 8 Hz (bi chan boi timer, khong phai CPU). Sau khi dung lai feature + khung
+    # 640x480, 3-5 nguoi ~30-45 ms/khung. [CAN XAC NHAN] /cmd_vel van >= 10 Hz tren xe.
+    processing_hz: 15.0
     frame_skip: 0
     show_window: true
+    stats_period_sec: 10.0

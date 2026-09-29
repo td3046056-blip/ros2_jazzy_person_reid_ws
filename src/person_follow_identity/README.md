@@ -72,6 +72,61 @@ ros2 topic pub --once /person_reid/command std_msgs/msg/String "{data: 'reset'}"
 4. Khi status `ENROLLMENT_DONE`, bắt đầu test A/B.
 5. Nếu A ra khỏi camera và B đi vào, status phải là `LOST` hoặc `LOST_REJECTED_CANDIDATE`, không được publish B làm target.
 
+## Tối ưu cho chỗ đông người (29/09)
+
+Config dùng trên xe: `person_follow_robot/config/identity_lock_kingsen.yaml` (file `config/identity_lock.yaml` của gói này giống hệt).
+
+| Thay đổi | Vì sao (số đo) |
+|---|---|
+| Mạng ReID nhận ảnh **RGB** (trước là BGR) | Market-1501: Rank-1 39.8% → 75.5%, mAP 18.6 → 51.8. DeepSORT cũng dùng feature này để nối ID nên ít tráo ID hơn |
+| Dùng lại feature DeepSORT, không chạy ReID lần 2 | ReID ~2–4 ms/người — phần tốn CPU nhất khi đông người |
+| YOLO chạy khung 640×480 thay vì 640×640 | ~20 ms → ~15 ms |
+| Luồng đọc camera riêng, luôn lấy khung mới nhất | Trước: bộ đệm V4L2 trả khung cũ ~100 ms |
+| BLAS của numpy 1 luồng (`OPENBLAS_NUM_THREADS=1` đầu `node.py`) | DeepSORT tích luỹ 100 feature/track rồi tính khoảng cách bằng tích ma trận; OpenBLAS đa luồng quay chờ bận, tranh CPU với torch → xử lý trượt từ 29 lên 53–59 ms/khung sau vài giây. Sau khi sửa: ổn định 25–29 ms. **Không** đặt `MKL_NUM_THREADS`/`OMP_NUM_THREADS` — torch đọc hai biến đó và chạy 1 luồng (66 ms) |
+| Tổng thể (khung 6 người, CPU máy này) | cũ 68.7 ms/khung (config cũ còn khoá 8 Hz) → mới 40.3 ms; webcam 0–1 người: 15.0 Hz, 25–29 ms, trễ từ lúc chụp 30–60 ms |
+| `ts` trong `/person_reid/target` = **lúc chụp** | Trước là lúc xử lý xong → tracker gần như không bù được góc xe quay trong lúc xử lý |
+| Biết ai che ai; khung bị che không học vào gallery, chỉ trừ ít điểm | Trước: một khung bị che/quay lưng là bỏ khoá (`verification_fail_limit: 1`) |
+| Bỏ khoá **ngay** khi mâu thuẫn rõ | Ảnh giống người đã biết hơn mục tiêu, người khác giống mục tiêu hơn hẳn, hoặc ngoại hình track đổi đột ngột (DeepSORT tráo ID) |
+| Tìm lại bằng điểm bằng chứng (khớp +1, khớp mạnh +2, hỏng −1) | Rõ ràng thì 2 khung; mơ hồ thì không bao giờ |
+| Gallery âm tách từng người, chỉ học người **không chạm** bbox mục tiêu | bbox chồng nhau chứa điểm ảnh của mục tiêu → mục tiêu bị loại về sau |
+| Gallery theo **kiểu khung** (toàn thân / cắt đầu / cắt chân) | Đứng gần xe bị cắt khung: người thật so với gallery toàn thân chỉ còn 0.79 (người lạ 0.72); cùng kiểu cắt: 0.89 |
+| Tắt gait | `mediapipe 0.10.35` đã bỏ `mp.solutions` → Pose không chạy; phần còn lại (bóng Otsu, tỉ lệ bbox) đổi theo khoảng cách hơn là theo người, lại bắt buộc 6 khung khi tìm lại |
+| Góc camera theo mô hình pinhole / hiệu chỉnh | Công thức tuyến tính cũ sai tới 1.2° ở FOV 62°, tới 11° ở FOV 120° |
+
+### Enroll (quan trọng hơn trước)
+
+Trong 30 giây enroll, người cần bám nên **đi từ ~3 m lại gần tới ~0.8 m rồi lùi ra**, xoay trái/phải, quay lưng một lần. Ở 1 m camera 62° không thấy hết người nên ảnh bị cắt — enroll đủ các "kiểu khung" thì lúc bám gần mới so khớp đúng. Dòng `reason` khi enroll có đếm mẫu theo kiểu khung `full/top-cut/bottom-cut/both`. Người khác đứng xa trong lúc enroll là **có lợi** (được học làm "không phải mục tiêu"), miễn là không đứng chạm vào người enroll.
+
+### Theo dõi
+
+- Log mỗi 10 s: `camera: X Hz, xu ly TB Y ms, tre tu luc chup Z ms, N nguoi, status ...`
+- Payload thêm: `occlusion` (tỉ lệ bị che), `evidence` (điểm khoá/tìm lại), `view_bucket` (0 toàn thân, 1 cắt đầu, 2 cắt chân, 3 cả hai), `latency_ms`.
+
+### Camera góc rộng
+
+```bash
+python3 scripts/calibrate_camera.py --source /dev/v4l/by-id/usb-Generic_KINGSEN_CAMERA_200901010001-video-index0
+```
+In ra `camera_matrix`, `dist_coeffs`, FOV thật — dán vào yaml, đặt `camera_angle_model: "calibrated"`; tuỳ chọn `undistort_frame: true` để khử méo cả khung trước YOLO/ReID (người ở mép ảnh hết bị kéo nghiêng). Ống mắt cá (>~120°) thêm `--fisheye` và `camera_fisheye: true`.
+
+### Mô phỏng offline (ảnh người thật)
+
+`scripts/sim_identity.py` ghép khung từ ảnh Market-1501 theo hình học camera, mô phỏng DeepSORT (kể cả tráo ID khi hai người cắt nhau) và so sánh logic khoá cũ/mới trên cùng kịch bản. Cần tải Market-1501 (xem đầu file).
+
+Kết quả 30/09 (12 lần mỗi dòng, 60 s bám, 4 người khác đi cắt ngang, DeepSORT tráo ID 30% mỗi lần hai người cắt nhau; ảnh mục tiêu lúc bám **khác** ảnh lúc enroll):
+
+| Đám đông | Bản | Hz | Báo nhầm (s/phút) | Thiếu | Nhận lại sau khi ra khỏi khung | Sau khi bị chắn 3 s |
+|---|---|---|---|---|---|---|
+| Thường (người ngẫu nhiên) | cũ | 8 | 0.02 | 93.9% | 33.7 s | không |
+| | cũ + chỉ sửa RGB | 8 | 0.03 | 71.2% | 2.6 s | 5.8 s |
+| | **mới** | 8 | 0 | 17.6% | 0.88 s | 0.75 s |
+| | **mới** | 15 | 0.01 (2 lần × 1 khung) | 17.7% | 0.07 s | 0.77 s |
+| Khó (2/4 người là người **giống mục tiêu nhất trong 750**) | cũ | 8 | 0 | 96.6% | không | không |
+| | **mới** | 8 | 0.38 (max 3.0) | 33.7% | 0.38 s | 1.9 s |
+| | **mới** | 15 | 0.33 (max 1.6) | 26.7% | 0.10 s | 2.5 s |
+
+Bản cũ "không nhầm" vì gần như không bám được ai sau lần mất đầu tiên. Ca khó là giới hạn của ngoại hình: người giống mục tiêu 0.90 (bằng trung vị của chính người thật) xuất hiện khi mục tiêu đang khuất thì không có gì để phân biệt — bản mới dùng thời gian thử thách 3 s sau khi nhận lại để chuyển sang người giống hơn, nên phần lớn lần nhầm chỉ vài khung.
+
 ## Nếu có GPU
 
 Config dùng `device: auto`. Nếu PyTorch nhìn thấy CUDA hoặc ROCm, package sẽ dùng backend đó. Nếu không, nó tự chạy CPU. Với AMD Radeon trên laptop, PyTorch thường không dùng được GPU nếu chưa cài ROCm build, nên CPU là mặc định an toàn.

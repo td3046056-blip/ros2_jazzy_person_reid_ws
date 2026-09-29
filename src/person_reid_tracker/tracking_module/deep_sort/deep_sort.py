@@ -40,9 +40,15 @@ class DeepSort(object):
 
         # output bbox identities
         outputs = []
+        # Feature ReID cua phat hien vua khop voi track trong khung NAY (cung thu tu voi
+        # outputs); None neu track chi duoc du doan (time_since_update == 1). Nguoi goi
+        # dung lai thay vi chay lai mang ReID lan thu hai tren cung nguoi.
+        self.last_output_features = []
         for track in self.tracker.tracks:
             if not track.is_confirmed() or track.time_since_update > 1:
                 continue
+            fresh = track.time_since_update == 0 and hasattr(track.yolo_bbox, "feature")
+            self.last_output_features.append(track.yolo_bbox.feature if fresh else None)
             if use_yolo_preds:
                 det = track.get_yolo_pred()
                 x1, y1, x2, y2 = self._tlwh_to_xyxy(det.tlwh)
