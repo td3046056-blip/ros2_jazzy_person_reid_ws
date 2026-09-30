@@ -11,7 +11,7 @@ identity_lock_node:
     # fixed_fps: phan mem tu chinh phoi sang theo do sang, toi da 30 ms (39 ms sat chu ky
     # 40 ms -> camera tut 12.5 fps). Cho rat toi (log bao "Anh toi") thi doi sang "auto".
     # Mo camera xong can ~7-30 s camera moi len 25 fps (trung thoi gian enroll).
-    # 640x480 la anh CAT GIUA 1440x1080 cua cam bien (do bang so khop anh) -> FOV hep hon 1080p.
+    # 640x480 la anh CAT GIUA 1440x1080 cua cam bien (do bang so khop anh 30/09).
     camera_fourcc: "MJPG"
     camera_fps: 25.0
     camera_exposure_mode: "fixed_fps"
@@ -144,12 +144,19 @@ identity_lock_node:
     gait_min_tracking_confidence: 0.20
     gait_min_landmark_visibility: 0.0
 
-    camera_fov_deg: 62.0
-    # pinhole: goc = atan(dx/fx) (dung hinh hoc); "linear" = cach cu; "calibrated" dung
-    # camera_matrix/dist_coeffs tu scripts/calibrate_camera.py (can cho camera goc rong).
+    # FOV ngang THAT o 640x480 — nguoi dung do 30/09 bang thuoc (scripts/measure_fov.py): camera
+    # cach tuong 1.00 m, hai mep cach nhau 2.75 m -> 107.9 do. So 62 cu SAI: goc nguoi lech giua
+    # khung bi bao ~mot nua goc that (that 30 do -> bao 14-19 do), lot khoi cua so +-10 do tracker
+    # dung de ghep cum chan LiDAR.
+    camera_fov_deg: 107.9
+    # pinhole: goc = atan(dx/fx) (ong khong meo). Ong goc rong 108 do thuong meo thung: nguoi o
+    # giua-khung (x = 160 / 480 px) co the lech toi ~7 do so voi pinhole. [CAN XAC NHAN] do them
+    # cac vach giua bang scripts/measure_fov.py roi dan camera_matrix/dist_coeffs/camera_fisheye
+    # no in ra va doi sang "calibrated". "linear" = cach cu.
     camera_angle_model: "pinhole"
-    # Goc NGUA LEN cua camera (do). Camera 34 cm nhin ngang: o 1 m chi thay chan (ReID Rank-1
-    # 22%); ngua ~20 do thay tu dui toi nguc (53%). Lap nghieng bao nhieu thi ghi bay nhieu.
+    # Goc NGUA LEN cua camera (do). Voi FOV do duoc (doc ~81-92 do), camera 34 cm nhin ngang: o
+    # 1 m thay tu san toi ~1.2-1.4 m (thieu vai, dau); ngua 10-15 do thay toan than o 1 m.
+    # Lap nghieng bao nhieu thi ghi bay nhieu.
     camera_pitch_deg: 0.0
     camera_matrix: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
     dist_coeffs: [0.0, 0.0, 0.0, 0.0, 0.0]

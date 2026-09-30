@@ -126,19 +126,21 @@ Config bây giờ: `camera_fourcc: MJPG`, `camera_fps: 25`, `camera_exposure_mod
 
 Node thật với KINGSEN: trước 10 Hz, trễ 77–97 ms → sau 15 Hz (camera 25 fps), 27–33 ms/khung, trễ 38–65 ms.
 
-**FOV.** Ảnh 640×480 là **ảnh cắt giữa** 1440×1080 của cảm biến (so khớp đặc trưng giữa hai chế độ, điểm ảnh vuông) → FOV ngang hẹp hơn chế độ 1080p. Nếu 62° là thông số của nhà sản xuất cho 1080p thì ở 640×480 chỉ ~43–49°. Đo bằng thước: `python3 scripts/measure_fov.py` (hướng dẫn trong file), dán `camera_fov_deg` vào yaml.
+**FOV — camera GÓC RỘNG.** Người dùng đo 30/09 (`scripts/measure_fov.py`, camera cách tường 1.00 m, hai mép khung cách nhau 2.75 m): **FOV ngang 107.9°** ở 640×480 (ảnh 640×480 là ảnh cắt giữa 1440×1080 của cảm biến). Số 62° dùng từ trước là **sai**: với nó, người lệch giữa khung bị báo khoảng **một nửa góc thật** (thật 30° → báo 14–19°), lọt khỏi cửa sổ ±10° mà `target_tracker_node` dùng để ghép cụm chân LiDAR, nên tracker rơi về `camera+bbox` với góc sai — có thể là một phần lý do xe xoay theo người chậm trước đây. Config giờ là `camera_fov_deg: 107.9`.
 
-**Độ cao và góc ngửa camera.** ReID Rank-1 khi chỉ thấy một dải cơ thể (Market-1501, mẫu enroll và mẫu nhận cùng kiểu cắt; giả định FOV dọc 48.5° — nếu FOV hẹp hơn thì thấy ít hơn nữa):
+Ống 108° thường méo thùng: chỉ biết FOV ở mép thì góc ở giữa-khung vẫn có thể lệch tới ~7° (x = 160 px: 34.5° nếu không méo, 27° nếu "mắt cá"). **[CẦN XÁC NHẬN]** Đo thêm các vạch giữa: `python3 scripts/measure_fov.py` giờ vẽ 9 vạch; dán giấy ở các vạch (ít nhất 1, 3, 5, 7, 9), kéo thước một lần từ vạch 1, nhập vị trí → script khớp mô hình mắt cá OpenCV (Kannala–Brandt) và in `camera_matrix`, `dist_coeffs`, `camera_fisheye: true` để dán vào yaml với `camera_angle_model: "calibrated"`. Đã thử trên ống giả lập (camera lệch tường 2°): khớp lại đúng tham số, góc sai 0.0°.
 
-| Lắp camera | ở 1 m thấy (m, tính từ sàn) | Rank-1 ở 1 m | Rank-1 ở 1.5 m |
+**Độ cao và góc ngửa camera** (tính lại với FOV đo được; FOV dọc 81–92° tuỳ độ méo). ReID Rank-1 khi chỉ thấy một dải cơ thể (Market-1501, mẫu enroll và mẫu nhận cùng kiểu cắt):
+
+| Lắp camera | ở 1 m thấy (m, từ sàn) | Rank-1 ở 1 m | Rank-1 ở 1.5 m |
 |---|---|---|---|
 | (toàn thân, tham chiếu) | | 75.8% | 75.8% |
-| 34 cm, nhìn ngang | 0–0.79 (chân) | **22.4%** | 44.9% |
-| 34 cm, ngửa 20° | 0.27–1.31 | **53.3%** | **67.3%** |
-| 70 cm, nhìn ngang | 0.25–1.15 | 45.3% | 63.5% |
-| 70 cm, ngửa 10° | 0.45–1.38 | 50.4% | 63.4% |
+| **34 cm, nhìn ngang (hiện tại)** | 0–1.19 / 0–1.37 (tới ngực) | **54.5–64.1%** | 72.6–75.8% |
+| **34 cm, ngửa 10°** | 0–1.55 / toàn thân | **71.0–75.8%** | ≈ toàn thân |
+| 34 cm, ngửa 15° | toàn thân | ≈ 75.8% | ≈ toàn thân |
+| 70 cm, nhìn ngang | 0–1.55 / toàn thân | 71.0–75.8% | ≈ toàn thân |
 
-Ngửa camera để ở khoảng bám (1 m) mép trên khung ảnh chạm ngang vai: 34 cm → ngửa ~20°, 70 cm → ngửa ~10°. Ghi góc đã lắp vào `camera_pitch_deg` (sửa góc ngang ~1–1.5° ở mép khung). YOLOv5n với người chỉ lộ một phần chỉ cho conf ~0.4–0.7 nên `det_conf_thres` hạ 0.55 → 0.40 (phát hiện sai tăng 2 → 6 trên 128 ảnh coco128; khoá ReID loại được).
+Ngửa camera 34 cm lên **10–15°** cho kết quả tương đương nâng lên 70 cm. Cách chỉnh: đứng cách xe 1 m, ngửa tới khi thấy cả đầu trong khung; ghi góc vào `camera_pitch_deg`. (Bảng cũ tính theo 62° cho kết quả "34 cm chỉ thấy chân, phải ngửa 20°" — **sai** do FOV sai.) YOLOv5n với người chỉ lộ một phần chỉ cho conf ~0.4–0.7 nên `det_conf_thres` hạ 0.55 → 0.40 (phát hiện sai tăng 2 → 6 trên 128 ảnh coco128; khoá ReID loại được).
 
 ### Mô phỏng offline (ảnh người thật)
 
@@ -155,6 +157,23 @@ Kết quả 30/09 (12 lần mỗi dòng, 60 s bám, 4 người khác đi cắt n
 | Khó (2/4 người là người **giống mục tiêu nhất trong 750**) | cũ | 8 | 0 | 96.6% | không | không |
 | | **mới** | 8 | 0.38 (max 3.0) | 33.7% | 0.38 s | 1.9 s |
 | | **mới** | 15 | 0.33 (max 1.6) | 26.7% | 0.10 s | 2.5 s |
+
+*(Bảng trên chạy với giả định cũ: FOV 62°, camera cao 0.6 m — người ở gần bị cắt khung nhiều nên bản cũ rất tệ.)*
+
+**Chạy lại với hình học camera thật** (FOV 107.9°, cao 34 cm; cả hai bản 8 Hz; 12 lần mỗi dòng):
+
+| Đám đông | Camera | Bản | Nhầm (s/phút) | Thiếu | Nhận lại | Sau khi bị chắn | Rớt khoá |
+|---|---|---|---|---|---|---|---|
+| Thường | nhìn ngang | cũ | 0.09 | 30.1% | 0.50 s | 0.75 s | 5.1 |
+| Thường | nhìn ngang | **mới** | 0.05 | 20.5% | 0.56 s | 0.75 s | 1.8 |
+| Thường | ngửa 12° | cũ | 0.05 | 22.5% | 0.56 s | 0.75 s | 3.8 |
+| Thường | ngửa 12° | **mới** | 0.03 | **14.5%** | 0.44 s | 0.69 s | **1.0** |
+| 2 người giống nhất | nhìn ngang | cũ | 0.23 | 63.9% | 0.62 s | 3.19 s | 6.2 |
+| 2 người giống nhất | nhìn ngang | **mới** | 0.04 | 38.9% | 0.19 s | 1.69 s | 5.8 |
+| 2 người giống nhất | ngửa 12° | cũ | 0.11 | 63.1% | 1.25 s | 1.75 s | 8.3 |
+| 2 người giống nhất | ngửa 12° | **mới** | 0.19 | **33.3%** | 0.31 s | 0.88 s | 5.2 |
+
+Mô phỏng không tính méo thùng ở mép ống kính và coi YOLO luôn phát hiện được người lộ ≥ 35% (lạc quan cho cả hai bản). Ca "2 người giống nhất" dao động nhiều giữa các lần chạy (nhầm 0.04–0.19 s/phút, lần dài nhất 2.1 s).
 
 Bản cũ "không nhầm" vì gần như không bám được ai sau lần mất đầu tiên. Ca khó là giới hạn của ngoại hình: người giống mục tiêu 0.90 (bằng trung vị của chính người thật) xuất hiện khi mục tiêu đang khuất thì không có gì để phân biệt — bản mới dùng thời gian thử thách 3 s sau khi nhận lại để chuyển sang người giống hơn, nên phần lớn lần nhầm chỉ vài khung.
 

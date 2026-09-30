@@ -156,6 +156,9 @@ class IdentityFollowCore:
         self.fisheye = bool(params.get("camera_fisheye", False))
         self.K: Optional[np.ndarray] = None
         self.D: Optional[np.ndarray] = None
+        if self.fisheye:
+            # Mo hinh mat ca OpenCV can dung 4 he so (k1..k4); yaml mac dinh co 5 so 0
+            d = (d + [0.0, 0.0, 0.0, 0.0])[:4]
         if len(k) == 9 and k[0] > 0.0 and k[4] > 0.0:
             self.K = np.asarray(k, dtype=np.float64).reshape(3, 3)
             self.D = np.asarray(d if d else [0.0] * (4 if self.fisheye else 5), dtype=np.float64).reshape(-1, 1)
