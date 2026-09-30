@@ -15,7 +15,7 @@ identity_lock_node:
     camera_fourcc: "MJPG"
     camera_fps: 25.0
     camera_exposure_mode: "fixed_fps"
-    camera_exposure_ms: 20.0
+    camera_exposure_ms: 30.0          # bat dau o muc toi da: phong binh thuong can muc nay, it phai doi
     camera_exposure_min_ms: 1.0
     camera_exposure_max_ms: 30.0
     camera_exposure_step_ms: 10.0      # boi so 10 ms: khong nhap nhay duoi den dien 50 Hz

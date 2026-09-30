@@ -142,15 +142,22 @@ class YoloDeepSortPipeline:
         self._feature_cache = {}
         for det in pred:
             if det is None or len(det) == 0:
-                continue
-            det[:, :4] = scale_coords(img_tensor.shape[2:], det[:, :4], frame_bgr.shape).round()
-            xywhs = xyxy2xywh(det[:, 0:4])
-            confs = det[:, 4]
-            clss = det[:, 5]
-            det_boxes_xyxy = [box.detach().cpu().numpy() for box in det[:, 0:4]]
-            det_confs = [float(c) for c in confs.detach().cpu().numpy()]
-
-            outputs = self.deepsort.update(xywhs.detach().cpu(), confs.detach().cpu(), clss.detach().cpu(), frame_bgr)
+                # YOLO khong thay ai trong khung nay. Van cap nhat DeepSORT: track vua mat 1 khung
+                # duoc xuat o vi tri du doan (truoc day bo qua han -> YOLO bo sot 1 khung la mat het
+                # track; do tren KINGSEN: 6 lan / 52 s dang bam), va tuoi track duoc dem dung
+                # (truoc day max_age chi dem khung co nguoi, canh trong lau roi van noi ID cu).
+                empty_boxes = torch.zeros((0, 4))
+                empty_vals = torch.zeros((0,))
+                outputs = self.deepsort.update(empty_boxes, empty_vals, empty_vals, frame_bgr)
+                det_boxes_xyxy, det_confs = [], []
+            else:
+                det[:, :4] = scale_coords(img_tensor.shape[2:], det[:, :4], frame_bgr.shape).round()
+                xywhs = xyxy2xywh(det[:, 0:4])
+                confs = det[:, 4]
+                clss = det[:, 5]
+                det_boxes_xyxy = [box.detach().cpu().numpy() for box in det[:, 0:4]]
+                det_confs = [float(c) for c in confs.detach().cpu().numpy()]
+                outputs = self.deepsort.update(xywhs.detach().cpu(), confs.detach().cpu(), clss.detach().cpu(), frame_bgr)
             if outputs is None or len(outputs) == 0:
                 continue
 
@@ -158,8 +165,9 @@ class YoloDeepSortPipeline:
             for i, output in enumerate(outputs):
                 x1, y1, x2, y2, track_id, cls = output[:6]
                 bbox = self._clip_bbox((x1, y1, x2, y2), w, h)
-                conf = self._match_track_conf(bbox, det_boxes_xyxy, det_confs)
                 feat = fresh_features[i] if i < len(fresh_features) else None
+                # conf = 0: track khong khop phat hien nao trong khung nay, bbox chi la vi tri du doan
+                conf = self._match_track_conf(bbox, det_boxes_xyxy, det_confs) if feat is not None else 0.0
                 if feat is not None:
                     feat = np.asarray(feat, dtype=np.float32)
                     self._feature_cache[bbox] = feat

@@ -578,7 +578,7 @@ class TargetIdentityManager:
         for o in obs:
             if o.tid == int(target.track_id):
                 # Chi hoc anh sach: bi nguoi khac che/cham vao thi crop chua diem anh cua ho
-                clean = o.quality >= self.learn_min_quality and o.overlap < 0.05
+                clean = o.quality >= self.learn_min_quality and o.overlap < 0.05 and o.track.conf > 0.0
                 if sample_frame and clean:
                     self.positive_gallery.add_diverse(
                         o.feature,
@@ -589,7 +589,7 @@ class TargetIdentityManager:
                     self.color_gallery.add(o.color, tag=o.bucket)
                 if self.gait.enabled and (self.frame_index % self.gait_sample_every_n_frames) == 0:
                     self.gait.add_target_sample(frame, target.bbox)
-            elif not _intersects(o.track.bbox, target.bbox):
+            elif o.track.conf > 0.0 and not _intersects(o.track.bbox, target.bbox):
                 # Other people seen during enrollment become known non-targets.
                 self.negative_gallery.add(o.feature, o.tid, tag=o.bucket, max_similarity_to_last=self.max_duplicate_similarity)
 
@@ -696,6 +696,11 @@ class TargetIdentityManager:
 
         if t.feature is None:
             return self._result("TRACKING", t, t.track, t.tid, verified=False, evidence=self.lock_evidence, reason="no_feature_this_frame")
+        if t.track.conf <= 0.0:
+            # YOLO bo sot khung nay, DeepSORT chi xuat vi tri du doan: van bao (lien tuc cho tracker)
+            # nhung khong cham diem/khong hoc — hop co the lech khoi nguoi.
+            return self._result("TRACKING", t, t.track, t.tid, verified=False, evidence=self.lock_evidence,
+                                reason="track du doan 1 khung (YOLO bo sot), khong kiem tra")
 
         gait_ok, gait_reason = self._gait_gate(t, self.gait_current_min_score, required=False)
         abs_ok = (
@@ -812,7 +817,7 @@ class TargetIdentityManager:
         return self._result("TRACKING", t, t.track, t.tid, verified=True, evidence=self.lock_evidence, reason="verified_target; " + detail)
 
     def _learn(self, t: _Obs, obs: List[_Obs], clean: bool, alone: bool) -> None:
-        if clean and (self.frame_index % self.update_gallery_every_n_frames) == 0 and (t.rival < 0 or t.rival < t.pos - 0.03):
+        if clean and t.track.conf > 0.0 and (self.frame_index % self.update_gallery_every_n_frames) == 0 and (t.rival < 0 or t.rival < t.pos - 0.03):
             t.track.feature = t.feature
             have = self.positive_gallery.tag_count(t.bucket) >= self.view_bucket_min_samples
             # Kieu khung moi (vd nguoi vua lai gan, bi cat dau) chi hoc khi da giu khoa on dinh
@@ -832,7 +837,7 @@ class TargetIdentityManager:
         # TRUOC (khong ai che) anh sach -> hoc, de luc ho che mat muc tieu thi khong nhan nham.
         trusted = self.lock_stable_frames >= 4 and t.pos >= self.current_min_reid + 0.05
         for o in obs:
-            if o is t or o.feature is None or o.quality < self.eval_min_quality:
+            if o is t or o.feature is None or o.quality < self.eval_min_quality or o.track.conf <= 0.0:
                 continue
             if _intersects(o.track.bbox, t.track.bbox) and o.occ >= 0.2:
                 # Dung SAU muc tieu: crop chua diem anh cua muc tieu -> khong hoc
@@ -894,7 +899,7 @@ class TargetIdentityManager:
         # ID DeepSORT mat qua lau thi khong con dung nua (max_age ~30 khung)
         self.coseen = {k: v for k, v in self.coseen.items() if k in present or now - v < 10.0}
         self.contacts = {k: v for k, v in self.contacts.items() if now - v < 5.0}
-        candidates = [o for o in obs if o.feature is not None and int(o.track.area) >= self.min_bbox_area]
+        candidates = [o for o in obs if o.feature is not None and o.track.conf > 0.0 and int(o.track.area) >= self.min_bbox_area]
         if not candidates:
             return self._result("LOST", None, None, self.target_track_id, lost_age_sec=lost_age, reason="no_candidate")
 

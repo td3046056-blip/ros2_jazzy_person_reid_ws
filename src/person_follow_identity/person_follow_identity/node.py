@@ -78,6 +78,7 @@ class LatestFrameGrabber:
         self._bsum = 0.0
         self._bn = 0
         self._last_adjust = time.time()
+        self._last_change = 0.0
         self._warned_dark = False
         self._running = True
         self._thread = threading.Thread(target=self._run, daemon=True)
@@ -98,7 +99,9 @@ class LatestFrameGrabber:
         self.brightness = b
         self._bsum, self._bn = 0.0, 0
         tgt = self.brightness_target
-        if 0.75 * tgt <= b <= 1.33 * tgt:
+        # Dai rong + toi da 1 lan/5 s: KINGSEN hay tu tut 25 -> 12.5 fps vai chuc giay sau moi lan
+        # doi phoi sang (do 30/09) nen chi doi khi anh lech nhieu.
+        if 0.6 * tgt <= b <= 1.6 * tgt or time.time() - self._last_change < 5.0:
             return
         # Do sang ~ phoi sang^(1/gamma), gamma ~2 -> doi phoi sang theo binh phuong ti le
         ratio = min(2.0, max(0.5, (tgt / max(b, 1.0)) ** 2))
@@ -112,6 +115,7 @@ class LatestFrameGrabber:
                 self._warned_dark = True
             return
         self.exposure_ms = new
+        self._last_change = time.time()
         self.cap.set(cv2.CAP_PROP_EXPOSURE, new * 10.0)  # V4L2 exposure_time_absolute: don vi 100 us
 
     def _run(self) -> None:
@@ -157,6 +161,8 @@ class IdentityLockNode(Node):
         self.get_logger().info(f"Models loaded; {self.core.device_note}")
 
         source = parse_camera_source(params["camera_source"])
+        # Dat dieu khien v4l2 TRUOC khi mo: do tren KINGSEN 30/09, len 25 fps sau ~8 s thay vi 17-24 s
+        self._apply_v4l2_controls(source, str(params["camera_v4l2_controls"]))
         self.cap = cv2.VideoCapture(source)
         fourcc = str(params["camera_fourcc"]).strip()
         if fourcc:
@@ -171,7 +177,6 @@ class IdentityLockNode(Node):
         if not self.cap.isOpened():
             self.get_logger().warning(f"Could not open camera source: {params['camera_source']}")
         else:
-            self._apply_v4l2_controls(source, str(params["camera_v4l2_controls"]))
             mode = str(params["camera_exposure_mode"]).lower().strip()
             exp_ms = float(params["camera_exposure_ms"])
             if mode in {"fixed_fps", "manual"}:

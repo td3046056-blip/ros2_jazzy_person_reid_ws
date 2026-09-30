@@ -82,6 +82,7 @@ Config dùng trên xe: `person_follow_robot/config/identity_lock_kingsen.yaml` (
 | Dùng lại feature DeepSORT, không chạy ReID lần 2 | ReID ~2–4 ms/người — phần tốn CPU nhất khi đông người |
 | YOLO chạy khung 640×480 thay vì 640×640 | ~20 ms → ~15 ms |
 | Luồng đọc camera riêng, luôn lấy khung mới nhất | Trước: bộ đệm V4L2 trả khung cũ ~100 ms |
+| DeepSORT được cập nhật cả ở khung YOLO không thấy ai | Trước: khung đó bị bỏ qua hẳn → YOLO sót 1 khung là mất sạch track (chạy thật: 6 lần / 52 s đang bám) và `max_age` chỉ đếm khung có người. Track chỉ là vị trí dự đoán (`conf = 0`) vẫn được báo 1 khung nhưng không chấm điểm, không học, không nhận lại |
 | BLAS của numpy 1 luồng (`OPENBLAS_NUM_THREADS=1` đầu `node.py`) | DeepSORT tích luỹ 100 feature/track rồi tính khoảng cách bằng tích ma trận; OpenBLAS đa luồng quay chờ bận, tranh CPU với torch → xử lý trượt từ 29 lên 53–59 ms/khung sau vài giây. Sau khi sửa: ổn định 25–29 ms. **Không** đặt `MKL_NUM_THREADS`/`OMP_NUM_THREADS` — torch đọc hai biến đó và chạy 1 luồng (66 ms) |
 | Tổng thể (khung 6 người, CPU máy này) | cũ 68.7 ms/khung (config cũ còn khoá 8 Hz) → mới 40.3 ms; webcam 0–1 người: 15.0 Hz, 25–29 ms, trễ từ lúc chụp 30–60 ms |
 | `ts` trong `/person_reid/target` = **lúc chụp** | Trước là lúc xử lý xong → tracker gần như không bù được góc xe quay trong lúc xử lý |
@@ -125,7 +126,9 @@ Phơi sáng dài làm nhoè khi người đi hoặc xe quay (người đi 1 m/s 
 
 Config bây giờ: `camera_fourcc: MJPG`, `camera_fps: 25`, `camera_exposure_mode: fixed_fps` (phần mềm tự chỉnh phơi sáng theo độ sáng vùng giữa-dưới ảnh, tối đa 30 ms, bội số 10 ms để không nhấp nháy dưới đèn 50 Hz), `camera_v4l2_controls: backlight_compensation=0,exposure_dynamic_framerate=0,power_line_frequency=1`. Log mỗi 10 s in fps nhận, thời gian phơi sáng và độ sáng. Chỗ quá tối (log "Anh toi") thì đổi `camera_exposure_mode: auto`.
 
-Node thật với KINGSEN: trước 10 Hz, trễ 77–97 ms → sau 15 Hz (camera 25 fps), 27–33 ms/khung, trễ 38–65 ms.
+Node thật với KINGSEN: trước 10 Hz, trễ 77–97 ms → sau 15 Hz (camera 25 fps), 26–33 ms/khung, trễ 27–65 ms, CPU ~5–6 lõi.
+
+**Firmware KINGSEN tự nhảy 25 ↔ 12.5 fps** (đo 30/09): mở camera xong chạy 12.5 fps một lúc (8–60 s) rồi mới lên 25; thỉnh thoảng tự quay về 12.5 fps dù không đổi gì (độ sáng ảnh không đổi). Không điều khiển v4l2 nào khoá được. Giảm được bằng: đặt `v4l2-ctl` **trước** khi mở camera (lên 25 fps sau ~8 s thay vì 17–24 s), bật chống nhấp nháy 50 Hz (15 s thay vì 45–60 s khi tắt), phơi sáng bắt đầu ở 30 ms và chỉ đổi khi ảnh lệch nhiều, tối đa 1 lần/5 s. Ở 12.5 fps phơi sáng vẫn ≤ 30 ms nên ảnh vẫn nét hơn nhiều so với 80 ms trước đây.
 
 **FOV — camera GÓC RỘNG, ống "mắt cá đều".** Người dùng đo 30/09 bằng `scripts/measure_fov.py` (camera cách tường 1.00 m; vạch 1→3 98.5 cm, 3→5 54 cm, 5→7 54 cm, 7→9 98.5 cm). Script khớp mô hình mắt cá OpenCV (Kannala–Brandt), sai số 0.1 px, camera lệch tường 0.1°:
 
@@ -147,6 +150,10 @@ Node thật với KINGSEN: trước 10 Hz, trễ 77–97 ms → sau 15 Hz (camer
 | 70 cm, nhìn ngang | 0–1.62 | 72.6% | toàn thân |
 
 Ngửa camera 34 cm lên **~12°** cho kết quả tương đương (hơi tốt hơn) nâng lên 70 cm. Cách chỉnh: đứng cách xe 1 m, ngửa tới khi thấy cả đầu trong khung; ghi góc vào `camera_pitch_deg`. (Bảng cũ tính theo 62° cho kết quả "34 cm chỉ thấy chân, phải ngửa 20°" — **sai** do FOV sai.) YOLOv5n với người chỉ lộ một phần chỉ cho conf ~0.4–0.7 nên `det_conf_thres` hạ 0.55 → 0.40 (phát hiện sai tăng 2 → 6 trên 128 ảnh coco128; khoá ReID loại được).
+
+### Chạy thật với KINGSEN cắm vào laptop (30/09)
+
+Node tự enroll người trước camera: đủ 80 mẫu sau 35.7 s (có cả mẫu toàn thân lẫn bị cắt khung). Sau đó `TRACKING` với độ giống 0.85–0.98; một đối tượng thứ hai (giống gallery mục tiêu 0.84–0.85, đã học là "không phải mục tiêu" 0.99) bị loại đúng mọi lần; mục tiêu ra khỏi khung rồi quay lại được nhận lại sau 0.4–0.6 s; góc báo từ −50° đến +32°. Trễ từ lúc chụp: trung vị 56 ms, p90 84 ms.
 
 ### Mô phỏng offline (ảnh người thật)
 
