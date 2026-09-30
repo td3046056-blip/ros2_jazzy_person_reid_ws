@@ -2,6 +2,8 @@ from __future__ import annotations
 
 import json
 import os
+import shutil
+import subprocess
 import threading
 import time
 from typing import Any, Dict, Optional, Tuple
@@ -39,18 +41,78 @@ class LatestFrameGrabber:
     Truoc day timer 8 Hz goi cap.read() truc tiep: camera chay 30 fps nen bo dem V4L2
     luon day va read() tra khung CU (tre them ~100+ ms), va thoi gian cho doc chan
     luon luong xu ly.
+
+    exposure_mode="fixed_fps": camera o che do phoi sang THU CONG, luong nay tu chinh thoi
+    gian phoi sang theo do sang anh nhung KHONG vuot exposure_max_ms. Do tren KINGSEN (30/09):
+    phoi sang tu dong cua camera tu ha con nua fps (MJPG 12.5, YUYV 10 fps — co
+    exposure_dynamic_framerate bi firmware bo qua), moi khung phoi ~80 ms -> nguoi di 1 m/s
+    o 1.5 m nhoe ~28 px: ReID Rank-1 76.7% -> 59.2%, YOLO mat het nguoi o conf 0.55.
+    Phoi sang <= 30 ms: 25 fps, nhoe ~11 px (Rank-1 73.9%).
     """
 
-    def __init__(self, cap: cv2.VideoCapture) -> None:
+    def __init__(
+        self,
+        cap: cv2.VideoCapture,
+        exposure_mode: str = "auto",
+        exposure_ms: float = 20.0,
+        exposure_min_ms: float = 1.0,
+        exposure_max_ms: float = 30.0,
+        exposure_step_ms: float = 10.0,
+        brightness_target: float = 120.0,
+        logger=None,
+    ) -> None:
         self.cap = cap
         self._lock = threading.Lock()
         self._frame: Optional[np.ndarray] = None
         self._stamp = 0.0
         self._seq = 0
         self.failures = 0
+        self.logger = logger
+        self.exposure_mode = str(exposure_mode).lower().strip()
+        self.exposure_min_ms = max(0.1, float(exposure_min_ms))
+        self.exposure_max_ms = max(self.exposure_min_ms, float(exposure_max_ms))
+        self.exposure_step_ms = max(0.0, float(exposure_step_ms))
+        self.brightness_target = float(brightness_target)
+        self.exposure_ms = float(exposure_ms)
+        self.brightness = float("nan")
+        self._bsum = 0.0
+        self._bn = 0
+        self._last_adjust = time.time()
+        self._warned_dark = False
         self._running = True
         self._thread = threading.Thread(target=self._run, daemon=True)
         self._thread.start()
+
+    def _quantize(self, ms: float) -> float:
+        ms = min(self.exposure_max_ms, max(self.exposure_min_ms, ms))
+        step = self.exposure_step_ms
+        if step > 0 and ms >= step:
+            # Boi so 10 ms: den dien 50 Hz nhap nhay 100 Hz, phoi sang tron chu ky thi khong soc/nhay sang
+            ms = min(self.exposure_max_ms, max(step, round(ms / step) * step))
+        return round(ms, 1)
+
+    def _auto_exposure(self) -> None:
+        if self._bn == 0:
+            return
+        b = self._bsum / self._bn
+        self.brightness = b
+        self._bsum, self._bn = 0.0, 0
+        tgt = self.brightness_target
+        if 0.75 * tgt <= b <= 1.33 * tgt:
+            return
+        # Do sang ~ phoi sang^(1/gamma), gamma ~2 -> doi phoi sang theo binh phuong ti le
+        ratio = min(2.0, max(0.5, (tgt / max(b, 1.0)) ** 2))
+        new = self._quantize(self.exposure_ms * ratio)
+        if new == self.exposure_ms:
+            if b < 0.5 * tgt and new >= self.exposure_max_ms and not self._warned_dark and self.logger is not None:
+                self.logger.warning(
+                    f"Anh toi (do sang {b:.0f}/255) du da phoi sang toi da {self.exposure_max_ms:.0f} ms: "
+                    "can them den, hoac dat camera_exposure_mode: auto (camera tu phoi sang lau hon nhung giam fps, nhoe hon)"
+                )
+                self._warned_dark = True
+            return
+        self.exposure_ms = new
+        self.cap.set(cv2.CAP_PROP_EXPOSURE, new * 10.0)  # V4L2 exposure_time_absolute: don vi 100 us
 
     def _run(self) -> None:
         while self._running:
@@ -62,6 +124,18 @@ class LatestFrameGrabber:
                 continue
             with self._lock:
                 self._frame, self._stamp, self._seq = frame, stamp, self._seq + 1
+            # Do sang vung giua-duoi (noi co than nguoi); bo 1/4 tren: camera ngua len thi den
+            # tran / cua so o mep tren keo phoi sang xuong lam nguoi bi toi
+            h, w = frame.shape[:2]
+            self._bsum += float(frame[h // 4::16, w // 8:w - w // 8:16].mean())
+            self._bn += 1
+            if stamp - self._last_adjust >= 0.5:
+                self._last_adjust = stamp
+                if self.exposure_mode == "fixed_fps":
+                    self._auto_exposure()
+                elif self._bn:
+                    self.brightness = self._bsum / self._bn
+                    self._bsum, self._bn = 0.0, 0
 
     def latest(self) -> Tuple[Optional[np.ndarray], float, int]:
         with self._lock:
@@ -82,15 +156,47 @@ class IdentityLockNode(Node):
         self.core = IdentityFollowCore(params)
         self.get_logger().info(f"Models loaded; {self.core.device_note}")
 
-        self.cap = cv2.VideoCapture(parse_camera_source(params["camera_source"]))
+        source = parse_camera_source(params["camera_source"])
+        self.cap = cv2.VideoCapture(source)
+        fourcc = str(params["camera_fourcc"]).strip()
+        if fourcc:
+            # Dat TRUOC kich thuoc. KINGSEN 640x480: MJPG toi 25 fps, YUYV chi 15-20 fps
+            self.cap.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc(*(fourcc + "    ")[:4]))
         self.cap.set(cv2.CAP_PROP_FRAME_WIDTH, int(params["frame_width"]))
         self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT, int(params["frame_height"]))
+        if float(params["camera_fps"]) > 0:
+            self.cap.set(cv2.CAP_PROP_FPS, float(params["camera_fps"]))
         self.cap.set(cv2.CAP_PROP_BUFFERSIZE, 1)
         self.grabber: Optional[LatestFrameGrabber] = None
         if not self.cap.isOpened():
             self.get_logger().warning(f"Could not open camera source: {params['camera_source']}")
         else:
-            self.grabber = LatestFrameGrabber(self.cap)
+            self._apply_v4l2_controls(source, str(params["camera_v4l2_controls"]))
+            mode = str(params["camera_exposure_mode"]).lower().strip()
+            exp_ms = float(params["camera_exposure_ms"])
+            if mode in {"fixed_fps", "manual"}:
+                # V4L2: 1 = thu cong, 3 = tu dong (Aperture Priority)
+                if not (self.cap.set(cv2.CAP_PROP_AUTO_EXPOSURE, 1) and self.cap.set(cv2.CAP_PROP_EXPOSURE, exp_ms * 10.0)):
+                    self.get_logger().warning("Camera khong nhan phoi sang thu cong -> dung phoi sang tu dong")
+                    mode = "auto"
+            if mode == "auto":
+                self.cap.set(cv2.CAP_PROP_AUTO_EXPOSURE, 3)
+            code = int(self.cap.get(cv2.CAP_PROP_FOURCC))
+            got = "".join(chr((code >> (8 * i)) & 0xFF) for i in range(4))
+            self.get_logger().info(
+                f"camera: {got} {int(self.cap.get(cv2.CAP_PROP_FRAME_WIDTH))}x{int(self.cap.get(cv2.CAP_PROP_FRAME_HEIGHT))} "
+                f"{self.cap.get(cv2.CAP_PROP_FPS):.0f} fps, phoi sang {mode}" + (f" {exp_ms:.0f} ms" if mode != "auto" else "")
+            )
+            self.grabber = LatestFrameGrabber(
+                self.cap,
+                exposure_mode=mode,
+                exposure_ms=exp_ms,
+                exposure_min_ms=float(params["camera_exposure_min_ms"]),
+                exposure_max_ms=float(params["camera_exposure_max_ms"]),
+                exposure_step_ms=float(params["camera_exposure_step_ms"]),
+                brightness_target=float(params["camera_brightness_target"]),
+                logger=self.get_logger(),
+            )
         self.last_seq = 0
         self.last_fail_log = 0.0
         self.stat_t0 = time.time()
@@ -219,6 +325,7 @@ class IdentityLockNode(Node):
             "occluded_loss_hold_sec": 2.5,
             "recovery_probation_sec": 3.0,
             "camera_angle_model": "pinhole",
+            "camera_pitch_deg": 0.0,           # goc ngua len cua camera (do), duong = ngua len
             # 9 so (hang theo hang) tu scripts/calibrate_camera.py; fx = 0 nghia la chua hieu chinh
             "camera_matrix": [0.0] * 9,
             "dist_coeffs": [0.0] * 5,
@@ -226,6 +333,16 @@ class IdentityLockNode(Node):
             "undistort_frame": False,
             "undistort_balance": 0.0,
             "stats_period_sec": 10.0,
+            # --- Doc camera (30/09) ---
+            "camera_fourcc": "MJPG",
+            "camera_fps": 0.0,                 # 0 = de mac dinh cua camera
+            "camera_exposure_mode": "auto",    # auto | fixed_fps | manual
+            "camera_exposure_ms": 20.0,        # manual: gia tri co dinh; fixed_fps: gia tri bat dau
+            "camera_exposure_min_ms": 1.0,
+            "camera_exposure_max_ms": 30.0,    # 39 ms sat chu ky 40 ms (25 fps) -> KINGSEN tut 12.5 fps
+            "camera_exposure_step_ms": 10.0,   # >= 10 ms thi lam tron boi so 10 ms (den 50 Hz); 0 = lien tuc
+            "camera_brightness_target": 120.0,
+            "camera_v4l2_controls": "",        # vd "power_line_frequency=1" (can v4l2-ctl)
         }
         # dynamic_typing: yaml/-p ghi 15 hay 15.0 deu duoc (ROS 2 phan biet INTEGER/DOUBLE)
         for name, value in defaults.items():
@@ -321,6 +438,19 @@ class IdentityLockNode(Node):
             elif key == ord("q"):
                 rclpy.shutdown()
 
+    def _apply_v4l2_controls(self, source: Any, controls: str) -> None:
+        controls = controls.strip()
+        if not controls:
+            return
+        dev = f"/dev/video{source}" if isinstance(source, int) else str(source)
+        exe = shutil.which("v4l2-ctl")
+        if exe is None:
+            self.get_logger().warning("Khong co v4l2-ctl (sudo apt install v4l-utils) -> bo qua camera_v4l2_controls")
+            return
+        res = subprocess.run([exe, "-d", dev, "-c", controls], capture_output=True, text=True, timeout=5)
+        if res.returncode != 0:
+            self.get_logger().warning(f"v4l2-ctl -c {controls} loi: {res.stderr.strip()}")
+
     def _log_stats(self, proc_sec: float, payload: Dict[str, Any]) -> None:
         self.stat_n += 1
         self.stat_proc += proc_sec
@@ -332,10 +462,16 @@ class IdentityLockNode(Node):
         cam_fps = (self.last_seq - self.stat_seq0) / span if self.stat_seq0 else float("nan")
         self.stat_seq0 = self.grabber.latest()[2] if self.grabber is not None else 0
         self.get_logger().info(
-            f"camera: nhan {cam_fps:.1f} fps, xu ly {self.stat_n / span:.1f} Hz, TB {1000.0 * self.stat_proc / max(1, self.stat_n):.0f} ms/khung, "
+            f"camera: nhan {cam_fps:.1f} fps (phoi sang {self._exposure_text()}, do sang {self.grabber.brightness if self.grabber else float('nan'):.0f}), "
+            f"xu ly {self.stat_n / span:.1f} Hz, TB {1000.0 * self.stat_proc / max(1, self.stat_n):.0f} ms/khung, "
             f"tre tu luc chup {payload.get('latency_ms')} ms, {payload.get('num_tracks')} nguoi, status {payload.get('status')}"
         )
         self.stat_t0, self.stat_n, self.stat_proc = now, 0, 0.0
+
+    def _exposure_text(self) -> str:
+        if self.grabber is None or self.grabber.exposure_mode == "auto":
+            return "tu dong"
+        return f"{self.grabber.exposure_ms:.0f} ms"
 
     def destroy_node(self) -> bool:
         if self.grabber is not None:

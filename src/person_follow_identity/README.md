@@ -109,6 +109,37 @@ python3 scripts/calibrate_camera.py --source /dev/v4l/by-id/usb-Generic_KINGSEN_
 ```
 In ra `camera_matrix`, `dist_coeffs`, FOV thật — dán vào yaml, đặt `camera_angle_model: "calibrated"`; tuỳ chọn `undistort_frame: true` để khử méo cả khung trước YOLO/ReID (người ở mép ảnh hết bị kéo nghiêng). Ống mắt cá (>~120°) thêm `--fisheye` và `camera_fisheye: true`.
 
+### Camera KINGSEN trên xe (đo 30/09, cắm vào laptop)
+
+**Tốc độ khung.** Ở 640×480: MJPG tối đa 25 fps, YUYV chỉ 15–20 fps. Code cũ không chọn định dạng nên OpenCV lấy YUYV, và camera lại bật sẵn `backlight_compensation=1` (chế độ thiếu sáng, **giảm còn nửa fps**, phơi sáng ~80 ms/khung):
+
+| Cấu hình | fps nhận thật |
+|---|---|
+| Như cũ (YUYV, phơi sáng tự động) | **10.1** |
+| MJPG, phơi sáng tự động | 12.5 |
+| MJPG + `backlight_compensation=0` + phơi sáng thủ công 10–30 ms | **25** (sau 7–45 s khởi động) |
+| Phơi sáng 39 ms | tụt 12.5 (sát chu kỳ 40 ms) |
+
+Phơi sáng dài làm nhoè khi người đi hoặc xe quay (người đi 1 m/s ở 1.5 m: 80 ms ≈ 28 px, 30 ms ≈ 11 px). Đo được: ReID Rank-1 76.7% → **59.2%** ở mức nhoè 28 px (73.9% ở 11 px); YOLO mất **toàn bộ** người trong ảnh mẫu ở conf 0.55 khi nhoè 28 px.
+
+Config bây giờ: `camera_fourcc: MJPG`, `camera_fps: 25`, `camera_exposure_mode: fixed_fps` (phần mềm tự chỉnh phơi sáng theo độ sáng vùng giữa-dưới ảnh, tối đa 30 ms, bội số 10 ms để không nhấp nháy dưới đèn 50 Hz), `camera_v4l2_controls: backlight_compensation=0,exposure_dynamic_framerate=0,power_line_frequency=1`. Log mỗi 10 s in fps nhận, thời gian phơi sáng và độ sáng. Chỗ quá tối (log "Anh toi") thì đổi `camera_exposure_mode: auto`.
+
+Node thật với KINGSEN: trước 10 Hz, trễ 77–97 ms → sau 15 Hz (camera 25 fps), 27–33 ms/khung, trễ 38–65 ms.
+
+**FOV.** Ảnh 640×480 là **ảnh cắt giữa** 1440×1080 của cảm biến (so khớp đặc trưng giữa hai chế độ, điểm ảnh vuông) → FOV ngang hẹp hơn chế độ 1080p. Nếu 62° là thông số của nhà sản xuất cho 1080p thì ở 640×480 chỉ ~43–49°. Đo bằng thước: `python3 scripts/measure_fov.py` (hướng dẫn trong file), dán `camera_fov_deg` vào yaml.
+
+**Độ cao và góc ngửa camera.** ReID Rank-1 khi chỉ thấy một dải cơ thể (Market-1501, mẫu enroll và mẫu nhận cùng kiểu cắt; giả định FOV dọc 48.5° — nếu FOV hẹp hơn thì thấy ít hơn nữa):
+
+| Lắp camera | ở 1 m thấy (m, tính từ sàn) | Rank-1 ở 1 m | Rank-1 ở 1.5 m |
+|---|---|---|---|
+| (toàn thân, tham chiếu) | | 75.8% | 75.8% |
+| 34 cm, nhìn ngang | 0–0.79 (chân) | **22.4%** | 44.9% |
+| 34 cm, ngửa 20° | 0.27–1.31 | **53.3%** | **67.3%** |
+| 70 cm, nhìn ngang | 0.25–1.15 | 45.3% | 63.5% |
+| 70 cm, ngửa 10° | 0.45–1.38 | 50.4% | 63.4% |
+
+Ngửa camera để ở khoảng bám (1 m) mép trên khung ảnh chạm ngang vai: 34 cm → ngửa ~20°, 70 cm → ngửa ~10°. Ghi góc đã lắp vào `camera_pitch_deg` (sửa góc ngang ~1–1.5° ở mép khung). YOLOv5n với người chỉ lộ một phần chỉ cho conf ~0.4–0.7 nên `det_conf_thres` hạ 0.55 → 0.40 (phát hiện sai tăng 2 → 6 trên 128 ảnh coco128; khoá ReID loại được).
+
 ### Mô phỏng offline (ảnh người thật)
 
 `scripts/sim_identity.py` ghép khung từ ảnh Market-1501 theo hình học camera, mô phỏng DeepSORT (kể cả tráo ID khi hai người cắt nhau) và so sánh logic khoá cũ/mới trên cùng kịch bản. Cần tải Market-1501 (xem đầu file).

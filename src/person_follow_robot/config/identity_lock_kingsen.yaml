@@ -3,6 +3,25 @@ identity_lock_node:
     camera_source: "/dev/v4l/by-id/usb-Generic_KINGSEN_CAMERA_200901010001-video-index0"
     frame_width: 640
     frame_height: 480
+    # ── Doc camera KINGSEN (do 30/09) ─────────────────────────────────────
+    # 640x480: MJPG toi 25 fps, YUYV chi 15-20 fps (OpenCV tu chon YUYV neu khong dat).
+    # Mac dinh camera de backlight_compensation=1 = "che do thieu sang": ha con NUA fps (MJPG
+    # 12.5, YUYV 10 fps) va phoi ~80 ms/khung -> nguoi di/xe quay bi nhoe: ReID Rank-1 76.7%
+    # -> 59.2%, YOLO mat nguoi o conf 0.55. Tat no + exposure_dynamic_framerate=0 thi len 25 fps.
+    # fixed_fps: phan mem tu chinh phoi sang theo do sang, toi da 30 ms (39 ms sat chu ky
+    # 40 ms -> camera tut 12.5 fps). Cho rat toi (log bao "Anh toi") thi doi sang "auto".
+    # Mo camera xong can ~7-30 s camera moi len 25 fps (trung thoi gian enroll).
+    # 640x480 la anh CAT GIUA 1440x1080 cua cam bien (do bang so khop anh) -> FOV hep hon 1080p.
+    camera_fourcc: "MJPG"
+    camera_fps: 25.0
+    camera_exposure_mode: "fixed_fps"
+    camera_exposure_ms: 20.0
+    camera_exposure_min_ms: 1.0
+    camera_exposure_max_ms: 30.0
+    camera_exposure_step_ms: 10.0      # boi so 10 ms: khong nhap nhay duoi den dien 50 Hz
+    camera_brightness_target: 120.0
+    # 50 Hz (dien Viet Nam; camera dang de 60 Hz); tat che do thieu sang (ha nua fps)
+    camera_v4l2_controls: "backlight_compensation=0,exposure_dynamic_framerate=0,power_line_frequency=1"
 
     model_weights: ""
     deepsort_ckpt: ""
@@ -12,7 +31,10 @@ identity_lock_node:
     # YOLO chay khung 640x480 thay vi dem thanh 640x640 (~20 ms -> ~15 ms tren CPU)
     rect_inference: true
 
-    det_conf_thres: 0.55
+    # 0.55 -> 0.40 (30/09): nguoi o gan bi cat khung (chi thay chan, hoac goi toi nguc) YOLOv5n
+    # chi cho conf ~0.4-0.7 (do tren anh nguoi that bi cat); o 0.55 hay mat nguoi dang bam o 1 m.
+    # Doi lai phat hien sai (khong phai nguoi) tang 2 -> 6 tren 128 anh coco128 — khoa ReID loai.
+    det_conf_thres: 0.40
     det_iou_thres: 0.50
     person_class_id: 0
 
@@ -126,6 +148,9 @@ identity_lock_node:
     # pinhole: goc = atan(dx/fx) (dung hinh hoc); "linear" = cach cu; "calibrated" dung
     # camera_matrix/dist_coeffs tu scripts/calibrate_camera.py (can cho camera goc rong).
     camera_angle_model: "pinhole"
+    # Goc NGUA LEN cua camera (do). Camera 34 cm nhin ngang: o 1 m chi thay chan (ReID Rank-1
+    # 22%); ngua ~20 do thay tu dui toi nguc (53%). Lap nghieng bao nhieu thi ghi bay nhieu.
+    camera_pitch_deg: 0.0
     camera_matrix: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
     dist_coeffs: [0.0, 0.0, 0.0, 0.0, 0.0]
     camera_fisheye: false

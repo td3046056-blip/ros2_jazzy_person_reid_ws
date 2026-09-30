@@ -149,6 +149,8 @@ class IdentityFollowCore:
         mep anh goc rong het bi keo nghieng/phinh, ReID so khop tot hon; ton ~1-2 ms/khung.
         """
         self.angle_model = str(params.get("camera_angle_model", "pinhole")).lower().strip()
+        # Camera ngua len (duong) de thay than nguoi o gan: goc ngang = atan2(x, cos p + y sin p)
+        self.camera_pitch = math.radians(float(params.get("camera_pitch_deg", 0.0)))
         k = [float(v) for v in (params.get("camera_matrix") or [])]
         d = [float(v) for v in (params.get("dist_coeffs") or [])]
         self.fisheye = bool(params.get("camera_fisheye", False))
@@ -193,17 +195,21 @@ class IdentityFollowCore:
         if self.K_rect is not None and self.undistort_maps is not None:
             # Khung da khu meo -> anh pinhole voi ma tran K_rect
             xn = (cx - self.K_rect[0, 2]) / self.K_rect[0, 0]
+            yn = (cy - self.K_rect[1, 2]) / self.K_rect[1, 1]
         elif self.angle_model == "calibrated" and self.K is not None:
             pt = np.asarray([[[cx, cy]]], dtype=np.float64)
             und = cv2.fisheye.undistortPoints(pt, self.K, self.D) if self.fisheye else cv2.undistortPoints(pt, self.K, self.D)
-            xn = float(und[0, 0, 0])
+            xn, yn = float(und[0, 0, 0]), float(und[0, 0, 1])
         elif self.angle_model == "linear":
             normalized = (cx - (w * 0.5)) / max(1.0, w * 0.5)
             return normalized * (self.camera_fov_deg * 0.5)
         else:
             fx = (w * 0.5) / math.tan(math.radians(self.camera_fov_deg * 0.5))
             xn = (cx - (w * 0.5)) / max(1e-6, fx)
-        return math.degrees(math.atan(xn))
+            yn = (cy - (h * 0.5)) / max(1e-6, fx)  # diem anh vuong
+        # y anh huong xuong; camera ngua len p: tia (xn, yn, 1) -> ngang = atan2(xn, cos p + yn sin p)
+        p = self.camera_pitch
+        return math.degrees(math.atan2(xn, math.cos(p) + yn * math.sin(p)))
 
     def _make_payload(self, result: IdentityResult, tracks: List[TrackCandidate], frame: np.ndarray, capture_ts: Optional[float] = None) -> Dict[str, Any]:
         target = result.target
