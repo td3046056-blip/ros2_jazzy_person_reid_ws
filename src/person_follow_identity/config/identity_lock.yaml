@@ -144,23 +144,22 @@ identity_lock_node:
     gait_min_tracking_confidence: 0.20
     gait_min_landmark_visibility: 0.0
 
-    # FOV ngang THAT o 640x480 — nguoi dung do 30/09 bang thuoc (scripts/measure_fov.py): camera
-    # cach tuong 1.00 m, hai mep cach nhau 2.75 m -> 107.9 do. So 62 cu SAI: goc nguoi lech giua
-    # khung bi bao ~mot nua goc that (that 30 do -> bao 14-19 do), lot khoi cua so +-10 do tracker
-    # dung de ghep cum chan LiDAR.
-    camera_fov_deg: 107.9
-    # pinhole: goc = atan(dx/fx) (ong khong meo). Ong goc rong 108 do thuong meo thung: nguoi o
-    # giua-khung (x = 160 / 480 px) co the lech toi ~7 do so voi pinhole. [CAN XAC NHAN] do them
-    # cac vach giua bang scripts/measure_fov.py roi dan camera_matrix/dist_coeffs/camera_fisheye
-    # no in ra va doi sang "calibrated". "linear" = cach cu.
-    camera_angle_model: "pinhole"
-    # Goc NGUA LEN cua camera (do). Voi FOV do duoc (doc ~81-92 do), camera 34 cm nhin ngang: o
-    # 1 m thay tu san toi ~1.2-1.4 m (thieu vai, dau); ngua 10-15 do thay toan than o 1 m.
-    # Lap nghieng bao nhieu thi ghi bay nhieu.
+    # FOV ngang THAT o 640x480 — nguoi dung do 30/09 bang thuoc (scripts/measure_fov.py, 5 vach):
+    # camera cach tuong 1.00 m, vach 1->3 98.5 cm, 3->5 54 cm, 5->7 54 cm, 7->9 98.5 cm.
+    # So 62 cu SAI: goc nguoi lech giua khung bi bao ~mot nua goc that (that 30 do -> bao 14-19),
+    # lot khoi cua so +-10 do tracker dung de ghep cum chan LiDAR.
+    camera_fov_deg: 114.4
+    # Ong KINGSEN la "mat ca deu": goc ti le thuan voi pixel (x=160 px -> 28.4 do, mep -> 56.7 do;
+    # pinhole se ra 37.8 do, sai 9 do). Tham so khop tu 5 vach (sai so 0.1 px):
+    camera_angle_model: "calibrated"
+    # Goc NGUA LEN cua camera (do). FOV doc 85.4 do: camera 34 cm nhin ngang, o 1 m thay tu san
+    # toi ~1.26 m (thieu vai, dau); ngua ~12 do thay toan than o 1 m. Lap nghieng bao nhieu thi
+    # ghi bay nhieu.
     camera_pitch_deg: 0.0
-    camera_matrix: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
-    dist_coeffs: [0.0, 0.0, 0.0, 0.0, 0.0]
-    camera_fisheye: false
+    camera_matrix: [324.00, 0.0, 320.0, 0.0, 324.00, 240.0, 0.0, 0.0, 1.0]
+    dist_coeffs: [-0.01077, 0.0, 0.0, 0.0]
+    camera_fisheye: true
+    # KHONG bat voi ong mat ca 114 do: khu meo ve pinhole keo gian mep ~1.5 lan, goc anh ~2.3 lan
     undistort_frame: false
     undistort_balance: 0.0
 

@@ -126,21 +126,26 @@ Config bây giờ: `camera_fourcc: MJPG`, `camera_fps: 25`, `camera_exposure_mod
 
 Node thật với KINGSEN: trước 10 Hz, trễ 77–97 ms → sau 15 Hz (camera 25 fps), 27–33 ms/khung, trễ 38–65 ms.
 
-**FOV — camera GÓC RỘNG.** Người dùng đo 30/09 (`scripts/measure_fov.py`, camera cách tường 1.00 m, hai mép khung cách nhau 2.75 m): **FOV ngang 107.9°** ở 640×480 (ảnh 640×480 là ảnh cắt giữa 1440×1080 của cảm biến). Số 62° dùng từ trước là **sai**: với nó, người lệch giữa khung bị báo khoảng **một nửa góc thật** (thật 30° → báo 14–19°), lọt khỏi cửa sổ ±10° mà `target_tracker_node` dùng để ghép cụm chân LiDAR, nên tracker rơi về `camera+bbox` với góc sai — có thể là một phần lý do xe xoay theo người chậm trước đây. Config giờ là `camera_fov_deg: 107.9`.
+**FOV — camera GÓC RỘNG, ống "mắt cá đều".** Người dùng đo 30/09 bằng `scripts/measure_fov.py` (camera cách tường 1.00 m; vạch 1→3 98.5 cm, 3→5 54 cm, 5→7 54 cm, 7→9 98.5 cm). Script khớp mô hình mắt cá OpenCV (Kannala–Brandt), sai số 0.1 px, camera lệch tường 0.1°:
 
-Ống 108° thường méo thùng: chỉ biết FOV ở mép thì góc ở giữa-khung vẫn có thể lệch tới ~7° (x = 160 px: 34.5° nếu không méo, 27° nếu "mắt cá"). **[CẦN XÁC NHẬN]** Đo thêm các vạch giữa: `python3 scripts/measure_fov.py` giờ vẽ 9 vạch; dán giấy ở các vạch (ít nhất 1, 3, 5, 7, 9), kéo thước một lần từ vạch 1, nhập vị trí → script khớp mô hình mắt cá OpenCV (Kannala–Brandt) và in `camera_matrix`, `dist_coeffs`, `camera_fisheye: true` để dán vào yaml với `camera_angle_model: "calibrated"`. Đã thử trên ống giả lập (camera lệch tường 2°): khớp lại đúng tham số, góc sai 0.0°.
+| Vạch (x px) | Đo được | Mô hình khớp | Pinhole cùng FOV | Code cũ trên xe (tuyến tính, 62°) |
+|---|---|---|---|---|
+| 3 (160) | 28.4° | 28.4° | 37.8° | 15.5° |
+| 9 (637) | 56.7° | 56.7° | 57.0° | 30.7° |
 
-**Độ cao và góc ngửa camera** (tính lại với FOV đo được; FOV dọc 81–92° tuỳ độ méo). ReID Rank-1 khi chỉ thấy một dải cơ thể (Market-1501, mẫu enroll và mẫu nhận cùng kiểu cắt):
+→ **FOV ngang 114.4°, dọc 85.4°**; góc gần như tỉ lệ thuận với pixel (f = 324 px). Config: `camera_angle_model: "calibrated"`, `camera_matrix: [324, 0, 320, 0, 324, 240, 0, 0, 1]`, `dist_coeffs: [-0.01077, 0, 0, 0]`, `camera_fisheye: true`. Số 62° dùng từ trước là **sai**: người lệch giữa khung bị báo khoảng **một nửa góc thật** (thật 28.4° → báo 15.5°), lọt khỏi cửa sổ ±10° mà `target_tracker_node` dùng để ghép cụm chân LiDAR, nên tracker rơi về `camera+bbox` với góc sai — có thể là một phần lý do xe xoay theo người chậm trước đây. Không bật `undistort_frame` với ống này (khử méo về pinhole kéo giãn mép ~1.5 lần, góc ảnh ~2.3 lần). `measure_fov.py` đã thử trên ống giả lập (camera lệch tường 2°): khớp lại đúng tham số.
 
-| Lắp camera | ở 1 m thấy (m, từ sàn) | Rank-1 ở 1 m | Rank-1 ở 1.5 m |
+**Độ cao và góc ngửa camera** (FOV dọc đo được 85.4°). ReID Rank-1 khi chỉ thấy một dải cơ thể (Market-1501, mẫu enroll và mẫu nhận cùng kiểu cắt):
+
+| Lắp camera | ở 1 m thấy (m, từ sàn) | Rank-1 ở 1 m | ở 1.5 m |
 |---|---|---|---|
 | (toàn thân, tham chiếu) | | 75.8% | 75.8% |
-| **34 cm, nhìn ngang (hiện tại)** | 0–1.19 / 0–1.37 (tới ngực) | **54.5–64.1%** | 72.6–75.8% |
-| **34 cm, ngửa 10°** | 0–1.55 / toàn thân | **71.0–75.8%** | ≈ toàn thân |
-| 34 cm, ngửa 15° | toàn thân | ≈ 75.8% | ≈ toàn thân |
-| 70 cm, nhìn ngang | 0–1.55 / toàn thân | 71.0–75.8% | ≈ toàn thân |
+| **34 cm, nhìn ngang (hiện tại)** | 0–1.26 (tới ngực) | **58.2%** | toàn thân |
+| **34 cm, ngửa 10°** | 0–1.65 | **73.5%** | toàn thân |
+| 34 cm, ngửa 12° | toàn thân | 75.8% | toàn thân |
+| 70 cm, nhìn ngang | 0–1.62 | 72.6% | toàn thân |
 
-Ngửa camera 34 cm lên **10–15°** cho kết quả tương đương nâng lên 70 cm. Cách chỉnh: đứng cách xe 1 m, ngửa tới khi thấy cả đầu trong khung; ghi góc vào `camera_pitch_deg`. (Bảng cũ tính theo 62° cho kết quả "34 cm chỉ thấy chân, phải ngửa 20°" — **sai** do FOV sai.) YOLOv5n với người chỉ lộ một phần chỉ cho conf ~0.4–0.7 nên `det_conf_thres` hạ 0.55 → 0.40 (phát hiện sai tăng 2 → 6 trên 128 ảnh coco128; khoá ReID loại được).
+Ngửa camera 34 cm lên **~12°** cho kết quả tương đương (hơi tốt hơn) nâng lên 70 cm. Cách chỉnh: đứng cách xe 1 m, ngửa tới khi thấy cả đầu trong khung; ghi góc vào `camera_pitch_deg`. (Bảng cũ tính theo 62° cho kết quả "34 cm chỉ thấy chân, phải ngửa 20°" — **sai** do FOV sai.) YOLOv5n với người chỉ lộ một phần chỉ cho conf ~0.4–0.7 nên `det_conf_thres` hạ 0.55 → 0.40 (phát hiện sai tăng 2 → 6 trên 128 ảnh coco128; khoá ReID loại được).
 
 ### Mô phỏng offline (ảnh người thật)
 

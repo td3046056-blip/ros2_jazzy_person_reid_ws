@@ -8,7 +8,8 @@ Khong can ROS, khong can camera. Can bo anh Market-1501 (chi dung de thu, khong 
 Cach lam:
   - Khung 640x480 ghep tu anh cac nguoi (bounding_box_test — ID KHONG dung de huan luyen
     mang ReID) theo hinh hoc camera KINGSEN: FOV ngang --hfov (do duoc 107.9 do), camera cao
-    --cam-h (m, tren xe 0.34). Nguoi gan xe khong vua khung doc -> bi cat nhu that.
+    --cam-h (m, tren xe 0.34), phep chieu mat ca deu nhu ong that. Nguoi gan xe khong vua khung
+    doc -> bi cat nhu that.
     (Bang ket qua 30/09 trong README chay voi gia dinh cu: FOV 62 do, cao 0.6 m.)
   - Ve xa truoc gan sau nen nguoi dung truoc che nguoi dung sau.
   - DeepSORT mo phong: can n_init khung lien tiep moi co ID, mat qua max_age khung thi ID moi
@@ -63,9 +64,10 @@ sys.path.insert(0, os.path.join(WS_SRC, "person_reid_tracker"))
 sys.path.insert(0, os.path.join(WS_SRC, "person_follow_identity"))
 
 W, H = 640, 480
-# FOV ngang KINGSEN o 640x480 do bang thuoc 30/09: 107.9 do (so 62 cu sai). Mo phong pinhole
-# (khong mo phong meo thung o mep). Doi bang --hfov.
-FX = (W / 2) / math.tan(math.radians(107.9 / 2))
+# KINGSEN o 640x480 do bang thuoc 30/09: FOV ngang 114.4 do, ong "mat ca deu" (goc ti le voi
+# pixel, f = 324 px). Doi bang --hfov / --projection.
+PROJ = "equidistant"
+FX = (W / 2) / math.radians(114.4 / 2)
 FY = FX  # pixel vuong
 CKPT = os.path.join(WS_SRC, "person_reid_tracker", "model_assets", "ckpt.t7")
 KINGSEN_YAML = os.path.join(WS_SRC, "person_follow_robot", "config", "identity_lock_kingsen.yaml")
@@ -153,11 +155,16 @@ class Person:
 PITCH = 0.0  # goc ngua len cua camera (rad)
 
 
+def _proj(a: float) -> float:
+    """Goc (rad) so voi truc quang -> do lech pixel: pinhole f*tan(a), mat ca deu f*a."""
+    return math.tan(a) if PROJ == "pinhole" else a
+
+
 def person_rect(p: Person, cam_h: float) -> Tuple[int, int, int, int]:
-    # Camera ngua len PITCH: diem o do cao y, xa z -> hang anh cy - FY*tan(atan((y-cam_h)/z) - PITCH)
-    top = H / 2 - FY * math.tan(math.atan((p.height_m - cam_h) / p.z) - PITCH)
-    bot = H / 2 - FY * math.tan(math.atan(-cam_h / p.z) - PITCH)
-    cx = W / 2 + FX * p.x / p.z
+    # Camera ngua len PITCH: diem o do cao y, xa z co goc ngang (elevation) atan((y-cam_h)/z) - PITCH
+    top = H / 2 - FY * _proj(math.atan((p.height_m - cam_h) / p.z) - PITCH)
+    bot = H / 2 - FY * _proj(math.atan(-cam_h / p.z) - PITCH)
+    cx = W / 2 + FX * _proj(math.atan2(p.x, p.z))
     hw = 0.25 * (bot - top)
     return int(round(cx - hw)), int(round(top)), int(round(cx + hw)), int(round(bot))
 
@@ -298,9 +305,10 @@ def build_manager(module, yaml_path: str):
 # Mot lan chay
 # ─────────────────────────────────────────────────────────────────────────────
 def run_one(args_tuple):
-    seed, variant, fps, market, cam_h, p_switch, old_dir, ids_all, feats_mean, n_look, hfov, pitch_deg = args_tuple
-    global FX, FY, PITCH
-    FX = FY = (W / 2) / math.tan(math.radians(hfov / 2))
+    seed, variant, fps, market, cam_h, p_switch, old_dir, ids_all, feats_mean, n_look, hfov, pitch_deg, proj = args_tuple
+    global FX, FY, PITCH, PROJ
+    PROJ = proj
+    FX = FY = (W / 2) / (math.tan(math.radians(hfov / 2)) if proj == "pinhole" else math.radians(hfov / 2))
     PITCH = math.radians(pitch_deg)
     rng = np.random.default_rng(seed)
     if variant.startswith("old"):
@@ -449,7 +457,9 @@ def main():
     ap.add_argument("--variants", default="old,old+rgb,new")
     ap.add_argument("--fps", default="8", help="vd 8 hoac 8,15")
     ap.add_argument("--cam-h", type=float, default=0.34, help="do cao camera (m); tren xe 34 cm (30/09), se nang ~70 cm")
-    ap.add_argument("--hfov", type=float, default=107.9, help="FOV ngang (do); KINGSEN 640x480 do duoc 107.9")
+    ap.add_argument("--hfov", type=float, default=114.4, help="FOV ngang (do); KINGSEN 640x480 do duoc 114.4")
+    ap.add_argument("--projection", default="equidistant", choices=["equidistant", "pinhole"],
+                    help="KINGSEN la mat ca deu (goc ti le voi pixel)")
     ap.add_argument("--cam-pitch", type=float, default=0.0, help="goc ngua len cua camera (do)")
     ap.add_argument("--p-switch", type=float, default=0.3, help="xac suat DeepSORT trao ID khi hai nguoi cat nhau")
     ap.add_argument("--old-rev", default="HEAD", help="commit chua code cu")
@@ -479,7 +489,7 @@ def main():
     for fps in [float(x) for x in a.fps.split(",")]:
         for v in a.variants.split(","):
             for s in range(a.runs):
-                jobs.append((1000 + s, v, fps, market, a.cam_h, a.p_switch, old_dir, ids_all, means, a.lookalikes, a.hfov, a.cam_pitch))
+                jobs.append((1000 + s, v, fps, market, a.cam_h, a.p_switch, old_dir, ids_all, means, a.lookalikes, a.hfov, a.cam_pitch, a.projection))
     # spawn: tien trinh cha da dung torch (OpenMP) -> fork de treo tien trinh con
     if a.jobs <= 1:
         out = [run_one(j) for j in jobs]
@@ -487,7 +497,7 @@ def main():
         with mp.get_context("spawn").Pool(a.jobs) as pool:
             out = pool.map(run_one, jobs)
 
-    print(f"\ncam_h={a.cam_h} m, ngua {a.cam_pitch} do, FOV ngang {a.hfov} do, p_switch={a.p_switch}, nguoi giong={a.lookalikes}/4, {a.runs} lan/bien the (cung bo nguoi, cung kich ban)\n")
+    print(f"\ncam_h={a.cam_h} m, ngua {a.cam_pitch} do, FOV ngang {a.hfov} do ({a.projection}), p_switch={a.p_switch}, nguoi giong={a.lookalikes}/4, {a.runs} lan/bien the (cung bo nguoi, cung kich ban)\n")
     print(f"{'bien the':10s} {'fps':>4s} {'nham_s TB':>9s} {'nham_s max':>10s} {'lan co nham':>11s} {'thieu_%':>8s} "
           f"{'lai_s TV':>8s} {'sau_che_s TV':>12s} {'rot khoa':>8s}")
     for fps in [float(x) for x in a.fps.split(",")]:
