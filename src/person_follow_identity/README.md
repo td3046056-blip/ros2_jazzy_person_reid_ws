@@ -87,6 +87,7 @@ Config dùng trên xe: `person_follow_robot/config/identity_lock_kingsen.yaml` (
 | `ts` trong `/person_reid/target` = **lúc chụp** | Trước là lúc xử lý xong → tracker gần như không bù được góc xe quay trong lúc xử lý |
 | Biết ai che ai; khung bị che không học vào gallery, chỉ trừ ít điểm | Trước: một khung bị che/quay lưng là bỏ khoá (`verification_fail_limit: 1`) |
 | Bỏ khoá **ngay** khi mâu thuẫn rõ | Ảnh giống người đã biết hơn mục tiêu, người khác giống mục tiêu hơn hẳn, hoặc ngoại hình track đổi đột ngột (DeepSORT tráo ID) |
+| Kiểm tra hỏng vì dấu hiệu "là người khác" → giữ khoá nhưng **tạm không báo** (`TRACK_VERIFY_HOLD`) | Hỏng chỉ vì điểm thấp (bị che, quay lưng) thì vẫn báo `TRACK_VERIFY_WARN` như cũ để tracker có dữ liệu liên tục |
 | Tìm lại bằng điểm bằng chứng (khớp +1, khớp mạnh +2, hỏng −1) | Rõ ràng thì 2 khung; mơ hồ thì không bao giờ |
 | Gallery âm tách từng người, chỉ học người **không chạm** bbox mục tiêu | bbox chồng nhau chứa điểm ảnh của mục tiêu → mục tiêu bị loại về sau |
 | Gallery theo **kiểu khung** (toàn thân / cắt đầu / cắt chân) | Đứng gần xe bị cắt khung: người thật so với gallery toàn thân chỉ còn 0.79 (người lạ 0.72); cùng kiểu cắt: 0.89 |
@@ -165,20 +166,20 @@ Kết quả 30/09 (12 lần mỗi dòng, 60 s bám, 4 người khác đi cắt n
 
 *(Bảng trên chạy với giả định cũ: FOV 62°, camera cao 0.6 m — người ở gần bị cắt khung nhiều nên bản cũ rất tệ.)*
 
-**Chạy lại với hình học camera thật** (FOV 107.9°, cao 34 cm; cả hai bản 8 Hz; 12 lần mỗi dòng):
+**Chạy lại với hình học camera thật** (ống mắt cá 114.4°, cao 34 cm; cả hai bản 8 Hz; 12 lần mỗi dòng):
 
 | Đám đông | Camera | Bản | Nhầm (s/phút) | Thiếu | Nhận lại | Sau khi bị chắn | Rớt khoá |
 |---|---|---|---|---|---|---|---|
-| Thường | nhìn ngang | cũ | 0.09 | 30.1% | 0.50 s | 0.75 s | 5.1 |
-| Thường | nhìn ngang | **mới** | 0.05 | 20.5% | 0.56 s | 0.75 s | 1.8 |
-| Thường | ngửa 12° | cũ | 0.05 | 22.5% | 0.56 s | 0.75 s | 3.8 |
-| Thường | ngửa 12° | **mới** | 0.03 | **14.5%** | 0.44 s | 0.69 s | **1.0** |
-| 2 người giống nhất | nhìn ngang | cũ | 0.23 | 63.9% | 0.62 s | 3.19 s | 6.2 |
-| 2 người giống nhất | nhìn ngang | **mới** | 0.04 | 38.9% | 0.19 s | 1.69 s | 5.8 |
-| 2 người giống nhất | ngửa 12° | cũ | 0.11 | 63.1% | 1.25 s | 1.75 s | 8.3 |
-| 2 người giống nhất | ngửa 12° | **mới** | 0.19 | **33.3%** | 0.31 s | 0.88 s | 5.2 |
+| Thường | nhìn ngang | cũ | 0.12 | 32.8% | 0.38 s | 0.62 s | 5.2 |
+| Thường | nhìn ngang | **mới** | 0.03 | 20.2% | 0.38 s | 0.56 s | 1.2 |
+| Thường | ngửa 12° | cũ | 0.21 | 25.3% | 0.38 s | 0.56 s | 3.3 |
+| Thường | ngửa 12° | **mới** | **0** | **19.0%** | 0.38 s | 0.62 s | **1.1** |
+| 2 người giống nhất | nhìn ngang | cũ | 0.29 | 64.9% | 0.31 s | 4.06 s | 6.7 |
+| 2 người giống nhất | nhìn ngang | **mới** | **0** | 43.7% | 0.25 s | 1.75 s | 6.2 |
+| 2 người giống nhất | ngửa 12° | cũ | 0.12 | 56.8% | 0.25 s | 1.50 s | 7.8 |
+| 2 người giống nhất | ngửa 12° | **mới** | **0** | **30.6%** | 0.31 s | 1.19 s | **4.8** |
 
-Mô phỏng không tính méo thùng ở mép ống kính và coi YOLO luôn phát hiện được người lộ ≥ 35% (lạc quan cho cả hai bản). Ca "2 người giống nhất" dao động nhiều giữa các lần chạy (nhầm 0.04–0.19 s/phút, lần dài nhất 2.1 s).
+Phần lớn lần nhầm còn lại trước khi sửa lần cuối nằm ở trạng thái `TRACK_VERIFY_WARN`: DeepSORT tráo ID đúng lúc hai người chồng nhau, track đang khoá (giờ là người kia, đang bị che) vẫn được báo trong khi mục tiêu thật đứng rõ ngay bên cạnh. Bây giờ: đối thủ ảnh sạch khớp ≥ 0.88 và hơn track đang khoá ≥ 0.16 thì bỏ khoá ngay; kiểm tra hỏng vì dấu hiệu "là người khác" thì giữ khoá nhưng **tạm không báo** (`TRACK_VERIFY_HOLD`, `target_found: false`). Đổi lại tỉ lệ thiếu tăng ~1.5 điểm. Mô phỏng không tính méo ở mép ảnh ngoài phép chiếu mắt cá và coi YOLO luôn phát hiện được người lộ ≥ 35% (lạc quan cho cả hai bản).
 
 Bản cũ "không nhầm" vì gần như không bám được ai sau lần mất đầu tiên. Ca khó là giới hạn của ngoại hình: người giống mục tiêu 0.90 (bằng trung vị của chính người thật) xuất hiện khi mục tiêu đang khuất thì không có gì để phân biệt — bản mới dùng thời gian thử thách 3 s sau khi nhận lại để chuyển sang người giống hơn, nên phần lớn lần nhầm chỉ vài khung.
 

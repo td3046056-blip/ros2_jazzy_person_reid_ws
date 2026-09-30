@@ -728,7 +728,23 @@ class TargetIdentityManager:
         # che: pos cua muc tieu tut, neg/rival (chinh nguoi che) len -> bo khoa sai, roi
         # luc tim lai co the nhan nham nguoi che. Luc bi che chi tru bang chung nhe.
         contradiction = ""
-        if t.occ < 0.2 and t.quality >= self.eval_min_quality:
+        # Doi thu RO va MANH: nguoi khac anh sach, khop muc tieu rat tot va hon han track dang khoa,
+        # lai khong phai nguoi da biet -> bo khoa NGAY du track dang khoa bi che (luc DeepSORT tron
+        # ID giua hai nguoi chong nhau, track dang khoa chinh la nguoi kia dang bi che).
+        strong_rival = max(
+            (o for o in obs if o is not t and o.feature is not None and o.occ < 0.2
+             and o.quality >= self.eval_min_quality and (o.neg < 0 or o.pos - o.neg >= self.negative_margin)),
+            key=lambda o: o.pos, default=None,
+        )
+        if (
+            strong_rival is not None
+            and strong_rival.pos >= self.recover_strong_reid
+            and strong_rival.pos - t.pos >= 2.0 * self.switch_margin
+        ):
+            contradiction = (
+                f"nguoi khac (ID {strong_rival.tid}) khop muc tieu hon han: {strong_rival.pos:.3f} > pos {t.pos:.3f}"
+            )
+        elif t.occ < 0.2 and t.quality >= self.eval_min_quality:
             if t.neg >= 0 and t.neg - t.pos >= self.strong_negative_margin:
                 contradiction = f"giong nguoi da biet hon muc tieu (neg {t.neg:.3f} > pos {t.pos:.3f})"
             elif t.rival >= self.recover_min_reid and t.rival - t.pos >= self.switch_margin:
@@ -772,6 +788,14 @@ class TargetIdentityManager:
 
         if not passed:
             self.lock_stable_frames = 0
+            if not (neg_ok and rival_ok and partner_ok):
+                # Hong vi co dau hieu la NGUOI KHAC (nguoi khac giong muc tieu hon / anh giong nguoi da
+                # biet): giu khoa nhung TAM KHONG BAO muc tieu — bao nham nguy hiem hon mat vai khung.
+                return self._result(
+                    "TRACK_VERIFY_HOLD", t, None, t.tid, verified=False, evidence=self.lock_evidence,
+                    reason="nghi nguoi khac, tam khong bao; " + detail,
+                )
+            # Hong chi vi diem thap (bi che, quay lung, xa): van bao de tracker co du lieu lien tuc
             return self._result("TRACK_VERIFY_WARN", t, t.track, t.tid, verified=False, evidence=self.lock_evidence, reason="identity weak; " + detail)
 
         self.lock_stable_frames += 1
