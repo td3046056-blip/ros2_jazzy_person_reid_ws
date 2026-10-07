@@ -15,7 +15,11 @@ void setup() {
   // Serial.println("Khoi dong BLE Beacon...");
 
   BLEDevice::init(BEACON_NAME);
-  BLEDevice::setPower(ESP_PWR_LVL_P3); // +3dBm, phu hop tracking trong nha
+  // Phai chi ro ESP_BLE_PWR_TYPE_ADV: kieu mac dinh (DEFAULT) KHONG ap cho quang ba, quang ba
+  // van o +3 dBm. Do 30/09: o 1.5 m ca 3 board chi thay -86..-96 dBm, sat nguong nghe (~-97),
+  // A mat nhieu goi (7.6 mau/s, ho toi 3.8 s). +9 dBm nang ca 3 board len 6 dB nhu nhau —
+  // khong doi huong uoc luong (huong chi dua vao CHENH LECH giua cac board).
+  BLEDevice::setPower(ESP_PWR_LVL_P9, ESP_BLE_PWR_TYPE_ADV);
 
   BLEAdvertisementData advData;
   advData.setFlags(0x06);

@@ -13,7 +13,7 @@ setup(
         ("share/ament_index/resource_index/packages", ["resource/" + package_name]),
         ("share/" + package_name, ["package.xml"]),
         (os.path.join("share", package_name, "launch"), glob("launch/*.launch.py")),
-        (os.path.join("share", package_name, "config"), glob("config/*.yaml")),
+        (os.path.join("share", package_name, "config"), glob("config/*.yaml") + glob("config/*.json")),
         (os.path.join("share", package_name, "rviz"), glob("rviz/*.rviz")),
     ],
     install_requires=["setuptools"],
@@ -29,6 +29,8 @@ setup(
             "follow_planner = person_follow_nav.follow_planner_node:main",
             "calibrate_lidar = person_follow_nav.calibrate_lidar_node:main",
             "calibrate_center = person_follow_nav.calibrate_center_node:main",
+            "rssi_scanner = person_follow_nav.rssi_scanner_node:main",
+            "rssi_bearing = person_follow_nav.rssi_bearing_node:main",
         ],
     },
 )

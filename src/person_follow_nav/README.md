@@ -625,6 +625,119 @@ RSSI chỉ sửa **hướng**, không cung cấp khoảng cách — đó là thi
 **Nghiệm thu:** xe qua được cửa rộng 0.80 m; RSSI kéo được xe quay đúng chiều khi che
 camera hoàn toàn.
 
+> **Cập nhật 01/10 — phần RSSI ở trên là đường CŨ (`rssi_serial_node` → `/rssi/angle_deg`) và
+> đang TẮT (`rssi_enabled: false`).** Đo trên xe 30/09: khi xe đứng yên, RSSI **không** phân biệt
+> được người ở trái 45° hay phải 45° — dùng nó để chọn chiều quay thì quay sai. Cách mới là
+> **"xoay dò hướng"**: xe xoay tại chỗ ~1 vòng, so sóng RSSI của 3 board với mẫu đã hiệu chỉnh →
+> hướng người, sai ~15° (tối đa ~25–30°), mỗi lần dò mất ~8 s.
+
+#### RSSI bản mới (1) — thử CHỈ RSSI: dò → quay → đi từng đoạn (không camera, không planner)
+
+Hai node `rssi_scanner` + `rssi_bearing` chỉ **lắng nghe** (không ghi `/cmd_vel`). Script thử
+`scripts/rssi_seek.py` tự lái xe: **dò** (xoay 1 vòng) → **quay** về hướng beacon → **đi** thẳng
+tối đa 1.2 m → dò lại… tới khi LiDAR thấy vật trước mũi trong 0.70 m thì dừng chờ; người sang
+chỗ khác thì tìm lại. Tracker và planner **chưa** dùng RSSI.
+
+```bash
+source ~/rssi_env.sh          # $WS, $PA $PB $PC (3 board), $PL (LiDAR) — cổng by-path
+
+# T1 — CHỈ lidar + driver
+ros2 launch person_follow_nav calibrate.launch.py lidar_port:=$PL
+# T2 — 2 node RSSI
+ros2 launch person_follow_nav rssi.launch.py ports:="$PA,$PB,$PC"
+# T3 — kiểm tra rồi chạy
+ros2 topic echo /rssi/status --field data --full-length --once     # 3 board, ~16–20 mẫu/s
+cd $WS/rssi_logs
+python3 $WS/src/person_follow_nav/scripts/rssi_seek.py --once      # tới người một lần rồi thoát
+python3 $WS/src/person_follow_nav/scripts/rssi_seek.py             # tới → chờ → tìm lại
+```
+
+Lưu ý khi thử:
+
+- Đeo beacon **sau thắt lưng, quay lưng về xe** (beacon phải nhìn thẳng thấy xe), **đứng yên** trong
+  lúc xe xoay. Người đi liên tục thì xe không bắt kịp.
+- Script **không né vật cản**: giữa xe và người phải trống. Đồ đạc nằm gần hướng người (±30°) và
+  gần xe hơn người thì xe dừng ở đó và tưởng đã tới — RSSI không đo được khoảng cách.
+- Quanh xe trống ≥ 0.6 m mới xoay được (đuôi văng 0.47 m; LiDAR **mù thẳng phía sau**).
+- Dừng xe: bước ra đứng **trước mũi xe** (xe dừng và chờ) rồi Ctrl-C ở T3.
+
+#### RSSI bản mới (2) — BÁM LIÊN TỤC bằng RSSI + LiDAR (02–03/10, không camera)
+
+RSSI một mình chỉ ra hướng khi xe **xoay** (~8 s mỗi lần) nên không bám liên tục được. Ở chế độ này
+chia việc: **RSSI nhận chủ** (xoay dò một vòng) → **LiDAR giữ bám** nhóm chân gần hướng đó (10 Hz)
+→ **planner nguyên bản lái xe** (né vật cản, chui cửa, giữ cách 1 m). Mất dấu thì RSSI dò lại và
+khoá lại **đúng người đeo beacon**. Không có camera, không có `target_tracker_node`.
+
+```bash
+source ~/rssi_env.sh
+
+# T1 — lidar + driver + 2 node RSSI + planner. Ở launch NÀY planner ghi /cmd_vel_follow, không ghi /cmd_vel
+ros2 launch person_follow_nav rssi_follow.launch.py lidar_port:=$PL ports:="$PA,$PB,$PC"
+# T2 — script này là nguồn DUY NHẤT ghi /cmd_vel. Không chạy nó thì xe không nhúc nhích.
+cd $WS/rssi_logs
+python3 $WS/src/person_follow_nav/scripts/rssi_follow.py --delay 10
+```
+
+**Dừng khẩn:** Ctrl-C ở T2 (nhanh nhất). Từ terminal khác:
+`ros2 service call /follow/stop std_srvs/srv/Trigger {}` — ở launch này có tác dụng **mọi lúc** (kể cả lúc xe
+tự xoay dò / lùi): script nhận `/follow/stop`, còn service dừng của planner được đổi tên thành
+`/rssi_follow/planner_stop` (nếu để planner nhận thì lúc script tự xoay, planner vốn đã tắt, gọi
+`/follow/stop` không dừng được xe — mô phỏng: xe chạy tiếp 2 m). `/rssi_follow/stop` cũng tương đương.
+
+Cách thử lần đầu (chỗ trống ≥ 3 × 3 m, quanh xe trống ≥ 0.6 m):
+
+1. Đứng **cạnh hông xe**, chạy lệnh T2. Khi hiện dòng đếm ngược, trong 10 s đi ra **phía trước
+   mũi xe** cách 2–2.5 m, **quay lưng về xe, đứng yên**. (Script nhớ cảnh vật lúc bạn còn đứng cạnh
+   xe → nhóm chân "mới xuất hiện" ở hướng beacon chính là bạn, không nhầm với đồ đạc. Đừng đứng thẳng
+   sau đuôi xe — LiDAR mù ±24° ở đó.)
+2. Xe xoay một vòng (~8 s), in `KHOA: ...`, rồi tới đứng sau bạn 1 m và **đứng im**.
+3. Thường ngay sau khi tới nơi xe **xoay thêm một vòng để kiểm tra** (`XAC NHAN: ...`) — hãy đứng yên
+   quay lưng về xe trong ~8 s đó. Đứng lâu thì xe kiểm tra lại thưa dần (20 s, 40 s, …);
+   `--verify-sec 0` để tắt hẳn.
+4. Đi **chậm** (xe chạy tối đa 0.22 m/s): xe bám liên tục, né vật cản trên đường. Đi nhanh/xa quá
+   ~3 m, hoặc khuất sau đồ đạc → xe báo `MAT DAU`. Trong 3 s đầu, nếu ngay trên đường bạn đang đi có
+   **đúng một** người đang đi và không có ai khác quanh đó, xe **khoá lại luôn** (`KHOA LAI NHANH`, kiểm
+   tra bằng RSSI ở lần đứng yên đầu tiên); không thì tới gần chỗ thấy cuối rồi xoay dò lại. Lúc xe đang
+   xoay dò thì **đứng yên** (đang đi thì hướng đo sai — script tự phát hiện và dò lại).
+
+Xe tự xử lý:
+
+| Tình huống | Xe làm gì |
+|---|---|
+| Trong cung ±35° quanh hướng beacon có cả đồ đạc "giống chân người" | Ưu tiên nhóm chân **mới xuất hiện** so với lần quét trước; có nhiều ứng viên thì kiểm tra lại bằng RSSI ngay khi tới nơi |
+| Có người di chuyển trong lúc xe xoay dò | Nếu chỉ có **đúng một** nhóm chân mới, lệch hướng beacon ≤ 25° và đã đứng yên ở đó → đó là người đeo beacon vừa đi tới: nhận kết quả, ưu tiên nhóm đó (kiểm tra RSSI sớm). Còn lại: bỏ lần dò đó, dò lại (tối đa 2 lần) |
+| Vừa mất dấu (bị che, đi qua khe) mà trên đường người đang đi có **đúng một** nhóm chân đang di chuyển | Khoá lại ngay trong ≤ 3 s, không xoay dò; kiểm tra RSSI ở lần đứng yên đầu tiên. **Không** khoá nhanh khi: có ≥ 2 người đang đi quanh đó, có người đứng ngay chỗ vừa mất, nhóm đó nằm giữa xe và chỗ vừa mất (người khác đi ngang che), hoặc đã khoá nhanh 2 lần liền chưa có RSSI xác nhận |
+| Khoá nhầm đồ đạc, sau đó chủ bước sang chỗ khác | Lần kiểm tra kế: thấy nhóm chân mới đúng hướng beacon → chuyển sang; hoặc hướng beacon lệch > 40° hai lần liền (hay > 75°) → bỏ, khoá lại |
+| Planner đứng im / lắc tại chỗ cạnh vật cản khi chưa tới nơi | Lùi ra ≥ 0.25 m (chỉ qua chỗ xe vừa đi), quay mặt về mục tiêu, cho planner thử lại — tối đa 2 lần |
+| Không đủ chỗ xoay dò (vật trong 0.53 m quanh tâm quay) | Lùi theo chỗ vừa đi qua; không lùi được thì nhờ planner nhích ra chỗ thoáng; vẫn không được thì đứng chờ rồi thử lại |
+| Đã tới nơi, người đứng yên | Giữ xe đứng im (không lắc qua lại) tới khi người lệch > 12° hoặc đi tiếp |
+| Mất `/scan`, `/odom`, beacon, planner | Dừng; chờ phục hồi 5–20 s rồi dò lại, không được thì thoát |
+
+Giới hạn (không sửa được bằng RSSI):
+
+- RSSI **không phân biệt được hai vật đứng yên cách nhau < ~40°** nhìn từ xe, và **không đo được
+  khoảng cách**: vật to bằng người nằm gần đường ngắm tới chủ và gần xe hơn (nhất là che kín chân chủ)
+  có thể bị khoá nhầm **cho tới khi chủ di chuyển**.
+- Người khuất hẳn sau tường/tủ: xe đứng chờ và dò lại định kỳ chứ không tự vòng ra sau.
+- Người **quay mặt về xe** lúc xe xoay dò (beacon sau thắt lưng bị thân che): hướng có thể sai
+  40–50° → xe có thể bỏ đúng chủ. Quay lưng về xe khi thấy xe bắt đầu xoay.
+- Người thứ hai đi **nhanh cắt sát** trước mũi (< 15 cm): planner chỉ kịp phanh.
+- LiDAR chỉ thấy vật ở độ cao 18 cm và **mù thẳng phía sau**.
+
+Planner dùng nguyên `config/follow_nav.yaml`; launch này chỉ đổi `cmd_vel_topic`, tên service dừng
+(`/follow/stop` → `/rssi_follow/planner_stop`, xem trên) và `occluded_turn_deg` 15 → **60** (ngưỡng "xoay tại chỗ về phía người trước rồi mới tiến" — 15° là để
+quay camera; không có camera mà để 15° thì xe giằng co giữa né vật cản và quay về phía người rồi
+kẹt). Thử lại 15°: thêm `occluded_turn_deg:=15.0` vào lệnh T1.
+
+Chạy lại mô phỏng vòng kín (không cần xe, miền ROS riêng) sau khi sửa phần RSSI:
+
+```bash
+python3 $WS/src/person_follow_nav/scripts/sil_rssi.py              # bộ chính 37 kịch bản, ~15 phút, phải "TAT CA DAT"
+python3 $WS/src/person_follow_nav/scripts/sil_rssi.py --more       # bộ mở rộng 24 kịch bản (hạt ngẫu nhiên / phòng khác), ~10 phút
+python3 $WS/src/person_follow_nav/scripts/sil_rssi.py --list       # tên kịch bản; b_*, r_*, ve_*, x_* = chế độ bám
+python3 $WS/src/person_follow_nav/scripts/test_reacq.py            # offline (chỉ numpy): luật khoá lại nhanh, phải "DAT"
+```
+
 ### Giai đoạn 6 — Checklist thực địa
 
 Trước mỗi lần demo:
