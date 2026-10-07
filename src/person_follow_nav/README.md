@@ -603,6 +603,34 @@ Chuỗi mong đợi: `FOLLOW` → `AVOID` → `OCCLUDED` → `FOLLOW`.
 
 **Nghiệm thu:** 4.4 thành công 8/10 lần trở lên.
 
+#### 4.6–4.9 — Vật thấp che chân, bản đồ lưới, RSSI kết hợp camera (07/10)
+
+Có RSSI thì launch thêm 2 node (cổng `by-path` cho cả LiDAR lẫn 3 board — cùng chip CH340):
+
+```bash
+ros2 launch person_follow_nav follow_nav_real.launch.py start_rssi:=true lidar_port:=$PL ports:="$PA,$PB,$PC"
+```
+
+Trước khi bật `/follow/enable`: đứng thoáng trước xe ~2 m vài giây (tracker tự học chiều cao người và sai
+lệch góc ngửa camera), rồi xem:
+
+```bash
+ros2 topic echo /follow/target --field data --full-length | grep --line-buffered -oP '"(source|distance_m|cam_dist_m|cam_dist_from|person_height_m|elev_bias_deg)": [^,]+'
+```
+
+`cam_dist_m` phải gần `distance_m` (±15 %), `elev_bias_deg` trong ±3° (lớn hơn = `camera_pitch_deg` /
+`camera_height_m` cấu hình sai), `person_height_m` tiến về chiều cao thật.
+
+| # | Kịch bản | Hành vi mong đợi |
+|---|---|---|
+| 4.6 | Người đứng sau thùng thấp (~30 cm) cách xe ~2 m | Không dừng trước thùng vì "cách 1 m": `note` = `di vong theo ban do (...)` rồi `giu khoang cach ~1.1m` ở cạnh thùng; người ngay sau thùng (thùng rộng) thì `vat chan giua — dung o cho tot nhat` |
+| 4.7 | Như 4.6 + thùng thứ hai cách 50 cm một bên (khe hẹp hơn xe), xe xuất phát lệch về phía khe | Vòng bên **trống**, không `chui khe hep` vào khe 50 cm |
+| 4.8 | Người đi vòng qua thùng rồi đứng sau | Xe đi theo, không chui vào góc giữa thùng và hướng người |
+| 4.9 | (Có RSSI) Người đi nhanh qua cửa sang phòng bên, đứng khuất sau vách, quay lưng về xe | `SEARCH`: đi tới chỗ thấy cuối → quay mặt → `xoay do huong beacon` (~1–1.5 vòng) → `quay camera ve huong beacon` → nhận lại người → `FOLLOW` |
+
+Lúc xe xoay dò RSSI (4.9) người đeo beacon **đứng yên, quay lưng về xe**. Lần đầu đứng sẵn cạnh
+`/follow/stop`. Mô phỏng trước khi thử: `python3 scripts/regress_follow.py --groups lowbox,hard,rssi`.
+
 ### Giai đoạn 5 — Không gian hẹp và RSSI (2 giờ)
 
 Test hành lang thật, cửa ra vào, giữa hai bàn.

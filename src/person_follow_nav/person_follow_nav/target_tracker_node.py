@@ -43,7 +43,7 @@ from __future__ import annotations
 import json
 import math
 import time
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Tuple
 
 import numpy as np
 import rclpy
@@ -193,6 +193,16 @@ class TargetTrackerNode(Node):
             # Fallback bbox (chi dung khi lidar khong thay)
             "bbox_fallback_enabled": True,
             "bbox_height_at_1m_px": 420.0,
+            # Hinh hoc DOC cua camera (07/10). Camera gui goc cao dinh/day bbox (da bu goc ngua). Dung de:
+            #  - biet CHAN nguoi co bi vat thap che khong: cum LiDAR o khoang cach d chi la chan nguoi neu
+            #    day bbox nam dung goc -atan(camera_height/d) (camera cao hon LiDAR, thay chan LiDAR thay);
+            #    day bbox cao hon han -> cum do la VAT CHE (mat truoc thung 30 cm truoc nguoi, 07/10).
+            #  - khoang cach tu DINH DAU khi khong co cum LiDAR (thay bbox_height_at_1m_px, so cua camera 62 do).
+            # Chieu cao nguoi va sai lech goc ngua tu hoc luc camera+lidar khop va thay ca chan.
+            "camera_height_m": 0.34,
+            "person_height_m": 1.65,
+            "feet_elev_tol_deg": 4.0,
+            "learn_camera_geometry": True,
 
             # Bam bang lidar khi camera mat (chan nguoi con thay)
             "lidar_only_track_enabled": True,
@@ -284,6 +294,14 @@ class TargetTrackerNode(Node):
 
         self.bbox_fallback = bool(g("bbox_fallback_enabled"))
         self.bbox_h_1m = float(g("bbox_height_at_1m_px"))
+        self.cam_h = float(g("camera_height_m"))
+        self.person_h = float(g("person_height_m"))
+        self.feet_tol = math.radians(float(g("feet_elev_tol_deg")))
+        self.learn_geom = bool(g("learn_camera_geometry"))
+        self.person_h_n = 0          # so lan da hoc chieu cao nguoi
+        self.elev_bias = 0.0         # sai lech goc cao (goc ngua cau hinh vs that), tu hoc
+        self.elev_bias_n = 0
+        self.last_cam_geom: Dict[str, Any] = {}
 
         self.lidar_only_enabled = bool(g("lidar_only_track_enabled"))
         self.lidar_only_radius = float(g("lidar_only_assoc_radius_m"))
@@ -436,10 +454,81 @@ class TargetTrackerNode(Node):
         d = self.bbox_h_1m / h
         return d if 0.3 <= d <= 8.0 else None
 
+    @staticmethod
+    def _cam_geom(payload: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+        """Goc cao dinh/day bbox (rad) + co cham mep anh. None = camera khong gui (ban cu)."""
+        try:
+            te, be = payload.get("bbox_top_elev_deg"), payload.get("bbox_bottom_elev_deg")
+            if te is None or be is None:
+                return None
+            return {"top": math.radians(float(te)), "bot": math.radians(float(be)),
+                    "top_cut": bool(payload.get("bbox_top_cut")), "bot_cut": bool(payload.get("bbox_bottom_cut"))}
+        except Exception:
+            return None
+
+    def _feet_match(self, geom: Optional[Dict[str, Any]], d: float) -> Optional[bool]:
+        """Chan nguoi co nam o khoang cach d khong (theo day bbox)? None = khong biet (day bbox cham mep).
+
+        LiDAR cao 0.18 m thay chan o d thi camera cao hon cung thay chan do -> day bbox phai o goc
+        -atan(camera_height/d). Day bbox CAO hon han (vat thap che phan duoi) hoac THAP hon han (nguoi
+        gan hon cum) -> cum o d khong phai chan nguoi. Chua hoc xong sai lech goc ngua -> noi nguong."""
+        if geom is None or geom["bot_cut"] or d <= 0.05:
+            return None
+        e_feet = -math.atan2(self.cam_h, d) + self.elev_bias
+        tol = self.feet_tol + (math.radians(6.0) if self.elev_bias_n < 10 else 0.0)
+        return abs(geom["bot"] - e_feet) <= tol
+
+    def _cam_distance(self, geom: Optional[Dict[str, Any]]) -> Optional[Tuple[float, str]]:
+        """Khoang cach tu goc cao: DINH DAU (chinh xac hon o xa, khong bi vat thap che) hoac CHAN (khi dau
+        bi cat mep tren — nguoi o gan). Chan bi che (day bbox cao hon cho chan o khoang cach tinh tu
+        dau) thi chi dung dau.
+
+        Mep bbox cham mep anh (dau/chan ra ngoai khung) hoac chan bi vat thap che (day bbox = mep tren
+        vat) deu lam goc do duoc NHO hon goc that -> khoang cach tinh ra LON hon that: so do chi la CAN
+        TREN. Truoc day dau bi cat thi lay ngay khoang cach tu day bbox — xe sat ghe dai (ghe che chan,
+        dau ra ngoai mep tren) tinh ra 3-6 m trong khi that 1.3 m (mo phong 07/10). Gio lay so NHO NHAT
+        cua cac can tren."""
+        if geom is None:
+            return None
+        top = geom["top"] - self.elev_bias
+        bot = geom["bot"] - self.elev_bias
+        d_head = (self.person_h - self.cam_h) / math.tan(top) if top > math.radians(2.0) else None
+        d_feet = self.cam_h / math.tan(-bot) if bot < -math.radians(2.0) else None
+        if d_head is not None and not geom["top_cut"] and 0.3 <= d_head <= 8.0:
+            if d_feet is not None and not geom["bot_cut"]:
+                if abs(d_feet - d_head) < 0.25 * d_head:
+                    return 0.5 * (d_head + d_feet), "dau+chan"
+                if d_feet < d_head:          # chan thay ro ma gan hon: nguoi thap hon chieu cao da biet
+                    return d_feet, "chan"
+            return d_head, "dau"
+        # Dau bi cat (nguoi o gan): ca hai so deu co the chi la can tren — lay so nho hon
+        cands = [(d, nm) for d, nm in ((d_head, "dau-cat"), (d_feet, "chan")) if d is not None and 0.3 <= d <= 8.0]
+        if cands:
+            return min(cands)
+        return None
+
+    def _learn_geometry(self, geom: Optional[Dict[str, Any]], d: float) -> None:
+        """camera+lidar vua khop chac chan: hoc sai lech goc ngua (tu day bbox) va chieu cao nguoi (tu dinh)."""
+        if not self.learn_geom or geom is None:
+            return
+        if not geom["bot_cut"]:
+            b_obs = geom["bot"] + math.atan2(self.cam_h, d)
+            if abs(b_obs - self.elev_bias) < math.radians(8.0) and abs(b_obs) < math.radians(15.0):
+                a = 0.2 if self.elev_bias_n < 10 else 0.03
+                self.elev_bias += a * (b_obs - self.elev_bias)
+                self.elev_bias_n += 1
+        if not geom["top_cut"] and self.elev_bias_n >= 10 and self._feet_match(geom, d) is not False:
+            h_obs = self.cam_h + d * math.tan(geom["top"] - self.elev_bias)
+            if 1.2 <= h_obs <= 2.1:
+                a = 0.15 if self.person_h_n < 20 else 0.03
+                self.person_h += a * (h_obs - self.person_h)
+                self.person_h_n += 1
+
     def _pick_person_cluster(
-        self, bearing: float, expect_range: Optional[float]
+        self, bearing: float, expect_range: Optional[float], geom: Optional[Dict[str, Any]] = None,
     ) -> Optional[Cluster]:
-        """Tim cum lidar ung voi nguoi tai huong `bearing`."""
+        """Tim cum lidar ung voi nguoi tai huong `bearing`. Co geom (goc cao bbox): bo cum ma CHAN NGUOI
+        khong the o do (vat thap che chan, hoac vat sau lung nguoi)."""
         if self.scan_pts.shape[0] == 0:
             return None
         clusters = cluster_points(
@@ -453,6 +542,8 @@ class TargetTrackerNode(Node):
             if not (self.person_r_min <= c.range_m <= self.person_r_max):
                 continue
             if not (self.person_w_min <= c.width_m <= self.person_w_max):
+                continue
+            if self._feet_match(geom, c.range_m) is False:
                 continue
             cost = abs(wrap_pi(c.bearing - bearing))
             if expect_range is not None:
@@ -549,8 +640,11 @@ class TargetTrackerNode(Node):
                     exp_bx, exp_by = self._to_base(px, py)
                     expect = math.hypot(exp_bx, exp_by)
 
+                geom = self._cam_geom(payload)
+                if new_cam:
+                    self.last_cam_geom = {"geom": geom, "dist": self._cam_distance(geom)}
                 if self.use_lidar_distance and scan_fresh and new_scan:
-                    c = self._pick_person_cluster(bearing, expect)
+                    c = self._pick_person_cluster(bearing, expect, geom)
                     # Chan cum nhay xa bat thuong so voi du doan. Hai truong hop that:
                     #  - chan nguoi vua khuat sau goc tuong, cua so ±assoc_window bat nham tuong
                     #  - NGUOI THU HAI dung chen giua xe va nguoi dang bam: cua so quanh huong
@@ -573,9 +667,14 @@ class TargetTrackerNode(Node):
                         bearing = c.bearing
                         source = "camera+lidar"
                         meas_quality = 1.0
+                        self._learn_geometry(geom, dist)
 
                 if dist is None and self.bbox_fallback and new_cam and not lidar_waiting:
-                    dist = self._bbox_distance(payload)
+                    cd = self._cam_distance(geom)
+                    if cd is not None:
+                        dist = cd[0]
+                    elif geom is None:
+                        dist = self._bbox_distance(payload)     # camera ban cu chua gui goc cao
                     if dist is not None:
                         source = "camera+bbox"
                         meas_quality = 0.55
@@ -724,6 +823,13 @@ class TargetTrackerNode(Node):
                 "base_x": None, "base_y": None, "distance_m": None,
                 "bearing_rad": None, "bearing_deg": None, "in_camera_fov": False,
             })
+        cd = (self.last_cam_geom or {}).get("dist")
+        out.update({
+            "cam_dist_m": None if cd is None else round(cd[0], 3),
+            "cam_dist_from": None if cd is None else cd[1],
+            "person_height_m": round(self.person_h, 3),
+            "elev_bias_deg": round(math.degrees(self.elev_bias), 2),
+        })
 
         self.pub_target.publish(String(data=json.dumps(out, ensure_ascii=False)))
 

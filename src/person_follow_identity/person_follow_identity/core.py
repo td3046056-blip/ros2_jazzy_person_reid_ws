@@ -190,6 +190,48 @@ class IdentityFollowCore:
     def reset(self) -> None:
         self.identity.reset()
 
+    def _normalized_ray(self, cx: float, cy: float, w: int, h: int) -> Optional[Tuple[float, float]]:
+        """Diem anh -> (xn, yn) cua tia trong khung camera (x phai, y xuong), cung mo hinh voi goc ngang.
+        None = mo hinh 'linear' (khong co tia)."""
+        if self.K_rect is not None and self.undistort_maps is not None:
+            return (cx - self.K_rect[0, 2]) / self.K_rect[0, 0], (cy - self.K_rect[1, 2]) / self.K_rect[1, 1]
+        if self.angle_model == "calibrated" and self.K is not None:
+            pt = np.asarray([[[cx, cy]]], dtype=np.float64)
+            und = cv2.fisheye.undistortPoints(pt, self.K, self.D) if self.fisheye else cv2.undistortPoints(pt, self.K, self.D)
+            return float(und[0, 0, 0]), float(und[0, 0, 1])
+        if self.angle_model == "linear":
+            return None
+        fx = (w * 0.5) / math.tan(math.radians(self.camera_fov_deg * 0.5))
+        return (cx - (w * 0.5)) / max(1e-6, fx), (cy - (h * 0.5)) / max(1e-6, fx)
+
+    def _bbox_elevations(self, target: Optional[TrackCandidate], frame_shape: Tuple[int, int, int]) -> Dict[str, Any]:
+        """Goc CAO (do, duong = tren duong chan troi, theo khung XE: da bu camera_pitch_deg) cua dinh va day
+        bbox, tai cot giua bbox; kem co cham mep tren / duoi anh.
+
+        target_tracker dung de: (1) biet CHAN nguoi co bi vat thap che khong (day bbox cao hon cho chan
+        o khoang cach cua cum LiDAR) — truoc day tracker nhan mat truoc thung 30 cm la chan nguoi dung sau
+        thung, xe dung "cach 0.74 m" khi nguoi con cach 1.84 m (07/10); (2) uoc luong khoang cach tu DINH
+        DAU khi chan bi che (thay cho bbox_height_at_1m_px cua camera cu 62 do, sai voi ong mat ca)."""
+        out: Dict[str, Any] = {"bbox_top_elev_deg": None, "bbox_bottom_elev_deg": None,
+                               "bbox_top_cut": None, "bbox_bottom_cut": None}
+        if target is None:
+            return out
+        h, w = frame_shape[:2]
+        x1, y1, x2, y2 = [float(v) for v in target.bbox]
+        cx = 0.5 * (x1 + x2)
+        p = self.camera_pitch
+        for key, yy in (("bbox_top_elev_deg", y1), ("bbox_bottom_elev_deg", y2)):
+            ray = self._normalized_ray(cx, yy, w, h)
+            if ray is None:
+                return out
+            xn, yn = ray
+            # tia (xn, yn, 1), camera ngua len p: cao = atan2(sin p - yn cos p, |(cos p + yn sin p, xn)|)
+            elev = math.atan2(math.sin(p) - yn * math.cos(p), math.hypot(math.cos(p) + yn * math.sin(p), xn))
+            out[key] = round(math.degrees(elev), 2)
+        out["bbox_top_cut"] = bool(y1 <= 2.0)
+        out["bbox_bottom_cut"] = bool(y2 >= h - 3.0)
+        return out
+
     def _angle_from_bbox(self, target: Optional[TrackCandidate], frame_shape: Tuple[int, int, int]) -> Optional[float]:
         if target is None:
             return None
@@ -261,6 +303,7 @@ class IdentityFollowCore:
                 "bbox_area": int(target.area),
                 "det_conf": round(float(target.conf), 4),
             })
+            payload.update(self._bbox_elevations(target, frame.shape))
         else:
             payload.update({"bbox": None, "bbox_center": None, "bbox_area": 0, "det_conf": 0.0})
         return payload

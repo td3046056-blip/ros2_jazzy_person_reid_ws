@@ -4,20 +4,27 @@ follow_nav_real.launch.py
 Khoi dong TOAN BO he thong tren robot that.
 
   camera USB -> person_follow_identity -> /person_reid/target ─┐
-  SC-Mini    -> sc_mini                -> /scan ──────────────┤
-  NodeMCU    -> rssi_serial_node       -> /rssi/* ────────────┼-> target_tracker
+  SC-Mini    -> sc_mini                -> /scan ──────────────┼-> target_tracker
   BW-DR03    -> decoded_serial_node    -> /odom ──────────────┘        │
                                                                        v
                                                               /follow/target
                                                                        │
                               /scan, /odom ──────────────────> follow_planner
-                                                                       │
+  3 board ESP32 -> rssi_scanner_node -> /rssi/raw                      │   ^
+                -> rssi_bearing_node -> /rssi/bearing ─────────────────┼───┘ (chi khi TIM LAI nguoi)
                                                                   /cmd_vel
                                                                        v
                                                               decoded_serial_node
 
 CHAY:
   ros2 launch person_follow_nav follow_nav_real.launch.py
+
+  Co RSSI (3 board quet + beacon deo tren nguoi, 07/10). LiDAR va board RSSI cung chip CH340 nen
+  PHAI dung by-path cho ca hai (by-id trung ten — sc_mini co the mo nham board RSSI):
+  ros2 launch person_follow_nav follow_nav_real.launch.py start_rssi:=true \
+      lidar_port:=$PL ports:="$PA,$PB,$PC"
+  RSSI chi dung khi MAT NGUOI (SEARCH): xe xoay tai cho ~1 vong de do huong beacon, quay camera ve
+  huong do, di toi roi do lai. Dang bam thi camera + LiDAR (chinh xac hon RSSI ~15 lan).
 
 THU TU BAT (quan trong):
   1. ros2 service call /person_reid/start_enroll  std_srvs/srv/Trigger {}
@@ -35,8 +42,10 @@ import os
 import sys
 
 from launch import LaunchDescription
-from launch.actions import DeclareLaunchArgument, ExecuteProcess, LogInfo
+from launch.actions import (DeclareLaunchArgument, ExecuteProcess, IncludeLaunchDescription, LogInfo,
+                            OpaqueFunction)
 from launch.conditions import IfCondition
+from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import LaunchConfiguration, PathJoinSubstitution
 from launch_ros.actions import Node
 from launch_ros.parameter_descriptions import ParameterValue
@@ -52,11 +61,26 @@ def _preferred_python() -> str:
     return sys.executable
 
 
+def _check_ports(context, *args, **kwargs):
+    """Co RSSI ma LiDAR van de by-id -> canh bao (board RSSI va LiDAR cung chip CH340, trung ten by-id)."""
+    out = []
+    if LaunchConfiguration("start_rssi").perform(context).lower() in ("true", "1"):
+        if "/by-id/" in LaunchConfiguration("lidar_port").perform(context):
+            out.append(LogInfo(msg="CANH BAO: start_rssi:=true nhung lidar_port van la by-id — board RSSI va LiDAR "
+                                   "cung chip CH340 nen by-id trung ten, sc_mini co the mo nham board. "
+                                   "Truyen lidar_port:=/dev/serial/by-path/... (xem CLAUDE.md muc 1)."))
+        if not LaunchConfiguration("ports").perform(context).strip():
+            out.append(LogInfo(msg="CANH BAO: start_rssi:=true nhung chua truyen ports:=\"$PA,$PB,$PC\" "
+                                   "(cong by-path cua 3 board quet)."))
+    return out
+
+
 def generate_launch_description() -> LaunchDescription:
     cfg = PathJoinSubstitution([FindPackageShare("person_follow_nav"), "config", "follow_nav.yaml"])
     identity_cfg = PathJoinSubstitution(
         [FindPackageShare("person_follow_robot"), "config", "identity_lock_kingsen.yaml"]
     )
+    rssi_tmpl = PathJoinSubstitution([FindPackageShare("person_follow_nav"), "config", "rssi_template.json"])
 
     args = [
         DeclareLaunchArgument("config", default_value=cfg),
@@ -67,7 +91,9 @@ def generate_launch_description() -> LaunchDescription:
         DeclareLaunchArgument("start_driver", default_value="true"),
         DeclareLaunchArgument("lidar_port", default_value="/dev/serial/by-id/usb-1a86_USB_Serial-if00-port0"),
         DeclareLaunchArgument("robot_port", default_value="/dev/serial/by-id/usb-FTDI_FT231X_USB_UART_D30BF0NT-if00-port0"),
-        DeclareLaunchArgument("rssi_port", default_value="/dev/serial/by-id/usb-1a86_USB_Serial-if01-port0"),
+        # Cong by-path cua 3 board RSSI quet, cach nhau dau phay (giong rssi.launch.py / rssi_follow.launch.py)
+        DeclareLaunchArgument("ports", default_value=""),
+        DeclareLaunchArgument("rssi_template_file", default_value=rssi_tmpl),
         DeclareLaunchArgument(
             "camera_source",
             default_value="/dev/v4l/by-id/usb-Generic_KINGSEN_CAMERA_200901010001-video-index0",
@@ -142,17 +168,17 @@ def generate_launch_description() -> LaunchDescription:
         condition=IfCondition(LaunchConfiguration("start_camera")),
     )
 
-    # ── RSSI ─────────────────────────────────────────────────────────────
-    rssi = Node(
-        package="robot_rssi_ros2",
-        executable="rssi_serial_node",
-        name="rssi_serial_node",
-        output="screen",
-        parameters=[{
-            "port": LaunchConfiguration("rssi_port"),
-            "baudrate": 115200,
-            "signal_timeout_sec": 3.0,
-        }],
+    # ── RSSI (07/10: 2 node moi cua nhanh rssi-thaihoa thay rssi_serial_node cu cua robot_rssi_ros2 —
+    # node cu doc giao thuc firmware cu, board gio chay firmware "scanner") ─────────────────────────────
+    # rssi_bearing_node phat /rssi/bearing (huong beacon trong khung odom, chi hop le sau khi xe xoay
+    # tai cho >= 250 do). follow_planner_node dung no trong SEARCH. Hai node nay KHONG ghi /cmd_vel.
+    rssi = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource(
+            PathJoinSubstitution([FindPackageShare("person_follow_nav"), "launch", "rssi.launch.py"])),
+        launch_arguments={
+            "ports": LaunchConfiguration("ports"),
+            "template_file": LaunchConfiguration("rssi_template_file"),
+        }.items(),
         condition=IfCondition(LaunchConfiguration("start_rssi")),
     )
 
@@ -185,9 +211,11 @@ def generate_launch_description() -> LaunchDescription:
         LogInfo(msg="   3) ros2 service call /follow/enable             std_srvs/srv/Trigger {}"),
         LogInfo(msg="   DUNG: ros2 service call /follow/stop            std_srvs/srv/Trigger {}"),
         LogInfo(msg=" Theo doi: ros2 topic echo /follow/planner_status"),
+        LogInfo(msg=" RSSI (start_rssi:=true): chi dung khi MAT NGUOI — xe xoay ~1 vong do huong beacon"),
         LogInfo(msg="=" * 66),
     ]
 
     return LaunchDescription(
-        args + info + [lidar, laser_tf, driver, identity, rssi, tracker, planner]
+        args + info + [OpaqueFunction(function=_check_ports), lidar, laser_tf, driver, identity, rssi, tracker,
+                       planner]
     )

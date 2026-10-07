@@ -56,6 +56,18 @@ va tuong (<= 0 la da cham). Co DOOR/SIDE_DOOR thi in them do thoang va goc lech 
 DUNG LUC XE DANG TRONG KHUNG CUA — do la con so quyet dinh xe co ca vao khung cua khong.
     CAM_OCCLUDE=1 ...  nguoi thu hai che ca camera khi dung tren tia nhin toi muc tieu
 
+  07/10 — vat THAP (LiDAR thay, camera nhin qua), vach CAO, RSSI gia, hinh hoc camera:
+    LOWBOX="x0:y0:x1:y1[:cao];..."   vat thap hinh chu nhat (mac dinh cao 0.30 m)
+    TALLWALL="x1:y1:x2:y2;..."       vach cao (che ca LiDAR lan camera)
+    CAM_HEIGHT=0.34 CAM_PITCH=0 CAM_PITCH_ERR=0 PERSON_H=1.70   hinh hoc bbox doc cua camera
+    RSSI=1                            /rssi/bearing gia (hop le sau khi xe xoay >= 250 do, sai so ~15 do)
+    PX=2.4 PY=0                       cho nguoi dung cua kich ban sau_vat_thap
+    WP="x:y;x:y;..." WPV=0.4 WPT=40   duong di tuy y cua kich ban duong_di
+    # Canh nguoi dung bao 07/10: nguoi sau thung 50x30 cm cao 30 cm, thung thu hai cach 50 cm ben trai:
+    CAM_HALF=55 LOWBOX="1.30:-0.25:1.60:0.25;1.30:0.75:1.60:1.05" PX=2.4 START="0:0.35:5" python3 sim_follow.py -q sau_vat_thap
+    # Nguoi khuat sau vach co cua (khong RSSI thi mat han; RSSI=1 thi tim lai duoc):
+    CAM_HALF=55 RSSI=1 TALLWALL="3.0:-6:3.0:1.5;3.0:2.4:3.0:6" python3 sim_follow.py -q an_sau_vach
+
   Moi kich ban mat 1-3 phut. Chi so: |goc| = lech giua mui xe va nguoi THAT (do),
   ngoai_khung = % thoi gian nguoi ngoai ±CAM_HALF, doi_chieu_w = so lan lenh xoay doi
   chieu (cang nhieu cang lac), SEARCH = co vao che do tim nguoi khong.
@@ -140,7 +152,26 @@ if os.environ.get("SIDE_DOOR"):
         WALLS.extend([(-2.0, _sy - _wt, _sx, _sy - _wt), (_sx + _sw, _sy - _wt, 9.0, _sy - _wt),
                       (_sx, _sy, _sx, _sy - _wt), (_sx + _sw, _sy, _sx + _sw, _sy - _wt)])
     SIDE_DOOR = (_sx, _sw, _sy)
+# TALLWALL="x1:y1:x2:y2;..." — vach CAO (che ca LiDAR lan camera), vd. vach ngan co cua.
+for _w in [w for w in os.environ.get("TALLWALL", "").split(";") if w.strip()]:
+    WALLS.append(tuple(float(v) for v in _w.split(":")))
+# LOWBOX="x0:y0:x1:y1[:cao];..." — vat THAP (mac dinh cao 0.30 m) hinh chu nhat. LiDAR (cao 0.18 m)
+# THAY va bi no che chan nguoi phia sau; camera (cao CAM_HEIGHT, mac dinh 0.34 m) nhin QUA duoc neu vat
+# thap hon camera — dung canh nguoi dung bao 07/10 (nguoi dung sau thung 50x30 cm cao 30 cm).
+LOW_BOXES = []
+for _b in [b for b in os.environ.get("LOWBOX", "").split(";") if b.strip()]:
+    _v = [float(v) for v in _b.split(":")]
+    _x0, _y0, _x1, _y1 = min(_v[0], _v[2]), min(_v[1], _v[3]), max(_v[0], _v[2]), max(_v[1], _v[3])
+    LOW_BOXES.append((_x0, _y0, _x1, _y1, _v[4] if len(_v) > 4 else 0.30))
+CAM_H = float(os.environ.get("CAM_HEIGHT", "0.34"))
+_cam_walls = list(WALLS)
+for (_x0, _y0, _x1, _y1, _h) in LOW_BOXES:
+    _segs = [(_x0, _y0, _x1, _y0), (_x1, _y0, _x1, _y1), (_x1, _y1, _x0, _y1), (_x0, _y1, _x0, _y0)]
+    WALLS.extend(_segs)
+    if _h >= CAM_H:                     # vat cao hon camera thi camera cung bi che
+        _cam_walls.extend(_segs)
 WALLS_A = np.array(WALLS)
+CAM_WALLS_A = np.array(_cam_walls) if _cam_walls else np.zeros((0, 4))
 
 
 def _wall_points(step=0.02):
@@ -173,11 +204,11 @@ def wall_clearance(rx, ry, yaw, F, R, HW):
     return float(np.min(G.rect_clearance(lx, ly, F, R, HW)))
 
 
-def raycast(ox, oy, ang, circles):
+def raycast(ox, oy, ang, circles, walls=None):
     """ang: mang goc the gioi. Tra ve khoang cach (inf neu khong trung)."""
     dx, dy = np.cos(ang), np.sin(ang)
     best = np.full(ang.shape, np.inf)
-    for (x1, y1, x2, y2) in WALLS_A:
+    for (x1, y1, x2, y2) in (WALLS_A if walls is None else walls):
         ex, ey = x2 - x1, y2 - y1
         den = dx * (-ey) - dy * (-ex)
         with np.errstate(divide="ignore", invalid="ignore"):
@@ -195,6 +226,52 @@ def raycast(ox, oy, ang, circles):
         ok = (disc >= 0) & (t > 0)
         best = np.where(ok & (t < best), t, best)
     return best
+
+
+def cam_bbox(cx, cy, px, py, d):
+    """Bbox DOC cua nguoi theo hinh hoc camera KINGSEN (mat ca deu, f = 324 px/rad, tam dong 240, 480 dong).
+
+    Nguoi cao PERSON_H, camera cao CAM_H, ngua CAM_PITCH do. Day bbox = chan, tru khi mot vat THAP nam
+    tren tia nhin toi nguoi che phan duoi (day bbox nang len mep tren cua vat). Tra ve
+    (dong_tren, dong_duoi, goc_cao_tren, goc_cao_duoi, cat_tren, cat_duoi) — goc cao theo khung XE
+    (da bu goc ngua da cau hinh; CAM_PITCH_ERR = sai so goc ngua cau hinh so voi that).
+    """
+    H = float(os.environ.get("PERSON_H", "1.70"))
+    p_true = math.radians(float(os.environ.get("CAM_PITCH", "0")))
+    p_err = math.radians(float(os.environ.get("CAM_PITCH_ERR", "0")))
+    f, c0, rows = 324.0, 240.0, 480
+    e_top = math.atan2(H - CAM_H, d)
+    e_bot = math.atan2(0.0 - CAM_H, d)
+    ang = math.atan2(py - cy, px - cx)
+    ux, uy = math.cos(ang), math.sin(ang)
+    for (x0, y0, x1, y1, hb) in LOW_BOXES:
+        # doan tia nhin nam trong hinh chu nhat (tu xe toi nguoi)
+        ts = []
+        for (a, lo, hi, o) in ((ux, x0, x1, cx), (uy, y0, y1, cy)):
+            if abs(a) < 1e-9:
+                if not (lo <= o <= hi):
+                    ts = None
+                    break
+                ts.append((-math.inf, math.inf))
+            else:
+                t1, t2 = (lo - o) / a, (hi - o) / a
+                ts.append((min(t1, t2), max(t1, t2)))
+        if ts is None:
+            continue
+        t_in, t_out = max(ts[0][0], ts[1][0], 0.0), min(ts[0][1], ts[1][1], d)
+        if t_in >= t_out:
+            continue
+        # mep tren cua vat che phan duoi nguoi: goc cao lon nhat tren mat tren vat (o hai mep doc tia)
+        e_occ = max(math.atan2(hb - CAM_H, t_in), math.atan2(hb - CAM_H, t_out))
+        e_bot = max(e_bot, min(e_occ, e_top - 0.02))
+    def row(e):
+        return c0 - f * (e - p_true)
+    r_top, r_bot = row(e_top), row(e_bot)
+    cut_top, cut_bot = r_top < 1.0, r_bot > rows - 2.0
+    r_top, r_bot = min(max(r_top, 0.0), rows - 1.0), min(max(r_bot, 0.0), rows - 1.0)
+    # goc cao bao ra = tinh nguoc tu dong anh voi goc ngua CAU HINH (sai p_err so voi that)
+    rep_e = lambda r: (c0 - r) / f + p_true + p_err      # noqa: E731
+    return r_top, r_bot, math.degrees(rep_e(r_top)), math.degrees(rep_e(r_bot)), cut_top, cut_bot
 
 
 class Person:
@@ -233,6 +310,14 @@ def run(name, path, T, report_every=0.5, verbose=True, intruder=None):
     pl.pub_status.publish = lambda m: status.update(json.loads(m.data))
 
     cam_queue = []   # (deliver_time, payload)
+    # RSSI GIA (RSSI=1): bat chuoc rssi_bearing_node — chi hop le khi xe da XOAY tai cho >= 250 do trong 14 s
+    # va doi cho < 0.30 m; huong = huong that toi nguoi + sai so ~15 do (do tren xe 01/10: TB 14-15 do),
+    # co dinh cho moi lan do; song xuyen tuong. Planner goi /rssi/reset -> bat dau lai.
+    rssi_on = bool(os.environ.get("RSSI"))
+    rssi = dict(t0=CLK.t, poses=[], err=float(RNG.normal(0.0, math.radians(15.0))))
+    def _rssi_reset():
+        rssi.update(t0=CLK.t, poses=[], err=float(RNG.normal(0.0, math.radians(15.0))))
+    pl._rssi_request_reset = _rssi_reset
     dt = 1.0 / 600.0
     t0 = CLK.t
     rows = []
@@ -254,6 +339,21 @@ def run(name, path, T, report_every=0.5, verbose=True, intruder=None):
         ipos = intruder(t) if intruder else None     # nguoi thu hai (x, y, huong, toc do) hoac None
         rel_b = wrap(math.atan2(py - rob["y"], px - rob["x"]) - rob["yaw"])
         rel_d = math.hypot(px - rob["x"], py - rob["y"])
+        if rssi_on and k % 120 == 0:      # /rssi/bearing 5 Hz
+            rssi["poses"].append((CLK.t, rob["x"], rob["y"], rob["yaw"]))
+            ps = [q for q in rssi["poses"] if q[0] >= max(rssi["t0"], CLK.t - 14.0)]
+            rssi["poses"] = ps
+            if math.hypot(ps[-1][1] - ps[0][1], ps[-1][2] - ps[0][2]) > 0.30:
+                _rssi_reset()
+                ps = rssi["poses"] = [ps[-1]]
+            swept = sum(abs(wrap(ps[i][3] - ps[i - 1][3])) for i in range(1, len(ps)))
+            msg = {"stamp": CLK.t, "valid": swept >= math.radians(250.0), "beacon_ok": True,
+                   "swept_deg": math.degrees(swept), "reason": ""}
+            if msg["valid"]:
+                ppx, ppy = person.path(t)[:2]
+                msg.update({"bearing_odom_rad": math.atan2(ppy - rob["y"], ppx - rob["x"]) + rssi["err"],
+                            "corr": 0.6, "margin": 0.2})
+            pl._rssi_cb(_Str(json.dumps(msg)))
         if k % 10 == 0:      # do khoang ho voi tuong o 60 Hz
             wc = wall_clearance(rob["x"], rob["y"], rob["yaw"], pl.front_len, pl.rear_len, pl.half_width)
             if ipos is not None:
@@ -312,7 +412,8 @@ def run(name, path, T, report_every=0.5, verbose=True, intruder=None):
             tr._scan_cb(scan)
             pl._scan_cb(scan)
         if k % 75 == 0:      # camera 8 Hz, chup luc nay, giao sau 150 ms
-            blk = raycast(rob["x"], rob["y"], np.array([math.atan2(py - rob["y"], px - rob["x"])]), [])[0] < rel_d - 0.05
+            blk = raycast(rob["x"], rob["y"], np.array([math.atan2(py - rob["y"], px - rob["x"])]), [],
+                          walls=CAM_WALLS_A)[0] < rel_d - 0.05
             if ipos is not None and os.environ.get("CAM_OCCLUDE"):
                 # nguoi thu hai che camera neu dung gan tia nhin toi muc tieu
                 ux, uy = (px - rob["x"]) / rel_d, (py - rob["y"]) / rel_d
@@ -321,8 +422,15 @@ def run(name, path, T, report_every=0.5, verbose=True, intruder=None):
                 blk = blk or (0.0 < along < rel_d and abs(-qx * uy + qy * ux) < 0.25)
             found = (not blk) and abs(rel_b) <= math.radians(float(os.environ.get("CAM_HALF", "31"))) and 0.4 < rel_d < 8.0
             ang = -math.degrees(rel_b) + RNG.normal(0, 0.8)
-            h = 420.0 / max(0.3, rel_d)
-            payload = {"camera_angle_deg": ang if found else None, "bbox": [0, 0, 60, h] if found else None,
+            r_top, r_bot, e_top, e_bot, cut_top, cut_bot = cam_bbox(rob["x"] + 0.10 * math.cos(rob["yaw"]),
+                                                                    rob["y"] + 0.10 * math.sin(rob["yaw"]),
+                                                                    px, py, rel_d)
+            payload = {"camera_angle_deg": ang if found else None,
+                       "bbox": [300, round(r_top), 340, round(r_bot)] if found else None,
+                       "bbox_top_elev_deg": round(e_top, 2) if found else None,
+                       "bbox_bottom_elev_deg": round(e_bot, 2) if found else None,
+                       "bbox_top_cut": bool(cut_top) if found else None,
+                       "bbox_bottom_cut": bool(cut_bot) if found else None,
                        "target_found": found, "identity_ready": True, "status": "locked" if found else "lost",
                        "ts": CLK.t}
             cam_queue.append((CLK.t + 0.15, payload))
@@ -442,6 +550,19 @@ def straight_then_turn(t, v1=0.20, x0=1.6, t1=12.0, v2=0.35, R=0.5, side=+1):
     return (xs + R, side * (R + s_), side * math.pi / 2, v2)
 
 
+def waypoints(t, pts, v):
+    """Di qua cac diem pts voi toc do v roi dung o diem cuoi."""
+    s_ = v * t
+    for (ax, ay), (bx, by) in zip(pts[:-1], pts[1:]):
+        L = math.hypot(bx - ax, by - ay)
+        if s_ <= L:
+            f = s_ / max(L, 1e-9)
+            return (ax + f * (bx - ax), ay + f * (by - ay), math.atan2(by - ay, bx - ax), v)
+        s_ -= L
+    (ax, ay), (bx, by) = pts[-2], pts[-1]
+    return (bx, by, math.atan2(by - ay, bx - ax), 0.0)
+
+
 def side_door(t, v=0.25, x0=1.4, y0=0.0, x_turn=3.4, y_end=-2.6, R=0.45):
     """Di thang +x theo hanh lang, den x_turn thi RE PHAI (ban kinh R) qua o cua ben hong."""
     d1 = x_turn - R - x0
@@ -520,6 +641,19 @@ SCEN = {
     # Nguoi re vao cua roi DUNG LAI phia trong: camera van thay nguoi qua o cua nen xe o
     # nhanh chui khe (nguon camera+lidar, trang thai AVOID) — dung nhu nguoi dung quan sat.
     "cua_ben_dung": (lambda t: side_door(t, v=0.16, y_end=-2.2), 45.0),
+    # 07/10 — nguoi DUNG YEN sau vat THAP (dung kem LOWBOX). Vi tri nguoi: PX, PY (mac dinh 2.1, 0).
+    # Mau cua nguoi dung: thung 50x30 cm cao 30 cm truoc nguoi, thung thu hai cach 50 cm ben trai,
+    # ben phai trong:  LOWBOX="1.30:-0.25:1.60:0.25;1.30:0.75:1.60:1.05"
+    # 07/10 — nguoi di NHANH (0.6 m/s) qua cua sang phong ben roi di doc vach, dung o cho KHONG nhin
+    # thay qua cua tu phia xe. Dung kem TALLWALL="3.0:-6:3.0:1.5;3.0:2.4:3.0:6" (vach x = 3, cua y 1.5-2.4).
+    # Khong RSSI thi mat han; co RSSI (RSSI=1) thi xoay do -> di ve huong beacon -> ban do dan qua cua.
+    "an_sau_vach": (lambda t: waypoints(t, [(1.6, 0.0), (2.45, 1.95), (3.7, 1.95), (4.6, -1.4)], 0.6), 70.0),
+    # Duong di tuy y: WP="x:y;x:y;..." (diem dau = cho nguoi dung luc t=0), WPV = toc do (m/s, mac dinh 0.4),
+    # WPT = thoi gian chay (s, mac dinh 40). Nguoi dung lai o diem cuoi.
+    "duong_di": (lambda t: waypoints(t, [tuple(float(v) for v in p_.split(":"))
+                                         for p_ in os.environ.get("WP", "1.6:0;3.0:0").split(";")],
+                                     float(os.environ.get("WPV", "0.4"))), float(os.environ.get("WPT", "40"))),
+    "sau_vat_thap": (lambda t: (float(os.environ.get("PX", "2.1")), float(os.environ.get("PY", "0.0")), 0.0, 0.0), 25.0),
     # Nguoi DUNG YEN ben kia cua — de thu rieng dong tac chui cua tu nhieu tu the xuat phat
     # (dung kem START="x:y:yaw" va SIDE_DOOR). Khong lan voi chuyen mat nguoi.
     "cua_ben_yen": (lambda t: (3.405, -2.4, -math.pi / 2, 0.0), 30.0),
@@ -571,6 +705,13 @@ def metrics(name, rows, hit):
         jerr = [math.hypot(r["ex"] - r["px"], r["ey"] - r["py"]) for r in rows if r["ex"] is not None]
         print(f"{'':15s} qua cua: {'CO' if rows[-1]['rx'] > dx + 0.4 else 'KHONG'} (xe_x cuoi={rows[-1]['rx']:.2f}), "
               f"tam_xe_gan_thanh_cua_nhat={jgap:.2f} m, sai_uoc_max={max(jerr) if jerr else float('nan'):.2f} m")
+    if LOW_BOXES:
+        # vat thap dau tien: xe vuot qua no ben nao (y TB cua xe khi ngang vat), co toi duoc gan nguoi khong
+        bx0, by0, bx1, by1, _ = LOW_BOXES[0]
+        near = [r for r in rows if bx0 - 0.30 < r["rx"] < bx1 + 0.30]
+        side = "khong toi" if not near else ("TRAI" if np.mean([r["ry"] for r in near]) > 0.5 * (by0 + by1) else "PHAI")
+        print(f"{'':15s} vat thap: ngang vat ben {side}, xe_x xa nhat={max(r['rx'] for r in rows):.2f}, "
+              f"d_that_cuoi={rows[-1]['d']:.2f} m, note_cuoi={str(rows[-1]['note'])[:60]}")
     occ = [r for r in rows if r["ix"] is not None and r["ex"] is not None]
     if occ:
         err = [math.hypot(r["ex"] - r["px"], r["ey"] - r["py"]) for r in occ]

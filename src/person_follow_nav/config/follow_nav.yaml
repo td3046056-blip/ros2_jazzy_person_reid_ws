@@ -80,7 +80,23 @@ target_tracker_node:
 
     # Chi dung khi LiDAR khong thay gi (nguoi bi ban che chan, ...)
     bbox_fallback_enabled: true
+    # Chi con dung khi camera KHONG gui goc cao bbox (ban person_follow_identity truoc 07/10)
     bbox_height_at_1m_px: 420.0         # lay tu follow_controller.yaml cu cua ban
+
+    # ── Hinh hoc DOC cua camera (07/10) ───────────────────────────────────
+    # Camera gui goc cao dinh/day bbox (bbox_top_elev_deg / bbox_bottom_elev_deg, da bu camera_pitch_deg
+    # trong identity_lock_kingsen.yaml). Dung de:
+    #  - nhan ra cum LiDAR la VAT CHE truoc nguoi: chan nguoi o khoang cach d thi day bbox phai o goc
+    #    -atan(camera_height_m / d). Nguoi dung sau thung thap 30 cm (07/10): day bbox la mep thung,
+    #    cao hon han -> cum mat truoc thung KHONG phai chan nguoi (truoc day xe tuong nguoi cach 1 m,
+    #    that 2 m, va dung lai truoc thung).
+    #  - khoang cach tu DINH DAU khi LiDAR khong thay chan; dau ra ngoai mep tren / chan bi che thi so do
+    #    chi la can tren -> lay so nho nhat.
+    # Chieu cao nguoi va sai lech goc ngua tu hoc luc camera+lidar khop va thay ca chan.
+    camera_height_m: 0.34               # [CAN XAC NHAN] sua khi nang camera len ~0.70 m
+    person_height_m: 1.65               # gia tri dau (thap -> uoc gan hon that -> xe dung som, an toan hon)
+    feet_elev_tol_deg: 4.0              # (+6 do cho toi khi hoc xong sai lech goc ngua)
+    learn_camera_geometry: true
 
     # ── Bam bang LiDAR khi camera mat hinh ────────────────────────────────
     lidar_only_track_enabled: true
@@ -99,9 +115,10 @@ target_tracker_node:
     max_person_speed: 1.8
 
     # ── RSSI (du phong) ───────────────────────────────────────────────────
-    # TAM TAT: chua cam mach RSSI. Khi nao cam roi thi doi thanh true
-    # va them start_rssi:=true vao lenh launch.
-    # Tracker van chay binh thuong khi tat — no chi mat lop du phong cuoi cung.
+    # Dau vao CU /rssi/angle_deg + /rssi/confidence (rssi_serial_node cua robot_rssi_ros2, firmware cu).
+    # He RSSI MOI (07/10: rssi_scanner_node + rssi_bearing_node, start_rssi:=true) KHONG phat hai topic nay:
+    # huong beacon /rssi/bearing duoc follow_planner_node dung trong SEARCH (rssi_search_enabled o duoi).
+    # Giu false.
     rssi_enabled: false
     rssi_angle_sign: -1.0
     rssi_min_confidence: 0.20
@@ -253,6 +270,31 @@ follow_planner_node:
     gap_align_range_m: 0.90
     w_gap_align: 3.0
 
+    # ── Ban do luoi + tim duong (07/10) ───────────────────────────────────
+    # Khi duong thang toi dich bi chan, hoac DICH cham le an toan qua 1.5 s (vd. dich ngay truoc thung ma
+    # nguoi dung sau): luoi 0.06 m quanh xe tu diem LiDAR, Dijkstra tu xe toi CHO DUNG TOT NHAT gan nguoi,
+    #   J = duong di + nav_far_weight * (khoang cach toi nguoi vuot follow_distance).
+    # Nho vay: khong vao khe hep hon xe giua hai thung (truoc day lo chon ben do roi ket, 07/10); nguoi
+    # sau vat thi vong qua neu dang, khong thi dung o cho gan nhat; thoat duoc chu U, ghe dai. Khe 0.74-1.2 m
+    # (khung cua) chi chui khi nam tren duong di. false = hanh vi cu (chon khe + DWA).
+    nav_plan_enabled: true
+    nav_grid_res_m: 0.06
+    nav_lethal_m: 0.30                  # tam xe khong bao gio gan vat hon (= half_width)
+    nav_soft_m: 0.25                    # vung phat them ngoai half_width + margin_hard
+    nav_soft_cost: 3.0
+    nav_far_weight: 4.0                 # 1 m con xa nguoi = 4 m duong. Tang -> chiu vong xa hon de toi gan
+    nav_far_weight_moving: 8.0          # nguoi dang di (> 0.25 m/s)
+    nav_person_clear_m: 0.35            # bo diem LiDAR quanh nguoi khi lap ban do (chan chinh ho)
+    nav_lookahead_m: 1.2
+    nav_hold_radius_m: 0.15             # cho tot nhat cach xe duoi muc nay -> dung cho, chi canh huong
+    nav_replan_sec: 0.2
+    # Duong lech hon goc nay -> xoay tai cho roi moi di (tre xuong 25 do). Thap hon (60) thi luc vong qua
+    # nguoi thu hai dung chen xe cung xoay han, mat camera 3-4 s; cao hon thi DWA cat goc, mui cham vat.
+    nav_turn_first_deg: 75.0
+    # Luc di vong chi phat khi nguoi sap ra khoi khung hinh (camera +-57 do). 22 do (fov_keep_deg) thi
+    # chi phi camera keo mui xe ve phia nguoi = ve phia vat dang chan.
+    nav_fov_keep_deg: 50.0
+
     # ── Tang chon khe (VFH) chay TRUOC DWA ────────────────────────────────
     # Quet cac huong -100..+100 do, thu di duoc bao xa. Thu lan luot tu xa ve gan.
     # Tang so dau -> nhin xa hon, ne som hon. Giam -> phan ung sat hon, o hep tot hon.
@@ -272,6 +314,21 @@ follow_planner_node:
     search_goto_max_sec: 8.0
     search_w: 0.35
     search_max_sec: 12.0
+
+    # ── RSSI trong SEARCH (07/10) ─────────────────────────────────────────
+    # Sau pha "di toi" va quay mat ve cho thay cuoi: neu co /rssi/bearing (start_rssi:=true) thi xoay tai
+    # cho ~1 vong do huong beacon -> quay camera ve huong do, cho ReID nhan lai -> chua thay thi di ve huong
+    # do rssi_go_dist_m (theo ban do) roi do lai. Khong co RSSI thi quet qua lai nhu cu. RSSI chi dung de
+    # TIM LAI — dang bam thi camera + LiDAR (RSSI sai ~15 do, khong do duoc khoang cach).
+    rssi_search_enabled: true           # khong co node RSSI thi tu bo qua
+    rssi_bearing_topic: "/rssi/bearing"
+    rssi_reset_service: "/rssi/reset"
+    rssi_timeout_sec: 2.0
+    rssi_spin_w: 0.9                    # do tren xe 01/10 o 0.82-0.9 rad/s
+    rssi_spin_max_deg: 760.0
+    rssi_face_hold_sec: 1.5
+    rssi_go_dist_m: 1.5
+    rssi_search_max_sec: 90.0           # tong thoi gian tim khi co RSSI (khong co: search_max_sec)
     min_confidence: 0.15
     target_msg_timeout_sec: 0.8
 

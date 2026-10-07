@@ -44,6 +44,15 @@ class _FakeNode:
     def create_service(self, *a, **k):
         return None
 
+    def create_client(self, *a, **k):
+        class _Cli:
+            def service_is_ready(self):
+                return False
+
+            def call_async(self, *a, **k):
+                return None
+        return _Cli()
+
     def create_timer(self, *a, **k):
         return None
 

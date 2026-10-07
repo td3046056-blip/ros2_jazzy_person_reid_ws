@@ -86,6 +86,9 @@ def generate_launch_description() -> LaunchDescription:
             {
                 # Planner KHONG ghi thang /cmd_vel o che do nay — rssi_follow.py la nguon duy nhat
                 "cmd_vel_topic": "/cmd_vel_follow",
+                # 07/10: planner tu xoay do RSSI trong SEARCH (he camera). O day rssi_follow.py tu lo viec do
+                # (va khong de planner thay muc tieu khong hop le) -> tat de hai ben khong cung xoay do.
+                "rssi_search_enabled": False,
                 "occluded_turn_deg": ParameterValue(LaunchConfiguration("occluded_turn_deg"), value_type=float),
             },
         ],
