@@ -1,0 +1,33 @@
+# rssi.yaml — tham so cho 2 node RSSI (rssi_scanner_node + rssi_bearing_node)
+#
+# RSSI CHI dung de TIM LAI nguoi khi mat han (xe phai tu xoay tai cho de do huong).
+# Khong dung de bam khi camera con thay: camera+LiDAR chinh xac +-1 do, RSSI +-15 do.
+# Hai node nay khong bao gio ghi /cmd_vel.
+
+rssi_scanner_node:
+  ros__parameters:
+    # Cong cua 3 board quet — DINH DANG PHANG. Dung /dev/serial/by-path/... (by-id cua board va LiDAR TRUNG nhau,
+    # cung chip CH340). Thuong truyen qua launch:  ports:="/dev/serial/by-path/AAA,/dev/serial/by-path/BBB,..."
+    ports: [""]
+    baudrate: 115200
+    publish_hz: 20.0
+    silent_warn_sec: 5.0          # khong thay beacon lau hon -> canh bao (beacon tat / het pin / qua xa)
+
+rssi_bearing_node:
+  ros__parameters:
+    # File mau hinh dang tung board theo goc (tao bang scripts/rssi_rotate.py --calib). Launch tu dien
+    # share/person_follow_nav/config/rssi_template.json. Hieu chinh lai khi doi cho lap board / anten.
+    template_file: ""
+    # Do tren xe 01/10 (14 lan): xoay 180 do sai toi 44-61 do; 270 do sai <= 28 do; du vong <= 24 do
+    window_sec: 14.0              # chi dung mau trong khoang nay (1 vong 0.8 rad/s ~ 8 s + quay ve huong ~ 4 s)
+    min_sweep_deg: 250.0          # xe phai xoay it nhat ngan nay moi tin
+    reset_dist_m: 0.30            # xe di chuyen qua ngan nay -> xoa mau cu (huong nguoi nhin tu xe da doi)
+    # Lan hop le co corr 0.46-0.74, margin 0.13-0.47; lan do sai 46 do co margin 0.04
+    min_corr: 0.45
+    min_margin: 0.10
+    # Khop hoi kem nhung KHONG mo ho thi van tin: 182 cua so quet (250-360 do) cat tu 14 lan do that —
+    # them 13 cua so duoc nhan, khong them lan nao sai > 45 do. Dat relax_corr = min_corr de tat.
+    relax_corr: 0.35
+    relax_margin: 0.25
+    publish_hz: 5.0
+    beacon_timeout_sec: 3.0

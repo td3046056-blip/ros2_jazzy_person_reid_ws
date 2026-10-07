@@ -1,0 +1,173 @@
+[INFO] [launch]: All log files can be found below /home/thaihoa/.ros/log/2026-10-07-10-27-14-566296-th-6233
+[INFO] [launch]: Default logging verbosity is set to INFO
+[INFO] [launch.user]: ====================================================================
+[INFO] [launch.user]:  BAM THEO BANG RSSI + LiDAR (khong camera)
+[INFO] [launch.user]:    Planner ghi /cmd_vel_follow. Xe chi chay khi co scripts/rssi_follow.py
+[INFO] [launch.user]:    DUNG KHAN: Ctrl-C o rssi_follow.py, hoac (moi luc)
+[INFO] [launch.user]:               ros2 service call /follow/stop std_srvs/srv/Trigger {}
+[INFO] [launch.user]: ====================================================================
+[INFO] [launch.user]: ====================================================================
+[INFO] [launch.user]:  CHE DO HIEU CHINH — chi lidar + driver, khong co planner
+[INFO] [launch.user]:  Kiem tra o terminal khac:
+[INFO] [launch.user]:    ros2 topic hz /scan      (SC-Mini chay ~10 Hz)
+[INFO] [launch.user]:    ros2 topic hz /odom      (~20-50 Hz)
+[INFO] [launch.user]:  Roi chay:
+[INFO] [launch.user]:    ros2 run person_follow_nav calibrate_center
+[INFO] [launch.user]: ====================================================================
+[INFO] [sc_mini-1]: process started with pid [6243]
+[INFO] [static_transform_publisher-2]: process started with pid [6244]
+[INFO] [decoded_serial_node-3]: process started with pid [6245]
+[INFO] [rssi_scanner-4]: process started with pid [6246]
+[INFO] [rssi_bearing-5]: process started with pid [6247]
+[INFO] [follow_planner-6]: process started with pid [6248]
+[static_transform_publisher-2] [WARN] [1791343634.826566748] []: Old-style arguments are deprecated; see --help for new-style arguments
+[static_transform_publisher-2] [INFO] [1791343634.862298733] [base_to_laser]: Spinning until stopped - publishing transform
+[static_transform_publisher-2] translation: ('0.100000', '0.000000', '0.180000')
+[static_transform_publisher-2] rotation: ('0.000000', '0.000000', '0.000000', '1.000000')
+[static_transform_publisher-2] from 'base_link' to 'laser'
+[rssi_scanner-4] [INFO] [1791343635.797414070] [rssi_scanner_node]: rssi_scanner: doc 3 cong @ 115200 baud -> /rssi/raw
+[rssi_bearing-5] [INFO] [1791343635.815486655] [rssi_bearing_node]: rssi_bearing: mau ['A', 'B', 'C'], can xoay >= 250 do trong 14 s, corr >= 0.45 & margin >= 0.1 (hoac corr >= 0.35 & margin >= 0.25)
+[rssi_scanner-4] [INFO] [1791343635.868767596] [rssi_scanner_node]: /dev/serial/by-path/pci-0000:05:00.3-usb-0:2.1.3:1.0-port0: da mo
+[rssi_scanner-4] [INFO] [1791343635.870812205] [rssi_scanner_node]: /dev/serial/by-path/pci-0000:05:00.3-usb-0:2.1.2:1.0-port0: da mo
+[rssi_scanner-4] [INFO] [1791343635.871341761] [rssi_scanner_node]: /dev/serial/by-path/pci-0000:05:00.3-usb-0:2.1.1:1.0-port0: da mo
+[rssi_bearing-5] [INFO] [1791343635.978323962] [rssi_bearing_node]: chua co huong hop le: chua du du lieu
+[rssi_scanner-4] [INFO] [1791343637.277469444] [rssi_scanner_node]: /dev/serial/by-path/pci-0000:05:00.3-usb-0:2.1.1:1.0-port0: board A khoi dong
+[follow_planner-6] [INFO] [1791343637.660481943] [follow_planner_node]: follow_planner_node san sang | footprint 0.47x0.60m | v_max=0.22 w_max=1.00 | khoang cach bam=1.00m | margin mem=0.15 cung=0.06 | enabled=False
+[follow_planner-6] [INFO] [1791343637.661682348] [follow_planner_node]: Bat bam: ros2 service call /follow/enable std_srvs/srv/Trigger {}
+[follow_planner-6] [INFO] [1791343637.664629338] [follow_planner_node]: self-filter: bo 13/208 tia dap vao than xe
+[decoded_serial_node-3] [INFO] [1791343637.664732637] [bw_dr03_decoded_serial_node]: BW-DR03 decoder connected on /dev/serial/by-id/usb-FTDI_FT231X_USB_UART_D30BF0NT-if00-port0 at 115200
+[decoded_serial_node-3] [INFO] [1791343637.666013782] [bw_dr03_decoded_serial_node]: Params: max_linear=0.49, max_angular=2.46, max_percent=60, cmd_timeout=1.0
+[follow_planner-6] [INFO] [1791343637.688458161] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-
+[rssi_scanner-4] [INFO] [1791343637.703195485] [rssi_scanner_node]: /dev/serial/by-path/pci-0000:05:00.3-usb-0:2.1.2:1.0-port0: board B khoi dong
+[rssi_scanner-4] [INFO] [1791343637.714233042] [rssi_scanner_node]: /dev/serial/by-path/pci-0000:05:00.3-usb-0:2.1.3:1.0-port0: board C khoi dong
+[follow_planner-6] [INFO] [1791343638.754913242] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-
+[follow_planner-6] [INFO] [1791343639.755525028] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-
+[sc_mini-1] sc_mini start
+[follow_planner-6] [INFO] [1791343640.822571987] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-
+[follow_planner-6] [INFO] [1791343641.888098838] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-
+[follow_planner-6] [INFO] [1791343642.888176653] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-
+[follow_planner-6] [INFO] [1791343643.888769507] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-
+[follow_planner-6] [INFO] [1791343644.955247733] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-
+[follow_planner-6] [INFO] [1791343646.021862200] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-
+[follow_planner-6] [INFO] [1791343647.088586781] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-
+[follow_planner-6] [INFO] [1791343647.677782496] [follow_planner_node]: self-filter: bo 17/204 tia dap vao than xe
+[follow_planner-6] [INFO] [1791343648.155214894] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-
+[follow_planner-6] [INFO] [1791343649.155307688] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-
+[follow_planner-6] [INFO] [1791343650.222369804] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-
+[follow_planner-6] [INFO] [1791343651.288520944] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-
+[follow_planner-6] [INFO] [1791343652.354903332] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-
+[follow_planner-6] [INFO] [1791343653.421696257] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-
+[follow_planner-6] [INFO] [1791343654.422668737] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-
+[follow_planner-6] [INFO] [1791343655.488241725] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-
+[follow_planner-6] [INFO] [1791343656.488452616] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-
+[follow_planner-6] [INFO] [1791343657.488550470] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-
+[follow_planner-6] [INFO] [1791343657.740320884] [follow_planner_node]: self-filter: bo 9/201 tia dap vao than xe
+[follow_planner-6] [INFO] [1791343658.488726449] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-
+[follow_planner-6] [INFO] [1791343659.555298137] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-
+[follow_planner-6] [INFO] [1791343660.621765074] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-
+[follow_planner-6] [INFO] [1791343661.622005620] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-
+[follow_planner-6] [INFO] [1791343662.621939602] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-
+[follow_planner-6] [INFO] [1791343663.622222432] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-
+[follow_planner-6] [INFO] [1791343664.688884281] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-
+[follow_planner-6] [INFO] [1791343665.755161178] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-
+[follow_planner-6] [INFO] [1791343666.821986371] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-
+[follow_planner-6] [INFO] [1791343667.812063104] [follow_planner_node]: self-filter: bo 11/211 tia dap vao than xe
+[follow_planner-6] [INFO] [1791343667.822351370] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-
+[follow_planner-6] [INFO] [1791343668.888637025] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-
+[follow_planner-6] [INFO] [1791343669.955760692] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-
+[follow_planner-6] [INFO] [1791343671.022016167] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-
+[follow_planner-6] [INFO] [1791343672.022012178] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-
+[follow_planner-6] [INFO] [1791343673.088511764] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-
+[follow_planner-6] [INFO] [1791343674.155677205] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-
+[follow_planner-6] [INFO] [1791343675.221700193] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-
+[follow_planner-6] [INFO] [1791343676.221502973] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-
+[follow_planner-6] [INFO] [1791343677.221487209] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-
+[follow_planner-6] [INFO] [1791343677.869539724] [follow_planner_node]: self-filter: bo 10/205 tia dap vao than xe
+[follow_planner-6] [INFO] [1791343678.288312162] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-
+[follow_planner-6] [INFO] [1791343679.355233058] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-
+[follow_planner-6] [INFO] [1791343680.421795152] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-
+[follow_planner-6] [INFO] [1791343681.488386703] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-
+[follow_planner-6] [INFO] [1791343682.554961408] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-
+[follow_planner-6] [INFO] [1791343683.554881447] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-
+[follow_planner-6] [INFO] [1791343684.555431764] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-
+[follow_planner-6] [INFO] [1791343685.622204117] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-
+[follow_planner-6] [INFO] [1791343686.622617493] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-
+[follow_planner-6] [INFO] [1791343687.688243652] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-
+[follow_planner-6] [INFO] [1791343687.928386113] [follow_planner_node]: self-filter: bo 11/210 tia dap vao than xe
+[follow_planner-6] [INFO] [1791343688.689290672] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-
+[follow_planner-6] [INFO] [1791343689.755641877] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-
+[follow_planner-6] [INFO] [1791343690.821698415] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-
+[follow_planner-6] [INFO] [1791343691.822192744] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-
+[follow_planner-6] [INFO] [1791343692.822659583] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-
+[follow_planner-6] [INFO] [1791343693.822274925] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-
+[follow_planner-6] [INFO] [1791343694.888555081] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-
+[follow_planner-6] [INFO] [1791343695.955268410] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-
+[follow_planner-6] [INFO] [1791343696.955751132] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-
+[follow_planner-6] [INFO] [1791343697.949791231] [follow_planner_node]: self-filter: bo 11/214 tia dap vao than xe
+[follow_planner-6] [INFO] [1791343698.022224229] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-
+[follow_planner-6] [INFO] [1791343699.088583139] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-
+[follow_planner-6] [INFO] [1791343700.155102142] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-
+[follow_planner-6] [INFO] [1791343701.155619757] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-
+[follow_planner-6] [INFO] [1791343702.155631400] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-
+[follow_planner-6] [INFO] [1791343703.222660401] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-
+[follow_planner-6] [INFO] [1791343704.288512571] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-
+[follow_planner-6] [INFO] [1791343705.355157689] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-
+[follow_planner-6] [INFO] [1791343706.422180190] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-
+[follow_planner-6] [INFO] [1791343707.488631403] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-
+[follow_planner-6] [INFO] [1791343707.966174298] [follow_planner_node]: self-filter: bo 13/210 tia dap vao than xe
+[follow_planner-6] [INFO] [1791343708.555173858] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-
+[follow_planner-6] [INFO] [1791343709.556281377] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-
+[follow_planner-6] [INFO] [1791343710.621968606] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-
+[follow_planner-6] [INFO] [1791343711.622268416] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-
+[follow_planner-6] [INFO] [1791343712.688358991] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-
+[follow_planner-6] [INFO] [1791343713.688558744] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-
+[follow_planner-6] [INFO] [1791343714.688565997] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-
+[follow_planner-6] [INFO] [1791343715.755484824] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-
+[follow_planner-6] [INFO] [1791343716.755875269] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-
+[follow_planner-6] [INFO] [1791343717.822435192] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-
+[follow_planner-6] [INFO] [1791343718.034850021] [follow_planner_node]: self-filter: bo 11/213 tia dap vao than xe
+[follow_planner-6] [INFO] [1791343718.822481004] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-
+[follow_planner-6] [INFO] [1791343719.888591792] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-
+[follow_planner-6] [INFO] [1791343720.955228399] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-
+[follow_planner-6] [INFO] [1791343721.955900660] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-
+[follow_planner-6] [INFO] [1791343723.021715317] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-
+[follow_planner-6] [INFO] [1791343724.021905228] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-
+[follow_planner-6] [INFO] [1791343725.088536445] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-
+[follow_planner-6] [INFO] [1791343726.155521325] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-
+[follow_planner-6] [INFO] [1791343727.222038242] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-
+[follow_planner-6] [INFO] [1791343728.056550856] [follow_planner_node]: self-filter: bo 15/212 tia dap vao than xe
+[follow_planner-6] [INFO] [1791343728.222356983] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-
+[follow_planner-6] [INFO] [1791343729.288538772] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-
+[follow_planner-6] [INFO] [1791343730.288503408] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-
+[follow_planner-6] [INFO] [1791343731.355233443] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-
+[follow_planner-6] [INFO] [1791343732.355525503] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-
+[follow_planner-6] [INFO] [1791343733.421431242] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-
+[follow_planner-6] [INFO] [1791343734.422246638] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-
+[follow_planner-6] [INFO] [1791343735.488558154] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-
+[follow_planner-6] [INFO] [1791343736.488752311] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-
+[follow_planner-6] [INFO] [1791343737.555101537] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-
+[follow_planner-6] [INFO] [1791343738.078841054] [follow_planner_node]: self-filter: bo 15/214 tia dap vao than xe
+[follow_planner-6] [INFO] [1791343738.621400751] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-
+[follow_planner-6] [INFO] [1791343739.622292654] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-
+[follow_planner-6] [INFO] [1791343740.622658449] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-
+[follow_planner-6] [INFO] [1791343741.688870579] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-
+[follow_planner-6] [INFO] [1791343742.755722535] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-
+[follow_planner-6] [INFO] [1791343743.821607874] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-
+[follow_planner-6] [INFO] [1791343744.888529606] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-
+[follow_planner-6] [INFO] [1791343745.888709533] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-
+[follow_planner-6] [INFO] [1791343746.954881802] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-
+[follow_planner-6] [INFO] [1791343747.955296574] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-
+[follow_planner-6] [INFO] [1791343748.098286741] [follow_planner_node]: self-filter: bo 12/213 tia dap vao than xe
+[follow_planner-6] [INFO] [1791343749.021630057] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-
+[follow_planner-6] [INFO] [1791343750.088318411] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-
+[follow_planner-6] [INFO] [1791343751.088440737] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-
+[follow_planner-6] [INFO] [1791343752.155299812] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-
+[follow_planner-6] [INFO] [1791343753.221991346] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-
+[follow_planner-6] [INFO] [1791343754.288205451] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-
+[follow_planner-6] [INFO] [1791343755.288500649] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-
+[follow_planner-6] [INFO] [1791343756.355265425] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-
+[follow_planner-6] [INFO] [1791343757.355193514] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-
+[follow_planner-6] [INFO] [1791343758.099429997] [follow_planner_node]: self-filter: bo 15/218 tia dap vao than xe
+[follow_planner-6] [INFO] [1791343758.421490245] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-
+[follow_planner-6] [INFO] [1791343759.488081309] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-
+[follow_planner-6] [INFO] [1791343760.554663940] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-

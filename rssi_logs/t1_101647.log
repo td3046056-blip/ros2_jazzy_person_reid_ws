@@ -1,0 +1,49 @@
+[INFO] [launch]: All log files can be found below /home/thaihoa/.ros/log/2026-10-07-10-16-48-516083-th-5368
+[INFO] [launch]: Default logging verbosity is set to INFO
+[INFO] [launch.user]: ====================================================================
+[INFO] [launch.user]:  BAM THEO BANG RSSI + LiDAR (khong camera)
+[INFO] [launch.user]:    Planner ghi /cmd_vel_follow. Xe chi chay khi co scripts/rssi_follow.py
+[INFO] [launch.user]:    DUNG KHAN: Ctrl-C o rssi_follow.py, hoac (moi luc)
+[INFO] [launch.user]:               ros2 service call /follow/stop std_srvs/srv/Trigger {}
+[INFO] [launch.user]: ====================================================================
+[INFO] [launch.user]: ====================================================================
+[INFO] [launch.user]:  CHE DO HIEU CHINH — chi lidar + driver, khong co planner
+[INFO] [launch.user]:  Kiem tra o terminal khac:
+[INFO] [launch.user]:    ros2 topic hz /scan      (SC-Mini chay ~10 Hz)
+[INFO] [launch.user]:    ros2 topic hz /odom      (~20-50 Hz)
+[INFO] [launch.user]:  Roi chay:
+[INFO] [launch.user]:    ros2 run person_follow_nav calibrate_center
+[INFO] [launch.user]: ====================================================================
+[INFO] [sc_mini-1]: process started with pid [5378]
+[INFO] [static_transform_publisher-2]: process started with pid [5379]
+[INFO] [decoded_serial_node-3]: process started with pid [5380]
+[INFO] [rssi_scanner-4]: process started with pid [5381]
+[INFO] [rssi_bearing-5]: process started with pid [5382]
+[INFO] [follow_planner-6]: process started with pid [5383]
+[static_transform_publisher-2] [WARN] [1791343008.794332505] []: Old-style arguments are deprecated; see --help for new-style arguments
+[static_transform_publisher-2] [INFO] [1791343008.834496910] [base_to_laser]: Spinning until stopped - publishing transform
+[static_transform_publisher-2] translation: ('0.100000', '0.000000', '0.180000')
+[static_transform_publisher-2] rotation: ('0.000000', '0.000000', '0.000000', '1.000000')
+[static_transform_publisher-2] from 'base_link' to 'laser'
+[rssi_scanner-4] [INFO] [1791343009.764240247] [rssi_scanner_node]: rssi_scanner: doc 3 cong @ 115200 baud -> /rssi/raw
+[rssi_bearing-5] [INFO] [1791343009.798282326] [rssi_bearing_node]: rssi_bearing: mau ['A', 'B', 'C'], can xoay >= 250 do trong 14 s, corr >= 0.45 & margin >= 0.1 (hoac corr >= 0.35 & margin >= 0.25)
+[rssi_scanner-4] [INFO] [1791343009.837039641] [rssi_scanner_node]: /dev/serial/by-path/pci-0000:05:00.3-usb-0:2.1.2:1.0-port0: da mo
+[rssi_scanner-4] [INFO] [1791343009.841199165] [rssi_scanner_node]: /dev/serial/by-path/pci-0000:05:00.3-usb-0:2.1.1:1.0-port0: da mo
+[rssi_scanner-4] [INFO] [1791343009.842456640] [rssi_scanner_node]: /dev/serial/by-path/pci-0000:05:00.3-usb-0:2.1.3:1.0-port0: da mo
+[rssi_bearing-5] [INFO] [1791343009.964732169] [rssi_bearing_node]: chua co huong hop le: chua du du lieu
+[decoded_serial_node-3] [INFO] [1791343010.290069192] [bw_dr03_decoded_serial_node]: BW-DR03 decoder connected on /dev/serial/by-id/usb-FTDI_FT231X_USB_UART_D30BF0NT-if00-port0 at 115200
+[decoded_serial_node-3] [INFO] [1791343010.291444221] [bw_dr03_decoded_serial_node]: Params: max_linear=0.49, max_angular=2.46, max_percent=60, cmd_timeout=1.0
+[follow_planner-6] [INFO] [1791343010.304554501] [follow_planner_node]: follow_planner_node san sang | footprint 0.47x0.60m | v_max=0.22 w_max=1.00 | khoang cach bam=1.00m | margin mem=0.15 cung=0.06 | enabled=False
+[follow_planner-6] [INFO] [1791343010.305676610] [follow_planner_node]: Bat bam: ros2 service call /follow/enable std_srvs/srv/Trigger {}
+[follow_planner-6] [INFO] [1791343010.331013730] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-
+[rssi_scanner-4] [INFO] [1791343011.250782757] [rssi_scanner_node]: /dev/serial/by-path/pci-0000:05:00.3-usb-0:2.1.1:1.0-port0: board A khoi dong
+[follow_planner-6] [INFO] [1791343011.397794571] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-
+[rssi_scanner-4] [INFO] [1791343011.688419811] [rssi_scanner_node]: /dev/serial/by-path/pci-0000:05:00.3-usb-0:2.1.3:1.0-port0: board C khoi dong
+[rssi_scanner-4] [INFO] [1791343011.706932841] [rssi_scanner_node]: /dev/serial/by-path/pci-0000:05:00.3-usb-0:2.1.2:1.0-port0: board B khoi dong
+[follow_planner-6] [INFO] [1791343012.398030146] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-
+[follow_planner-6] [INFO] [1791343013.464653058] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-
+[sc_mini-1] sc_mini start
+[follow_planner-6] [INFO] [1791343014.464372104] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-
+[follow_planner-6] [INFO] [1791343015.464333383] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-
+[follow_planner-6] [INFO] [1791343016.531190212] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-
+[follow_planner-6] [INFO] [1791343017.530960314] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-

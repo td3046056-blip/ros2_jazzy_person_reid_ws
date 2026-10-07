@@ -1,5 +1,29 @@
 # Robot RSSI Tracking — 4 board (S3 Beacon + NodeMCU Master + 2 Mtiny Slave)
 
+> **Từ 30/09: cả 3 board quét cắm thẳng USB vào laptop, dùng chung firmware `src/scanner`**
+> (env `scan_a`, `scan_b`, `scan_c`). Không ESP-NOW, không WiFi, không lọc trên board —
+> mỗi lần thấy beacon in một dòng `R,<id>,<seq>,<ms>,<rssi>`; máy tính lo lọc và ước lượng
+> hướng. Phần "Master + 2 Slave" bên dưới là kiểu cũ, giữ lại để tham khảo.
+>
+> | env | Board | Vị trí trên xe |
+> |---|---|---|
+> | `scan_a` | NodeMCU-32S | đầu xe (đỉnh tam giác) |
+> | `scan_b` | Mtiny WROVER-IE #1 | sau xe, bên **phải** |
+> | `scan_c` | Mtiny WROVER-IE #2 | sau xe, bên **trái** |
+>
+> Tam giác cân: cạnh bên 40 cm, đáy (B–C) 48 cm → cao 32 cm. Beacon (`s3_esp`) giữ nguyên,
+> phát trên cả 3 kênh quảng bá — đừng giới hạn còn 1 kênh (xe và người đứng yên thì chỉ
+> trung bình qua 3 kênh mới xoá được sai số do phản xạ).
+>
+> ```bash
+> # Nạp TỪNG board, chỉ rõ cổng — LiDAR SC-Mini cũng chip CH340, để pio tự dò là có thể nạp nhầm
+> ~/.platformio/penv/bin/pio run -e scan_a -t upload --upload-port /dev/serial/by-path/<cổng A>
+> # Đo (giai đoạn R0): src/person_follow_nav/scripts/rssi_log.py
+> python3 rssi_log.py --ports /dev/serial/by-path/<A> /dev/serial/by-path/<B> /dev/serial/by-path/<C> --sec 60 --out truoc_1m5.csv
+> ```
+>
+> `pio` cài từ apt (4.3.4) hỏng với `click` mới — dùng `~/.platformio/penv/bin/pio`.
+
 ## Cấu trúc project
 ```
 robot_rssi/
