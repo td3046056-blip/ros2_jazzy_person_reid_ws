@@ -46,6 +46,7 @@ class RssiScannerNode(Node):
         self.recent: Dict[str, List[tuple]] = {}        # board -> [(t, rssi)] trong 2 s gan day
         self.last_t: Dict[str, float] = {}
         self.warned_dup = False
+        self.t_start = time.time()
         self.lock = threading.Lock()
 
         self.pub_raw = self.create_publisher(String, self.raw_topic, 50)
@@ -141,7 +142,14 @@ class RssiScannerNode(Node):
         self.pub_status.publish(String(data=json.dumps(out)))
         if boards and min(ages) > self.silent_warn:
             self.get_logger().warn(
-                f"Khong thay beacon {min(ages):.0f} s — beacon tat / het pin / qua xa?", throttle_duration_sec=10.0)
+                f"Khong thay beacon {min(ages):.0f} s — beacon tat / het pin / sac du phong tu ngat / qua xa?",
+                throttle_duration_sec=10.0)
+        elif (not boards and now - self.t_start > self.silent_warn + 3.0
+              and any(st.startswith("board") for st in ports.values())):
+            # 08/10: beacon chua bat ngay tu dau thi truoc day KHONG co canh bao nao (boards rong)
+            self.get_logger().warn(
+                f"Chua thay beacon tu luc khoi dong ({now - self.t_start:.0f} s) — beacon chua bat / sac du phong "
+                f"tu ngat?", throttle_duration_sec=10.0)
 
     def destroy_node(self) -> None:
         self.stop.set()

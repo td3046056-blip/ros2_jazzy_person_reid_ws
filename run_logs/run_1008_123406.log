@@ -1,0 +1,244 @@
+[INFO] [launch]: All log files can be found below /home/thach/.ros/log/2026-10-08-12-34-06-677066-thachLG-51441
+[INFO] [launch]: Default logging verbosity is set to INFO
+[INFO] [launch.user]: ==================================================================
+[INFO] [launch.user]:  BAM NGUOI + NE VAT CAN — BW-DR03
+[INFO] [launch.user]:    1) ros2 service call /person_reid/start_enroll  std_srvs/srv/Trigger {}
+[INFO] [launch.user]:    2) ros2 service call /person_reid/finish_enroll std_srvs/srv/Trigger {}
+[INFO] [launch.user]:    3) ros2 service call /follow/enable             std_srvs/srv/Trigger {}
+[INFO] [launch.user]:    DUNG: ros2 service call /follow/stop            std_srvs/srv/Trigger {}
+[INFO] [launch.user]:  Theo doi: ros2 topic echo /follow/planner_status
+[INFO] [launch.user]:  RSSI (start_rssi:=true): chi dung khi MAT NGUOI — xe xoay ~1 vong do huong beacon
+[INFO] [launch.user]: ==================================================================
+[INFO] [sc_mini-1]: process started with pid [51445]
+[INFO] [static_transform_publisher-2]: process started with pid [51446]
+[INFO] [decoded_serial_node-3]: process started with pid [51447]
+[INFO] [python3-4]: process started with pid [51448]
+[INFO] [rssi_scanner-5]: process started with pid [51449]
+[INFO] [rssi_bearing-6]: process started with pid [51450]
+[INFO] [target_tracker-7]: process started with pid [51451]
+[INFO] [follow_planner-8]: process started with pid [51452]
+[static_transform_publisher-2] [WARN] [1791437646.745949114] []: Old-style arguments are deprecated; see --help for new-style arguments
+[static_transform_publisher-2] [INFO] [1791437646.759256842] [base_to_laser]: Spinning until stopped - publishing transform
+[static_transform_publisher-2] translation: ('0.100000', '0.000000', '0.180000')
+[static_transform_publisher-2] rotation: ('0.000000', '0.000000', '0.000000', '1.000000')
+[static_transform_publisher-2] from 'base_link' to 'laser'
+[target_tracker-7] [INFO] [1791437647.271703403] [target_tracker_node]: target_tracker_node san sang | lidar_yaw_offset=-90.0 deg sign=1 | fuse_lidar_distance=True | predict_max=2.5s
+[decoded_serial_node-3] [INFO] [1791437647.279933319] [bw_dr03_decoded_serial_node]: BW-DR03 decoder connected on /dev/serial/by-id/usb-FTDI_FT231X_USB_UART_D30BF0NT-if00-port0 at 115200
+[decoded_serial_node-3] [INFO] [1791437647.280577988] [bw_dr03_decoded_serial_node]: Params: max_linear=0.49, max_angular=2.46, max_percent=60, cmd_timeout=1.0
+[rssi_bearing-6] [INFO] [1791437647.300328839] [rssi_bearing_node]: rssi_bearing: mau ['A', 'B', 'C'], can xoay >= 250 do trong 14 s, corr >= 0.45 & margin >= 0.1 (hoac corr >= 0.35 & margin >= 0.25)
+[target_tracker-7] [INFO] [1791437647.302087135] [target_tracker_node]: muc tieu: wait_odom
+[follow_planner-8] [INFO] [1791437647.324205333] [follow_planner_node]: follow_planner_node san sang | footprint 0.47x0.60m | v_max=0.22 w_max=1.00 | khoang cach bam=1.00m | margin mem=0.15 cung=0.06 | enabled=False
+[follow_planner-8] [INFO] [1791437647.324807262] [follow_planner_node]: Bat bam: ros2 service call /follow/enable std_srvs/srv/Trigger {}
+[follow_planner-8] [INFO] [1791437647.363666668] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-
+[decoded_serial_node-3] [INFO] [1791437647.363737903] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[rssi_scanner-5] [INFO] [1791437647.383589668] [rssi_scanner_node]: rssi_scanner: doc 3 cong @ 115200 baud -> /rssi/raw
+[decoded_serial_node-3] [INFO] [1791437647.430164919] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[rssi_scanner-5] [INFO] [1791437647.439203343] [rssi_scanner_node]: /dev/serial/by-path/pci-0000:05:00.3-usb-0:1.2:1.0-port0: da mo
+[rssi_scanner-5] [INFO] [1791437647.439323254] [rssi_scanner_node]: /dev/serial/by-path/pci-0000:05:00.3-usb-0:1.1:1.0-port0: da mo
+[rssi_scanner-5] [INFO] [1791437647.439441977] [rssi_scanner_node]: /dev/serial/by-path/pci-0000:05:00.3-usb-0:1.3:1.0-port0: da mo
+[rssi_bearing-6] [INFO] [1791437647.481993687] [rssi_bearing_node]: chua co huong hop le: chua du du lieu
+[decoded_serial_node-3] [INFO] [1791437647.496758148] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1791437647.563734855] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1791437647.630304339] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1791437647.696902317] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1791437647.763497921] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1791437647.830454445] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1791437647.896921827] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1791437647.963637342] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1791437648.030213940] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1791437648.096827331] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1791437648.163548760] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1791437648.231177237] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1791437648.297004678] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[target_tracker-7] [INFO] [1791437648.351371738] [target_tracker_node]: muc tieu: no_target_yet
+[decoded_serial_node-3] [INFO] [1791437648.363599073] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[follow_planner-8] [INFO] [1791437648.430175659] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-
+[decoded_serial_node-3] [INFO] [1791437648.430407170] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1791437648.496867408] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1791437648.563683816] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1791437648.630242594] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1791437648.696924844] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1791437648.763552482] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1791437648.830425877] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[rssi_scanner-5] [INFO] [1791437648.842503620] [rssi_scanner_node]: /dev/serial/by-path/pci-0000:05:00.3-usb-0:1.1:1.0-port0: board A khoi dong
+[decoded_serial_node-3] [INFO] [1791437648.897010774] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1791437648.963700148] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1791437649.030117635] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1791437649.096789179] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[python3-4] [INFO] [1791437649.160929539] [identity_lock_node]: Loading detector/tracker/identity lock...
+[decoded_serial_node-3] [INFO] [1791437649.163461911] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[python3-4] Fusing layers... 
+[python3-4] Model Summary: 213 layers, 1867405 parameters, 0 gradients
+[decoded_serial_node-3] [INFO] [1791437649.230115646] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[rssi_scanner-5] [INFO] [1791437649.276225471] [rssi_scanner_node]: /dev/serial/by-path/pci-0000:05:00.3-usb-0:1.2:1.0-port0: board B khoi dong
+[rssi_scanner-5] [INFO] [1791437649.288602394] [rssi_scanner_node]: /dev/serial/by-path/pci-0000:05:00.3-usb-0:1.3:1.0-port0: board C khoi dong
+[python3-4] Loading weights from /home/thach/ros2_ws/ros2_jazzy_person_reid_ws/install/person_reid_tracker/share/person_reid_tracker/models/ckpt.t7... Done!
+[python3-4] [INFO] [1791437649.296788378] [identity_lock_node]: Models loaded; torch cuda/rocm backend not available; using CPU
+[decoded_serial_node-3] [INFO] [1791437649.296857237] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1791437649.363640381] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[target_tracker-7] [INFO] [1791437649.401403946] [target_tracker_node]: muc tieu: no_target_yet
+[decoded_serial_node-3] [INFO] [1791437649.430196764] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[python3-4] [INFO] [1791437649.485356879] [identity_lock_node]: camera: MJPG 640x480 25 fps, phoi sang fixed_fps 30 ms
+[follow_planner-8] [INFO] [1791437649.496846938] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-
+[decoded_serial_node-3] [INFO] [1791437649.496881367] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1791437649.572059449] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1791437649.630516515] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1791437649.696950612] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1791437649.763888097] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1791437649.830049130] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1791437649.896828713] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[python3-4] Invalid SOS parameters for sequential JPEG
+[decoded_serial_node-3] [INFO] [1791437649.963611857] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[python3-4] Corrupt JPEG data: premature end of data segment
+[decoded_serial_node-3] [INFO] [1791437650.030956553] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[python3-4] Warning: Ignoring XDG_SESSION_TYPE=wayland on Gnome. Use QT_QPA_PLATFORM=wayland to run on Wayland anyway.
+[decoded_serial_node-3] [INFO] [1791437650.096772081] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[python3-4] Corrupt JPEG data: premature end of data segment
+[decoded_serial_node-3] [INFO] [1791437650.165085549] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[python3-4] Corrupt JPEG data: premature end of data segment
+[decoded_serial_node-3] [INFO] [1791437650.230186361] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1791437650.296995604] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[python3-4] Corrupt JPEG data: premature end of data segment
+[decoded_serial_node-3] [INFO] [1791437650.363827403] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[target_tracker-7] [INFO] [1791437650.401905573] [target_tracker_node]: muc tieu: no_target_yet
+[python3-4] Corrupt JPEG data: bad Huffman code
+[decoded_serial_node-3] [INFO] [1791437650.430465684] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[follow_planner-8] [INFO] [1791437650.496835650] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-
+[decoded_serial_node-3] [INFO] [1791437650.497000675] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[python3-4] Corrupt JPEG data: 441 extraneous bytes before marker 0xd2
+[decoded_serial_node-3] [INFO] [1791437650.563692381] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[python3-4] Corrupt JPEG data: premature end of data segment
+[decoded_serial_node-3] [INFO] [1791437650.630249930] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[python3-4] Corrupt JPEG data: bad Huffman code
+[decoded_serial_node-3] [INFO] [1791437650.696794419] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1791437650.763535989] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[python3-4] Invalid SOS parameters for sequential JPEG
+[decoded_serial_node-3] [INFO] [1791437650.830336921] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1791437650.897006070] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[python3-4] Corrupt JPEG data: found marker 0xd5 instead of RST4
+[decoded_serial_node-3] [INFO] [1791437650.963646725] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1791437651.030252941] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[python3-4] Corrupt JPEG data: 525 extraneous bytes before marker 0xd6
+[decoded_serial_node-3] [INFO] [1791437651.096777227] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1791437651.163593572] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[python3-4] Corrupt JPEG data: 543 extraneous bytes before marker 0xd6
+[decoded_serial_node-3] [INFO] [1791437651.230185530] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1791437651.296836849] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[python3-4] Corrupt JPEG data: 17 extraneous bytes before marker 0xd4
+[decoded_serial_node-3] [INFO] [1791437651.363697122] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1791437651.430308076] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[target_tracker-7] [INFO] [1791437651.452439306] [target_tracker_node]: muc tieu: no_target_yet
+[python3-4] Corrupt JPEG data: premature end of data segment
+[follow_planner-8] [INFO] [1791437651.497027068] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-
+[decoded_serial_node-3] [INFO] [1791437651.497061498] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[python3-4] Corrupt JPEG data: 106 extraneous bytes before marker 0xd4
+[decoded_serial_node-3] [INFO] [1791437651.563585783] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[python3-4] Corrupt JPEG data: premature end of data segment
+[decoded_serial_node-3] [INFO] [1791437651.630410439] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1791437651.696969155] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[python3-4] Corrupt JPEG data: premature end of data segment
+[sc_mini-1] sc_mini start
+[decoded_serial_node-3] [INFO] [1791437651.763571798] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[python3-4] Corrupt JPEG data: found marker 0xd3 instead of RST2
+[decoded_serial_node-3] [INFO] [1791437651.830099645] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[python3-4] Corrupt JPEG data: premature end of data segment
+[decoded_serial_node-3] [INFO] [1791437651.896898182] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[python3-4] Corrupt JPEG data: 805 extraneous bytes before marker 0xd0
+[decoded_serial_node-3] [INFO] [1791437651.963528131] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[python3-4] Corrupt JPEG data: premature end of data segment
+[decoded_serial_node-3] [INFO] [1791437652.030302914] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1791437652.096860422] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[python3-4] Corrupt JPEG data: premature end of data segment
+[decoded_serial_node-3] [INFO] [1791437652.163429803] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[python3-4] Corrupt JPEG data: premature end of data segment
+[decoded_serial_node-3] [INFO] [1791437652.230171332] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1791437652.296677789] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[python3-4] Corrupt JPEG data: found marker 0xd7 instead of RST6
+[decoded_serial_node-3] [INFO] [1791437652.363527356] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[python3-4] Corrupt JPEG data: found marker 0xd2 instead of RST0
+[decoded_serial_node-3] [INFO] [1791437652.430384047] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[target_tracker-7] [INFO] [1791437652.453779674] [target_tracker_node]: muc tieu: no_target_yet
+[decoded_serial_node-3] [INFO] [1791437652.497025849] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1791437652.564493965] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[follow_planner-8] [INFO] [1791437652.564610314] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-
+[python3-4] Corrupt JPEG data: found marker 0xd2 instead of RST1
+[decoded_serial_node-3] [INFO] [1791437652.630441235] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[python3-4] Corrupt JPEG data: 96 extraneous bytes before marker 0xd3
+[decoded_serial_node-3] [INFO] [1791437652.697733640] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1791437652.763887489] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1791437652.830417690] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1791437652.896940769] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[python3-4] Corrupt JPEG data: 37 extraneous bytes before marker 0xd0
+[decoded_serial_node-3] [INFO] [1791437652.963556451] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[python3-4] Corrupt JPEG data: premature end of data segment
+[decoded_serial_node-3] [INFO] [1791437653.030148380] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[python3-4] Corrupt JPEG data: 577 extraneous bytes before marker 0xd1
+[decoded_serial_node-3] [INFO] [1791437653.097379030] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[python3-4] Corrupt JPEG data: premature end of data segment
+[decoded_serial_node-3] [INFO] [1791437653.163605280] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[python3-4] Corrupt JPEG data: 8 extraneous bytes before marker 0xd1
+[decoded_serial_node-3] [INFO] [1791437653.230207882] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1791437653.296798613] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[python3-4] Corrupt JPEG data: 1203 extraneous bytes before marker 0xd1
+[decoded_serial_node-3] [INFO] [1791437653.363589986] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1791437653.430541636] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1791437653.496753639] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[target_tracker-7] [INFO] [1791437653.501256815] [target_tracker_node]: muc tieu: no_target_yet
+[python3-4] Corrupt JPEG data: found marker 0xd1 instead of RST0
+[decoded_serial_node-3] [INFO] [1791437653.563649488] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[follow_planner-8] [INFO] [1791437653.630376751] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-
+[decoded_serial_node-3] [INFO] [1791437653.630401683] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1791437653.696997162] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1791437653.763590267] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[python3-4] Corrupt JPEG data: 153 extraneous bytes before marker 0xd2
+[decoded_serial_node-3] [INFO] [1791437653.831336176] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1791437653.897192009] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[python3-4] Corrupt JPEG data: premature end of data segment
+[decoded_serial_node-3] [INFO] [1791437653.963516800] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1791437654.030460130] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1791437654.096913122] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[python3-4] Corrupt JPEG data: 257 extraneous bytes before marker 0xd2
+[decoded_serial_node-3] [INFO] [1791437654.163572693] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[python3-4] Invalid SOS parameters for sequential JPEG
+[decoded_serial_node-3] [INFO] [1791437654.230440029] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1791437654.296908455] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[python3-4] Corrupt JPEG data: 315 extraneous bytes before marker 0xd2
+[decoded_serial_node-3] [INFO] [1791437654.363640447] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1791437654.430625319] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1791437654.496824243] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[python3-4] Corrupt JPEG data: 553 extraneous bytes before marker 0xd7
+[target_tracker-7] [INFO] [1791437654.551294493] [target_tracker_node]: muc tieu: no_target_yet
+[decoded_serial_node-3] [INFO] [1791437654.563498060] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[python3-4] Corrupt JPEG data: 791 extraneous bytes before marker 0xd5
+[decoded_serial_node-3] [INFO] [1791437654.630117265] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1791437654.696940674] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[follow_planner-8] [INFO] [1791437654.696998848] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-
+[python3-4] Invalid SOS parameters for sequential JPEG
+[decoded_serial_node-3] [INFO] [1791437654.763699972] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[WARNING] [launch]: user interrupted with ctrl-c (SIGINT)
+[sc_mini-1] [INFO] [1791437654.788648486] [rclcpp]: signal_handler(SIGINT/SIGTERM)
+[decoded_serial_node-3] [INFO] [1791437654.789143562] [bw_dr03_decoded_serial_node]: SEND MOTOR CMD: cd eb d7 09 74 53 53 53 53 1e 1e 00 00
+[decoded_serial_node-3] Failed to publish log message to rosout: publisher's context is invalid, at ./src/rcl/publisher.c:423
+[static_transform_publisher-2] [INFO] [1791437654.789363200] [rclcpp]: signal_handler(SIGINT/SIGTERM)
+[decoded_serial_node-3] Traceback (most recent call last):
+[decoded_serial_node-3]   File "/home/thach/ros2_ws/ros2_jazzy_person_reid_ws/install/bw_dr03_ros2/lib/bw_dr03_ros2/decoded_serial_node", line 33, in <module>
+[decoded_serial_node-3]     sys.exit(load_entry_point('bw-dr03-ros2==0.0.0', 'console_scripts', 'decoded_serial_node')())
+[decoded_serial_node-3]              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[decoded_serial_node-3]   File "/home/thach/ros2_ws/ros2_jazzy_person_reid_ws/install/bw_dr03_ros2/lib/python3.12/site-packages/bw_dr03_ros2/decoded_serial_node.py", line 531, in main
+[decoded_serial_node-3]     rclpy.shutdown()
+[decoded_serial_node-3]   File "/opt/ros/jazzy/lib/python3.12/site-packages/rclpy/__init__.py", line 134, in shutdown
+[decoded_serial_node-3]     _shutdown(context=context)
+[decoded_serial_node-3]   File "/opt/ros/jazzy/lib/python3.12/site-packages/rclpy/utilities.py", line 82, in shutdown
+[decoded_serial_node-3]     context.shutdown()
+[decoded_serial_node-3]   File "/opt/ros/jazzy/lib/python3.12/site-packages/rclpy/context.py", line 129, in shutdown
+[decoded_serial_node-3]     self.__context.shutdown()
+[decoded_serial_node-3] rclpy._rclpy_pybind11.RCLError: failed to shutdown: rcl_shutdown already called on the given context, at ./src/rcl/init.c:333
+[python3-4] Invalid SOS parameters for sequential JPEG
+[INFO] [static_transform_publisher-2]: process has finished cleanly [pid 51446]
+[INFO] [rssi_scanner-5]: process has finished cleanly [pid 51449]
+[INFO] [rssi_bearing-6]: process has finished cleanly [pid 51450]
+[INFO] [target_tracker-7]: process has finished cleanly [pid 51451]
+[INFO] [follow_planner-8]: process has finished cleanly [pid 51452]
+[ERROR] [decoded_serial_node-3]: process has died [pid 51447, exit code 1, cmd '/home/thach/ros2_ws/ros2_jazzy_person_reid_ws/install/bw_dr03_ros2/lib/bw_dr03_ros2/decoded_serial_node --ros-args -r __node:=bw_dr03_decoded_serial_node --params-file /tmp/launch_params_jyjjam3v'].
+[INFO] [sc_mini-1]: process has finished cleanly [pid 51445]
+[INFO] [python3-4]: process has finished cleanly [pid 51448]

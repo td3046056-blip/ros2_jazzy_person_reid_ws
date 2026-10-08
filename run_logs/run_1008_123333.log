@@ -1,0 +1,134 @@
+[INFO] [launch]: All log files can be found below /home/thach/.ros/log/2026-10-08-12-33-33-214111-thachLG-50880
+[INFO] [launch]: Default logging verbosity is set to INFO
+[INFO] [launch.user]: ==================================================================
+[INFO] [launch.user]:  BAM NGUOI + NE VAT CAN — BW-DR03
+[INFO] [launch.user]:    1) ros2 service call /person_reid/start_enroll  std_srvs/srv/Trigger {}
+[INFO] [launch.user]:    2) ros2 service call /person_reid/finish_enroll std_srvs/srv/Trigger {}
+[INFO] [launch.user]:    3) ros2 service call /follow/enable             std_srvs/srv/Trigger {}
+[INFO] [launch.user]:    DUNG: ros2 service call /follow/stop            std_srvs/srv/Trigger {}
+[INFO] [launch.user]:  Theo doi: ros2 topic echo /follow/planner_status
+[INFO] [launch.user]:  RSSI (start_rssi:=true): chi dung khi MAT NGUOI — xe xoay ~1 vong do huong beacon
+[INFO] [launch.user]: ==================================================================
+[INFO] [sc_mini-1]: process started with pid [50884]
+[INFO] [static_transform_publisher-2]: process started with pid [50885]
+[INFO] [decoded_serial_node-3]: process started with pid [50886]
+[INFO] [python3-4]: process started with pid [50887]
+[INFO] [rssi_scanner-5]: process started with pid [50888]
+[INFO] [rssi_bearing-6]: process started with pid [50889]
+[INFO] [target_tracker-7]: process started with pid [50890]
+[INFO] [follow_planner-8]: process started with pid [50891]
+[static_transform_publisher-2] [WARN] [1791437613.282712094] []: Old-style arguments are deprecated; see --help for new-style arguments
+[static_transform_publisher-2] [INFO] [1791437613.295118888] [base_to_laser]: Spinning until stopped - publishing transform
+[static_transform_publisher-2] translation: ('0.100000', '0.000000', '0.180000')
+[static_transform_publisher-2] rotation: ('0.000000', '0.000000', '0.000000', '1.000000')
+[static_transform_publisher-2] from 'base_link' to 'laser'
+[rssi_bearing-6] [INFO] [1791437613.671400901] [rssi_bearing_node]: rssi_bearing: mau ['A', 'B', 'C'], can xoay >= 250 do trong 14 s, corr >= 0.45 & margin >= 0.1 (hoac corr >= 0.35 & margin >= 0.25)
+[rssi_scanner-5] [INFO] [1791437613.714217991] [rssi_scanner_node]: rssi_scanner: doc 3 cong @ 115200 baud -> /rssi/raw
+[target_tracker-7] [INFO] [1791437613.738179130] [target_tracker_node]: target_tracker_node san sang | lidar_yaw_offset=-90.0 deg sign=1 | fuse_lidar_distance=True | predict_max=2.5s
+[decoded_serial_node-3] [INFO] [1791437613.742761926] [bw_dr03_decoded_serial_node]: BW-DR03 decoder connected on /dev/serial/by-id/usb-FTDI_FT231X_USB_UART_D30BF0NT-if00-port0 at 115200
+[decoded_serial_node-3] [INFO] [1791437613.743198835] [bw_dr03_decoded_serial_node]: Params: max_linear=0.49, max_angular=2.46, max_percent=60, cmd_timeout=1.0
+[follow_planner-8] [INFO] [1791437613.767856892] [follow_planner_node]: follow_planner_node san sang | footprint 0.47x0.60m | v_max=0.22 w_max=1.00 | khoang cach bam=1.00m | margin mem=0.15 cung=0.06 | enabled=False
+[follow_planner-8] [INFO] [1791437613.768175076] [follow_planner_node]: Bat bam: ros2 service call /follow/enable std_srvs/srv/Trigger {}
+[rssi_scanner-5] [INFO] [1791437613.770990052] [rssi_scanner_node]: /dev/serial/by-path/pci-0000:05:00.3-usb-0:1.3:1.0-port0: da mo
+[rssi_scanner-5] [INFO] [1791437613.774562496] [rssi_scanner_node]: /dev/serial/by-path/pci-0000:05:00.3-usb-0:1.2:1.0-port0: da mo
+[rssi_scanner-5] [INFO] [1791437613.774697843] [rssi_scanner_node]: /dev/serial/by-path/pci-0000:05:00.3-usb-0:1.1:1.0-port0: da mo
+[target_tracker-7] [INFO] [1791437613.775942084] [target_tracker_node]: muc tieu: wait_odom
+[decoded_serial_node-3] [INFO] [1791437613.820633847] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[follow_planner-8] [INFO] [1791437613.820733576] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-
+[rssi_bearing-6] [INFO] [1791437613.860228733] [rssi_bearing_node]: chua co huong hop le: chua du du lieu
+[decoded_serial_node-3] [INFO] [1791437613.887251797] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1791437613.954020528] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1791437614.020567233] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1791437614.087225513] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1791437614.154060693] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1791437614.220680981] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1791437614.287377253] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1791437614.354071151] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1791437614.420614267] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1791437614.487461320] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1791437614.553928452] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1791437614.620796876] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1791437614.687373236] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1791437614.754060010] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1791437614.820575819] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[target_tracker-7] [INFO] [1791437614.825316518] [target_tracker_node]: muc tieu: no_target_yet
+[follow_planner-8] [INFO] [1791437614.887235286] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-
+[decoded_serial_node-3] [INFO] [1791437614.887495295] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1791437614.954204626] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1791437615.020575581] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1791437615.087179211] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1791437615.154044036] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[rssi_scanner-5] [INFO] [1791437615.172129441] [rssi_scanner_node]: /dev/serial/by-path/pci-0000:05:00.3-usb-0:1.1:1.0-port0: board A khoi dong
+[decoded_serial_node-3] [INFO] [1791437615.220690408] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[WARNING] [launch]: user interrupted with ctrl-c (SIGINT)
+[static_transform_publisher-2] [INFO] [1791437615.269303613] [rclcpp]: signal_handler(SIGINT/SIGTERM)
+[sc_mini-1] [INFO] [1791437615.269303613] [rclcpp]: signal_handler(SIGINT/SIGTERM)
+[decoded_serial_node-3] [INFO] [1791437615.269926921] [bw_dr03_decoded_serial_node]: SEND MOTOR CMD: cd eb d7 09 74 53 53 53 53 1e 1e 00 00
+[decoded_serial_node-3] Failed to publish log message to rosout: publisher's context is invalid, at ./src/rcl/publisher.c:423
+[python3-4] Traceback (most recent call last):
+[python3-4]   File "<frozen runpy>", line 198, in _run_module_as_main
+[python3-4]   File "<frozen runpy>", line 88, in _run_code
+[python3-4]   File "/home/thach/ros2_ws/ros2_jazzy_person_reid_ws/build/person_follow_identity/person_follow_identity/node.py", line 26, in <module>
+[python3-4]     from .core import IdentityFollowCore, parse_camera_source
+[python3-4]   File "/home/thach/ros2_ws/ros2_jazzy_person_reid_ws/build/person_follow_identity/person_follow_identity/core.py", line 13, in <module>
+[python3-4]     from person_reid_tracker.yolo_deepsort_pipeline import YoloDeepSortPipeline
+[python3-4]   File "/home/thach/ros2_ws/ros2_jazzy_person_reid_ws/install/person_reid_tracker/lib/python3.12/site-packages/person_reid_tracker/yolo_deepsort_pipeline.py", line 15, in <module>
+[python3-4]     from models.common import DetectMultiBackend
+[python3-4]   File "/home/thach/ros2_ws/ros2_jazzy_person_reid_ws/install/person_reid_tracker/lib/python3.12/site-packages/models/common.py", line 26, in <module>
+[python3-4]     from utils.plots import Annotator, colors, save_one_box
+[python3-4]   File "/home/thach/ros2_ws/ros2_jazzy_person_reid_ws/install/person_reid_tracker/lib/python3.12/site-packages/utils/plots.py", line 16, in <module>
+[python3-4]     import seaborn as sn
+[python3-4]   File "/home/thach/.local/lib/python3.12/site-packages/seaborn/__init__.py", line 5, in <module>
+[python3-4]     from .relational import *  # noqa: F401,F403
+[python3-4]     ^^^^^^^^^^^^^^^^^^^^^^^^^
+[python3-4]   File "/home/thach/.local/lib/python3.12/site-packages/seaborn/relational.py", line 21, in <module>
+[python3-4]     from ._statistics import EstimateAggregator, WeightedAggregator
+[python3-4]   File "/home/thach/.local/lib/python3.12/site-packages/seaborn/_statistics.py", line 32, in <module>
+[python3-4]     from scipy.stats import gaussian_kde
+[python3-4]   File "/usr/lib/python3/dist-packages/scipy/stats/__init__.py", line 608, in <module>
+[python3-4]     from ._stats_py import *
+[python3-4]   File "/usr/lib/python3/dist-packages/scipy/stats/_stats_py.py", line 37, in <module>
+[python3-4]     from numpy.testing import suppress_warnings
+[python3-4]   File "/home/thach/.local/lib/python3.12/site-packages/numpy/testing/__init__.py", line 11, in <module>
+[python3-4]     from ._private.utils import *
+[python3-4]   File "/home/thach/.local/lib/python3.12/site-packages/numpy/testing/_private/utils.py", line 1253, in <module>
+[python3-4]     _SUPPORTS_SVE = check_support_sve()
+[python3-4]                     ^^^^^^^^^^^^^^^^^^^
+[python3-4]   File "/home/thach/.local/lib/python3.12/site-packages/numpy/testing/_private/utils.py", line 1247, in check_support_sve
+[python3-4]     output = subprocess.run(cmd, capture_output=True, text=True)
+[python3-4]              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[python3-4]   File "/usr/lib/python3.12/subprocess.py", line 550, in run
+[python3-4]     stdout, stderr = process.communicate(input, timeout=timeout)
+[python3-4]                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[python3-4]   File "/usr/lib/python3.12/subprocess.py", line 1209, in communicate
+[python3-4]     stdout, stderr = self._communicate(input, endtime, timeout)
+[python3-4]                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[python3-4]   File "/usr/lib/python3.12/subprocess.py", line 2115, in _communicate
+[python3-4]     ready = selector.select(timeout)
+[python3-4]             ^^^^^^^^^^^^^^^^^^^^^^^^
+[python3-4]   File "/usr/lib/python3.12/selectors.py", line 415, in select
+[python3-4]     fd_event_list = self._selector.poll(timeout)
+[python3-4]                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[python3-4] KeyboardInterrupt
+[decoded_serial_node-3] Traceback (most recent call last):
+[decoded_serial_node-3]   File "/home/thach/ros2_ws/ros2_jazzy_person_reid_ws/install/bw_dr03_ros2/lib/bw_dr03_ros2/decoded_serial_node", line 33, in <module>
+[decoded_serial_node-3]     sys.exit(load_entry_point('bw-dr03-ros2==0.0.0', 'console_scripts', 'decoded_serial_node')())
+[decoded_serial_node-3]              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[decoded_serial_node-3]   File "/home/thach/ros2_ws/ros2_jazzy_person_reid_ws/install/bw_dr03_ros2/lib/python3.12/site-packages/bw_dr03_ros2/decoded_serial_node.py", line 531, in main
+[decoded_serial_node-3]     rclpy.shutdown()
+[decoded_serial_node-3]   File "/opt/ros/jazzy/lib/python3.12/site-packages/rclpy/__init__.py", line 134, in shutdown
+[decoded_serial_node-3]     _shutdown(context=context)
+[decoded_serial_node-3]   File "/opt/ros/jazzy/lib/python3.12/site-packages/rclpy/utilities.py", line 82, in shutdown
+[decoded_serial_node-3]     context.shutdown()
+[decoded_serial_node-3]   File "/opt/ros/jazzy/lib/python3.12/site-packages/rclpy/context.py", line 129, in shutdown
+[decoded_serial_node-3]     self.__context.shutdown()
+[decoded_serial_node-3] rclpy._rclpy_pybind11.RCLError: failed to shutdown: rcl_shutdown already called on the given context, at ./src/rcl/init.c:333
+[INFO] [static_transform_publisher-2]: process has finished cleanly [pid 50885]
+[INFO] [rssi_bearing-6]: process has finished cleanly [pid 50889]
+[INFO] [rssi_scanner-5]: process has finished cleanly [pid 50888]
+[INFO] [follow_planner-8]: process has finished cleanly [pid 50891]
+[INFO] [target_tracker-7]: process has finished cleanly [pid 50890]
+[ERROR] [decoded_serial_node-3]: process has died [pid 50886, exit code 1, cmd '/home/thach/ros2_ws/ros2_jazzy_person_reid_ws/install/bw_dr03_ros2/lib/bw_dr03_ros2/decoded_serial_node --ros-args -r __node:=bw_dr03_decoded_serial_node --params-file /tmp/launch_params_ciya77s2'].
+[sc_mini-1] sc_mini start
+[INFO] [sc_mini-1]: process has finished cleanly [pid 50884]
+[ERROR] [python3-4]: process has died [pid 50887, exit code -2, cmd '/usr/bin/python3 -m person_follow_identity.node --ros-args -r __node:=identity_lock_node --params-file /home/thach/ros2_ws/ros2_jazzy_person_reid_ws/install/person_follow_robot/share/person_follow_robot/config/identity_lock_kingsen.yaml -p camera_source:=/dev/v4l/by-id/usb-Generic_KINGSEN_CAMERA_200901010001-video-index0'].

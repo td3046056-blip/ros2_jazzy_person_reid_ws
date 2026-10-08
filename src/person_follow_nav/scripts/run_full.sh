@@ -48,7 +48,7 @@ if [ $BAG_ONLY = 1 ]; then
   mkdir -p "$HOME/bags"
   OUT="$HOME/bags/follow_$(date +%m%d_%H%M%S)"
   echo "Ghi bag -> $OUT (Ctrl-C de dung; khong ghi anh camera)"
-  exec ros2 bag record -o "$OUT" /scan /odom /cmd_vel /follow/target /follow/planner_status \
+  exec ros2 bag record -o "$OUT" --topics /scan /odom /cmd_vel /follow/target /follow/planner_status \
     /person_reid/target /rssi/bearing /rssi/status /rssi/raw /tf /tf_static
 fi
 
@@ -110,9 +110,9 @@ for v in $DEVS; do
   if [ -z "$p" ]; then bad "$v (${DESC[$v]}) chua dat trong $ENV_FILE"; continue; fi
   if [ ! -e "$p" ]; then bad "$v = $p KHONG ton tai (${DESC[$v]})"; continue; fi
   real=$(readlink -f "$p")
-  pids=$(fuser "$real" 2>/dev/null | tr -s ' ')
+  pids=$(fuser "$real" 2>/dev/null | xargs)
   if [ -n "$pids" ]; then
-    bad "$v -> $real dang bi tien trinh khac giu:$(ps -o pid=,comm= -p "${pids// /,}" 2>/dev/null | tr '\n' ' ')"
+    bad "$v -> $real dang bi tien trinh khac giu: $(ps -o pid=,comm= -p "${pids// /,}" 2>/dev/null | xargs)"
   else
     ok "$v -> $real  (${DESC[$v]})"
   fi
@@ -122,6 +122,28 @@ if [ $RSSI = 1 ] && [ -e "$PL" ]; then
   for v in PA PB PC; do
     [ -e "${!v}" ] && [ "$(readlink -f "${!v}")" = "$rl" ] && bad "$v TRUNG thiet bi voi LiDAR ($rl) — sua $ENV_FILE"
   done
+fi
+
+if [ $RSSI = 1 ] && [ -e "$PA" ] && [ -e "$PB" ] && [ -e "$PC" ]; then
+  echo
+  echo "${B}4b. Beacon (doc thu 3 board ~6 s; RSSI chi dung khi MAT nguoi, khong co beacon van chay duoc)${X}"
+  # 08/10: beacon phat ~2 phut sau moi lan bat roi tat (nghi sac du phong tu ngat khi dong nho) -> xe khong
+  # tim lai duoc nguoi bang RSSI ma khong ai biet. Mo cong lam board khoi dong lai (~1.5 s) — vo hai.
+  tmpcsv="${TMPDIR:-/tmp}/beacon_check_$$.csv"
+  out=$(timeout 20 python3 "$SCRIPT_DIR/rssi_log.py" --ports "$PA" "$PB" "$PC" --sec 6 --out "$tmpcsv" 2>&1)
+  rc=$?
+  rm -f "${tmpcsv%.csv}"*.csv
+  if [ $rc -eq 0 ]; then
+    ok "beacon dang phat (moi board nen >= 10 mau/s):"
+    echo "$out" | sed -n '/KET QUA/,$p' | tail -n +2 | sed 's/^/      /'
+  elif echo "$out" | grep -q "dang bi tien trinh khac giu"; then
+    warn "khong doc thu duoc beacon: cong board dang bi tien trinh khac giu (he thong dang chay?)"
+  else
+    warn "KHONG thay beacon — xe van bam duoc, nhung MAT nguoi thi khong xoay do RSSI duoc (B7). Kiem tra:"
+    echo "$out" | tail -n 2 | sed 's/^/        /'
+    echo "        den beacon con sang? cap nguon bang sac du phong: nhieu loai TU NGAT sau ~1-2 phut vi beacon an"
+    echo "        qua it dong — dung che do dong nho (thuong bam 2 lan nut) / pin khong tu ngat"
+  fi
 fi
 
 echo

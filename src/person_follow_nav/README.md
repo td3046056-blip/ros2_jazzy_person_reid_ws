@@ -682,7 +682,7 @@ lạ — để tìm lại trong log/bag.
 | **B4** đi vòng thùng (4.8) | Bạn đi vòng qua thùng rồi đứng sau | Xe đi theo, không chui vào góc thùng | Xe kẹt ở góc |
 | **B5** hồi quy cửa 0.81 m | Cửa trước đi thẳng; cửa bên hông rẽ phải | Qua như 29/09 (`chui khe hep — vao truc / qua khe theo truc`), không cà khung | Đứng im giữa cửa > 5 s / cà khung |
 | **B6** người thứ hai (4.3/4.4) | Người 2 đứng chen giữa ≥ 3 s; đi cắt ngang; đứng sát trước bạn | Xe vòng qua hoặc chờ, **không** chạy tới chân người 2; `kc` không nhảy sang khoảng cách người 2 | Xe chạy thẳng tới người 2 |
-| **B7** RSSI tìm người khuất (4.9) | Đi nhanh qua cửa sang phòng bên, đứng sau vách, **đứng yên, quay lưng về xe** tới khi xe tìm thấy | `SEARCH`: đi tới chỗ thấy cuối → quay mặt → `xoay do huong beacon` (rssi `quet` tăng tới ~250–760, rồi `huong +N`) → quay camera về hướng đó → `FOLLOW` | Xoay sát người/vật; `MAT-BEACON` |
+| **B7** RSSI tìm người khuất (4.9) | Đi nhanh qua cửa sang phòng bên, đứng sau vách, **đứng yên, quay lưng về xe** tới khi xe tìm thấy | `SEARCH`: đi tới chỗ thấy cuối → quay mặt → `xoay do huong beacon` (rssi `quet` tăng tới ~250–760, rồi `huong +N`) → quay camera về hướng đó → `FOLLOW` | Xoay sát người/vật; `MAT-BEACON` (08/10: beacon chỉ phát ~2 phút sau mỗi lần bật — sạc dự phòng tự ngắt? `run_full.sh` mục 4b báo trước khi launch). Phải khuất camera **suốt** lúc xe xoay: 08/10 camera thấy lại sau ~100° nên chưa cần tới hướng beacon |
 | **B8** (tuỳ chọn) đối chứng | T1 chạy lại với `--no-rssi`, lặp B7 | Không RSSI: quét qua lại rồi `IDLE` — thấy rõ RSSI giúp gì | — |
 
 Lần đầu planner mới (bản đồ lưới, lùi tối đa 0.40 m — LiDAR mù sau đuôi) chạy trên xe: giữ **sau xe** trống;
