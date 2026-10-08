@@ -631,6 +631,65 @@ ros2 topic echo /follow/target --field data --full-length | grep --line-buffered
 Lúc xe xoay dò RSSI (4.9) người đeo beacon **đứng yên, quay lưng về xe**. Lần đầu đứng sẵn cạnh
 `/follow/stop`. Mô phỏng trước khi thử: `python3 scripts/regress_follow.py --groups lowbox,hard,rssi`.
 
+#### Chạy toàn bộ bằng một lệnh + kịch bản thử theo bậc (08/10)
+
+Cổng thiết bị nằm trong `~/rssi_env.sh` (`PL` LiDAR, `PA PB PC` 3 board, `PROBOT`, `PCAM` — `by-path`, đổi ổ
+cắm USB thì sửa file đó). `scripts/run_full.sh` kiểm tra trước (brltty, driver CH340, cổng tồn tại / bị
+giữ / trùng nhau, node cũ, `install/` là symlink) rồi mới launch; có mục HỎNG thì từ chối chạy.
+
+**Một lần duy nhất trên máy mới cắm hub `1a40:0101`:** gói `brltty` (chữ nổi cho người mù) có luật udev bắt
+đúng "CH340 sau hub 1a40:0101" và chiếm LiDAR (USB không có `ttyUSB`, `/scan` không có). Gỡ rồi rút cắm lại
+USB LiDAR:
+
+```bash
+sudo systemctl stop brltty-udev.service
+sudo apt remove brltty          # hoặc giữ gói: sudo systemctl mask brltty-udev.service
+# rút cắm lại dây USB LiDAR (đúng ổ cũ), rồi:
+bash src/person_follow_nav/scripts/run_full.sh --check     # phải "KIEM TRA DAT"
+```
+
+Bốn terminal (mỗi terminal: `cd ~/ros2_ws/ros2_jazzy_person_reid_ws && source install/setup.bash`):
+
+```bash
+# T1 — toàn bộ hệ thống (log: run_logs/run_*.log). --no-rssi = chỉ camera + LiDAR
+bash src/person_follow_nav/scripts/run_full.sh
+# T2 — theo dõi 1 dòng / 0.5 s (chỉ đọc topic; log run_logs/watch_*.txt). Sau ~20 s chạy thêm preflight
+python3 src/person_follow_nav/scripts/watch_follow.py --geom
+bash src/person_follow_nav/scripts/preflight.sh
+# T3 — ghi bag (không ghi ảnh)
+ros2 bag record -o ~/bags/follow_$(date +%m%d_%H%M%S) /scan /odom /cmd_vel /follow/target \
+  /follow/planner_status /person_reid/target /rssi/bearing /rssi/status /tf /tf_static
+# T4 — điều khiển. Gõ sẵn lệnh dừng khẩn, chỉ cần Enter
+ros2 service call /person_reid/start_enroll std_srvs/srv/Trigger {}
+ros2 service call /follow/enable           std_srvs/srv/Trigger {}
+ros2 service call /follow/stop             std_srvs/srv/Trigger {}     # DỪNG KHẨN
+```
+
+Dừng: `/follow/stop` (planner còn sống, gửi lệnh 0). Dự phòng: Ctrl-C ở T1 (driver gửi lệnh dừng khi tắt).
+Enroll: gọi `start_enroll`, đứng **một mình** trước camera, đi từ ~3 m lại ~0.8 m rồi lùi ra, xoay trái/phải;
+đủ 80 mẫu **và** 30 s thì camera tự chuyển `TRACKING` (`finish_enroll` không bắt buộc). Người khác lọt vào
+khung lúc enroll bị học là "không phải mục tiêu".
+
+Làm theo đúng thứ tự, bậc trước đạt mới sang bậc sau. Ghi lại cột `giay` của `watch_follow.py` lúc có chuyện
+lạ — để tìm lại trong log/bag.
+
+| Bậc | Làm gì | Mong đợi (cột `watch_follow.py`) | Dừng/sửa nếu |
+|---|---|---|---|
+| **B0** hệ thống + hình học camera, **chưa** `/follow/enable` | Chờ ~20 s, `preflight.sh`. Enroll. Đứng thoáng trước xe 2 m ~10 s, rồi 1.5 m, 3 m; bước sang trái ~30°, phải ~30° | Không còn cảnh báo; `cmd_vel` ≥ 10 Hz; camera ~15 Hz; rssi `A-../17 B-../19 C-../18` (beacon bật). `camera+lidar`; `kc-cam` ≈ `kc` (±15 %); `lech-ngua` trong ±3°; `cao` tiến về chiều cao thật; trái → góc **dương**, ở 30° vẫn `camera+lidar` (xác nhận cấu hình mắt cá 114° đã chạy — 13.41) | `lech-ngua` > ±3°: đo lại độ cao/góc ngửa camera → `camera_height_m` (follow_nav.yaml), `camera_pitch_deg` (identity). Ở 30° ra `camera+bbox`: cấu hình camera sai |
+| **B1** bám cơ bản, phòng trống | `/follow/enable`. Đi chậm thẳng 3–4 m, dừng; rẽ trái, rẽ phải; đứng yên 10 s | `FOLLOW` ↔ `ARRIVED`, giữ ~1.0 m, xoay theo kịp khi rẽ, **đứng im** khi bạn đứng yên (không lắc) | Xe lắc liên tục / không theo |
+| **B2** vật thấp (4.6) | Thùng ~30 cm, bạn đứng ngay sau, cách xe ~2 m | `kc` ≈ 2 m (không phải ~1 m); `note` `di vong theo ban do` → `giu khoang cach ~1.1m` cạnh thùng, hoặc `vat chan giua — dung o cho tot nhat` (thùng rộng) | Xe dừng trước thùng báo `kc` ~1 m |
+| **B3** thùng thứ hai (4.7) | Như B2 + thùng thứ hai cách 50 cm một bên; xe xuất phát lệch về phía khe | Vòng bên **trống**, không `chui khe hep` vào khe 50 cm | Xe đi vào khe / kẹt |
+| **B4** đi vòng thùng (4.8) | Bạn đi vòng qua thùng rồi đứng sau | Xe đi theo, không chui vào góc thùng | Xe kẹt ở góc |
+| **B5** hồi quy cửa 0.81 m | Cửa trước đi thẳng; cửa bên hông rẽ phải | Qua như 29/09 (`chui khe hep — vao truc / qua khe theo truc`), không cà khung | Đứng im giữa cửa > 5 s / cà khung |
+| **B6** người thứ hai (4.3/4.4) | Người 2 đứng chen giữa ≥ 3 s; đi cắt ngang; đứng sát trước bạn | Xe vòng qua hoặc chờ, **không** chạy tới chân người 2; `kc` không nhảy sang khoảng cách người 2 | Xe chạy thẳng tới người 2 |
+| **B7** RSSI tìm người khuất (4.9) | Đi nhanh qua cửa sang phòng bên, đứng sau vách, **đứng yên, quay lưng về xe** tới khi xe tìm thấy | `SEARCH`: đi tới chỗ thấy cuối → quay mặt → `xoay do huong beacon` (rssi `quet` tăng tới ~250–760, rồi `huong +N`) → quay camera về hướng đó → `FOLLOW` | Xoay sát người/vật; `MAT-BEACON` |
+| **B8** (tuỳ chọn) đối chứng | T1 chạy lại với `--no-rssi`, lặp B7 | Không RSSI: quét qua lại rồi `IDLE` — thấy rõ RSSI giúp gì | — |
+
+Lần đầu planner mới (bản đồ lưới, lùi tối đa 0.40 m — LiDAR mù sau đuôi) chạy trên xe: giữ **sau xe** trống;
+xoay dò RSSI 0.9 rad/s tối đa ~2 vòng cần trống ~0.6 m quanh xe. Hub 3 board là hub không nguồn — board hay mất
+(`/rssi/status` thiếu board, kernel báo `-71`) thì đổi hub có nguồn ngoài. Sau buổi thử gửi lại
+`run_logs/run_*.log`, `run_logs/watch_*.txt`, tên thư mục bag và các mốc `giay` có chuyện.
+
 ### Giai đoạn 5 — Không gian hẹp và RSSI (2 giờ)
 
 Test hành lang thật, cửa ra vào, giữa hai bàn.
