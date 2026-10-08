@@ -12,6 +12,7 @@ Nhom kich ban:
   turn       xoay theo nguoi di nhanh
   lowbox     nguoi dung sau thung thap 50x30 cm (canh nguoi dung bao 07/10), co / khong thung thu hai
   hard       chu U, ghe dai, thung lon xon, nguoi di vong thung, camera ngua sai goc, nguoi cao / thap, nap sau tu
+  pitch      camera ngua / cui sai 12-18 do so voi camera_pitch_deg (xe that 08/10: chi xoay, khong di toi)
   rssi       nguoi khuat sau vach co cua, co / khong RSSI
 
 CACH DUNG (trong src/person_follow_nav/scripts):
@@ -121,6 +122,15 @@ for lab, sc, kw in (
         ("ngua12_sai3_hoc", "duong_di", dict(LOWBOX=LB_L, CAM_PITCH=12, CAM_PITCH_ERR=3, WP=WP_HOC, WPV=0.25, WPT=35))):
     J("hard", lab, sc, CAM_HALF=55, **kw)
 
+# Camera NGUA that 18 do ma camera_pitch_deg = 0 (xe that 08/10: tracker bao nguoi cach 0.5-0.8 m trong khi that
+# 2-3 m -> xe chi xoay tai cho, khong di toi). Tracker phai tu do sai lech bang LiDAR (_check_geometry) roi bam.
+for sc in ("thang", "re_trai", "vong_trai"):
+    J("pitch", f"{sc}:ngua18_sai-18", sc, CAM_HALF=55, CAM_PITCH=18, CAM_PITCH_ERR=-18)
+J("pitch", "thang:ngua18_sai-12", "thang", CAM_HALF=55, CAM_PITCH=18, CAM_PITCH_ERR=-12)
+J("pitch", "thang:cui12_sai12", "thang", CAM_HALF=55, CAM_PITCH=-12, CAM_PITCH_ERR=12)
+J("pitch", "vat_thap_hoc:ngua18_sai-18", "duong_di", CAM_HALF=55, LOWBOX=LB_L, CAM_PITCH=18, CAM_PITCH_ERR=-18,
+  WP=WP_HOC, WPV=0.25, WPT=35)
+
 for r_ in ("", "1"):
     J("rssi", f"an_sau_vach:RSSI={r_ or '0'}", "an_sau_vach", CAM_HALF=55, RSSI=r_,
       TALLWALL="3.0:-6:3.0:1.5;3.0:2.4:3.0:6")
@@ -173,6 +183,10 @@ def passed(group, label, x):
         return x.get("qua_ben") == "CO" and x.get("ho", 0.0) > 0.0
     if group in ("lowbox", "hard") or (group == "rssi" and label.endswith("RSSI=1")):
         return x.get("tt") in ("ARRIVED", "FOLLOW") and 0.8 <= x.get("d", 9.0) <= 1.4 and x.get("ho", 0.0) > 0.0
+    if group == "pitch":
+        # nguoi van dang di o cuoi kich ban -> xe bam sau 1.2-1.6 m (camera dung goc: 1.30)
+        hi = 1.4 if label.startswith("vat_thap") else 1.7
+        return x.get("tt") in ("ARRIVED", "FOLLOW") and 0.8 <= x.get("d", 9.0) <= hi and x.get("ho", 0.0) > 0.0
     if group == "chen":
         if label.startswith("di:2.2:8.0"):
             return None

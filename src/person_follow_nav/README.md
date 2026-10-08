@@ -656,9 +656,9 @@ bash src/person_follow_nav/scripts/run_full.sh
 # T2 — theo dõi 1 dòng / 0.5 s (chỉ đọc topic; log run_logs/watch_*.txt). Sau ~20 s chạy thêm preflight
 python3 src/person_follow_nav/scripts/watch_follow.py --geom
 bash src/person_follow_nav/scripts/preflight.sh
-# T3 — ghi bag (không ghi ảnh)
-ros2 bag record -o ~/bags/follow_$(date +%m%d_%H%M%S) /scan /odom /cmd_vel /follow/target \
-  /follow/planner_status /person_reid/target /rssi/bearing /rssi/status /tf /tf_static
+# T3 — ghi bag vào ~/bags/follow_<ngày_giờ> (không ghi ảnh). Dùng lệnh này, đừng dán lệnh ros2 bag dài:
+# 08/10 lệnh dài bị cắt khi dán -> bag chỉ có /scan /odom /cmd_vel, thiếu hết topic JSON
+bash src/person_follow_nav/scripts/run_full.sh --bag
 # T4 — điều khiển. Gõ sẵn lệnh dừng khẩn, chỉ cần Enter
 ros2 service call /person_reid/start_enroll std_srvs/srv/Trigger {}
 ros2 service call /follow/enable           std_srvs/srv/Trigger {}
@@ -675,7 +675,7 @@ lạ — để tìm lại trong log/bag.
 
 | Bậc | Làm gì | Mong đợi (cột `watch_follow.py`) | Dừng/sửa nếu |
 |---|---|---|---|
-| **B0** hệ thống + hình học camera, **chưa** `/follow/enable` | Chờ ~20 s, `preflight.sh`. Enroll. Đứng thoáng trước xe 2 m ~10 s, rồi 1.5 m, 3 m; bước sang trái ~30°, phải ~30° | Không còn cảnh báo; `cmd_vel` ≥ 10 Hz; camera ~15 Hz; rssi `A-../17 B-../19 C-../18` (beacon bật). `camera+lidar`; `kc-cam` ≈ `kc` (±15 %); `lech-ngua` trong ±3°; `cao` tiến về chiều cao thật; trái → góc **dương**, ở 30° vẫn `camera+lidar` (xác nhận cấu hình mắt cá 114° đã chạy — 13.41) | `lech-ngua` > ±3°: đo lại độ cao/góc ngửa camera → `camera_height_m` (follow_nav.yaml), `camera_pitch_deg` (identity). Ở 30° ra `camera+bbox`: cấu hình camera sai |
+| **B0** hệ thống + hình học camera, **chưa** `/follow/enable` | Chờ ~20 s, `preflight.sh`. Enroll. Đứng thoáng trước xe 2 m ~10 s, rồi 1.5 m, 3 m; bước sang trái ~30°, phải ~30° | Không còn cảnh báo; `cmd_vel` ≥ 10 Hz; camera ~15 Hz; rssi `A-../17 B-../19 C-../18` (beacon bật). `camera+lidar`; `kc-cam` ≈ `kc` (±15 %); `lech-ngua` trong ±3°; `cao` tiến về chiều cao thật; trái → góc **dương**, ở 30° vẫn `camera+lidar` (xác nhận cấu hình mắt cá 114° đã chạy — 13.41) | `lech-ngua` > ±3°: góc ngửa / độ cao camera cấu hình sai. Tracker tự đo bằng LiDAR, tự bù và in WARN `Goc ngua camera lech ... them +X do` → cộng X vào `camera_pitch_deg` (identity), hoặc sửa `camera_height_m` (follow_nav.yaml) nếu đã nâng camera. `kc` nhỏ hơn hẳn khoảng cách thật mà nguồn `camera+bbox` (08/10: báo 0.5–0.8 m khi thật 2–3 m → xe chỉ xoay, không đi): **chưa** bật bám, đứng thoáng 1.5–2.5 m vài giây cho tracker tự đo. Ở 30° ra `camera+bbox`: cấu hình camera sai |
 | **B1** bám cơ bản, phòng trống | `/follow/enable`. Đi chậm thẳng 3–4 m, dừng; rẽ trái, rẽ phải; đứng yên 10 s | `FOLLOW` ↔ `ARRIVED`, giữ ~1.0 m, xoay theo kịp khi rẽ, **đứng im** khi bạn đứng yên (không lắc) | Xe lắc liên tục / không theo |
 | **B2** vật thấp (4.6) | Thùng ~30 cm, bạn đứng ngay sau, cách xe ~2 m | `kc` ≈ 2 m (không phải ~1 m); `note` `di vong theo ban do` → `giu khoang cach ~1.1m` cạnh thùng, hoặc `vat chan giua — dung o cho tot nhat` (thùng rộng) | Xe dừng trước thùng báo `kc` ~1 m |
 | **B3** thùng thứ hai (4.7) | Như B2 + thùng thứ hai cách 50 cm một bên; xe xuất phát lệch về phía khe | Vòng bên **trống**, không `chui khe hep` vào khe 50 cm | Xe đi vào khe / kẹt |

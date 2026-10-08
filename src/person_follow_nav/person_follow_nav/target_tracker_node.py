@@ -301,6 +301,8 @@ class TargetTrackerNode(Node):
         self.person_h_n = 0          # so lan da hoc chieu cao nguoi
         self.elev_bias = 0.0         # sai lech goc cao (goc ngua cau hinh vs that), tu hoc
         self.elev_bias_n = 0
+        self.geom_samples: List[Tuple[float, float]] = []   # [(t, sai lech goc ngua)] do bang LiDAR (_check_geometry)
+        self.geom_confirmed = False
         self.last_cam_geom: Dict[str, Any] = {}
 
         self.lidar_only_enabled = bool(g("lidar_only_track_enabled"))
@@ -513,7 +515,8 @@ class TargetTrackerNode(Node):
             return
         if not geom["bot_cut"]:
             b_obs = geom["bot"] + math.atan2(self.cam_h, d)
-            if abs(b_obs - self.elev_bias) < math.radians(8.0) and abs(b_obs) < math.radians(15.0):
+            # +-35 do (truoc 08/10: 15) — sau khi _check_geometry da bu sai lech lon (camera ngua 18 do)
+            if abs(b_obs - self.elev_bias) < math.radians(8.0) and abs(b_obs) < math.radians(35.0):
                 a = 0.2 if self.elev_bias_n < 10 else 0.03
                 self.elev_bias += a * (b_obs - self.elev_bias)
                 self.elev_bias_n += 1
@@ -523,6 +526,61 @@ class TargetTrackerNode(Node):
                 a = 0.15 if self.person_h_n < 20 else 0.03
                 self.person_h += a * (h_obs - self.person_h)
                 self.person_h_n += 1
+
+    def _check_geometry(self, geom: Optional[Dict[str, Any]], bearing: float, now: float) -> None:
+        """Do sai lech goc ngua camera bang LiDAR — KHONG can cum qua cong chan (_feet_match).
+
+        08/10 xe that: camera ngua ~18 do ma camera_pitch_deg = 0 -> day bbox thap hon cho chan ~18 do ->
+        cong chan loai CA cum chan that (1-3 m) -> roi ve camera+bbox tinh tu chan: 0.5-0.8 m -> planner
+        tuong da toi, chi xoay tai cho. _learn_geometry chi hoc khi cum da qua cong (ga va trung) va chi
+        trong +-15 do -> khong bao gio tu sua duoc.
+
+        Cum GAN NHAT theo huong camera, cach d: sai lech b = day bbox + atan(cao camera / d). Chi nhan mau
+        khi chieu cao nguoi suy ra tu DINH bbox (da bu b) hop ly 1.35-2.05 m: nguoi sau vat thap (cum = mat
+        vat, day bbox = mep vat) cho ~0.9-1.2 m, cum la vat sau lung nguoi cho > 3 m -> bi loai. Du 12 mau
+        trong 20 s, it phan tan (trung vi do lech <= 2.5 do — du lieu that 08/10: 1.6 do) ma khac sai lech
+        dang dung qua 4 do -> thay luon va canh bao."""
+        if not self.learn_geom or geom is None or geom["top_cut"] or geom["bot_cut"]:
+            return
+        if self.scan_pts.shape[0] == 0:
+            return
+        clusters = cluster_points(
+            self.scan_pts, self.scan_bear, self.scan_rng,
+            bearing, self.assoc_window_rad,
+            gap_threshold_m=self.cluster_gap_m, min_points=2,
+        )
+        if not clusters:
+            return
+        c = min(clusters, key=lambda k: k.range_m)
+        if not (self.person_r_min <= c.range_m <= 4.0 and self.person_w_min <= c.width_m <= self.person_w_max):
+            return
+        b = geom["bot"] + math.atan2(self.cam_h, c.range_m)
+        top = geom["top"] - b
+        if abs(b) > math.radians(35.0) or top <= 0.0:
+            return
+        h_est = self.cam_h + c.range_m * math.tan(top)
+        if not (1.35 <= h_est <= 2.05):
+            return
+        self.geom_samples.append((now, b))
+        self.geom_samples = [s for s in self.geom_samples if s[0] >= now - 20.0][-40:]
+        if len(self.geom_samples) < 12:
+            return
+        vals = np.array([s[1] for s in self.geom_samples])
+        med = float(np.median(vals))
+        if float(np.median(np.abs(vals - med))) > math.radians(2.5):
+            return
+        if abs(med - self.elev_bias) > math.radians(4.0):
+            self.elev_bias = med
+            self.elev_bias_n = max(self.elev_bias_n, 10)
+            self.geom_samples = []
+            self.get_logger().warn(
+                f"Goc ngua camera lech {math.degrees(med):+.1f} do so voi cau hinh (do bang LiDAR, {len(vals)} mau)"
+                f" — tracker da tu bu. Nen sua camera_pitch_deg trong identity_lock_kingsen.yaml them "
+                f"{-math.degrees(med):+.1f} do (hoac do lai goc lap / camera_height_m)")
+        elif not self.geom_confirmed:
+            self.geom_confirmed = True
+            self.get_logger().info(
+                f"Hinh hoc camera khop LiDAR: lech goc ngua {math.degrees(med):+.1f} do ({len(vals)} mau)")
 
     def _pick_person_cluster(
         self, bearing: float, expect_range: Optional[float], geom: Optional[Dict[str, Any]] = None,
@@ -644,6 +702,7 @@ class TargetTrackerNode(Node):
                 if new_cam:
                     self.last_cam_geom = {"geom": geom, "dist": self._cam_distance(geom)}
                 if self.use_lidar_distance and scan_fresh and new_scan:
+                    self._check_geometry(geom, bearing, now)
                     c = self._pick_person_cluster(bearing, expect, geom)
                     # Chan cum nhay xa bat thuong so voi du doan. Hai truong hop that:
                     #  - chan nguoi vua khuat sau goc tuong, cua so ±assoc_window bat nham tuong

@@ -8,6 +8,7 @@
 #   bash src/person_follow_nav/scripts/run_full.sh --no-rssi   # chi camera + LiDAR (khong 2 node RSSI)
 #   bash src/person_follow_nav/scripts/run_full.sh --force     # launch ca khi kiem tra co muc HONG
 #   bash src/person_follow_nav/scripts/run_full.sh -- follow_distance_m:=1.2   # tham so them cho launch
+#   bash src/person_follow_nav/scripts/run_full.sh --bag       # (terminal khac) CHI ghi bag: ~/bags/follow_<ngay_gio>
 #
 # Cong thiet bi lay tu ~/rssi_env.sh (PL = LiDAR, PA PB PC = 3 board RSSI, PROBOT = khung xe,
 # PCAM = camera). LiDAR va 3 board cung chip CH340 -> phai dung by-path (by-id trung ten nhau).
@@ -22,14 +23,15 @@ ok()   { echo "  ${G}OK${X}    $1"; }
 warn() { echo "  ${Y}CANH BAO${X}  $1"; }
 bad()  { echo "  ${R}HONG${X}  $1"; fail=1; }
 
-CHECK_ONLY=0; RSSI=1; FORCE=0; EXTRA=()
+CHECK_ONLY=0; RSSI=1; FORCE=0; BAG_ONLY=0; EXTRA=()
 while [ $# -gt 0 ]; do
   case "$1" in
     --check)   CHECK_ONLY=1 ;;
     --no-rssi) RSSI=0 ;;
     --force)   FORCE=1 ;;
+    --bag)     BAG_ONLY=1 ;;
     --)        shift; EXTRA=("$@"); break ;;
-    -h|--help) sed -n '2,18p' "$0"; exit 0 ;;
+    -h|--help) sed -n '2,19p' "$0"; exit 0 ;;
     *)         echo "Tham so la: $1 (xem --help)"; exit 2 ;;
   esac
   shift
@@ -40,6 +42,15 @@ SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 
 # setup.bash cua ROS doc bien chua dat -> khong dung set -u
 [ -f /opt/ros/jazzy/setup.bash ] && source /opt/ros/jazzy/setup.bash
+
+# Ghi bag (08/10: lenh dai dan qua 2 dong bi cat -> bag chi co /scan /odom /cmd_vel, thieu cac topic JSON)
+if [ $BAG_ONLY = 1 ]; then
+  mkdir -p "$HOME/bags"
+  OUT="$HOME/bags/follow_$(date +%m%d_%H%M%S)"
+  echo "Ghi bag -> $OUT (Ctrl-C de dung; khong ghi anh camera)"
+  exec ros2 bag record -o "$OUT" /scan /odom /cmd_vel /follow/target /follow/planner_status \
+    /person_reid/target /rssi/bearing /rssi/status /rssi/raw /tf /tf_static
+fi
 
 echo "=============================================================="
 echo "${B} KIEM TRA TRUOC KHI CHAY TOAN BO HE THONG${X}  ($([ $RSSI = 1 ] && echo 'co RSSI' || echo 'khong RSSI'))"
@@ -170,8 +181,7 @@ cat <<EOF
 
 ${B}Terminal khac (cd $WS && source install/setup.bash):${X}
   T2 theo doi  : python3 $S/watch_follow.py --geom      (sau ~20 s: bash $S/preflight.sh)
-  T3 ghi bag   : ros2 bag record -o ~/bags/follow_\$(date +%m%d_%H%M%S) /scan /odom /cmd_vel /follow/target \\
-                   /follow/planner_status /person_reid/target /rssi/bearing /rssi/status /tf /tf_static
+  T3 ghi bag   : bash $S/run_full.sh --bag
   T4 dieu khien: ros2 service call /person_reid/start_enroll std_srvs/srv/Trigger {}
                  ros2 service call /follow/enable           std_srvs/srv/Trigger {}
                  ros2 service call /follow/stop             std_srvs/srv/Trigger {}   # DUNG KHAN
