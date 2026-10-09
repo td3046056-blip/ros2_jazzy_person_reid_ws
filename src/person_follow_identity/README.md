@@ -190,6 +190,57 @@ Phần lớn lần nhầm còn lại trước khi sửa lần cuối nằm ở t
 
 Bản cũ "không nhầm" vì gần như không bám được ai sau lần mất đầu tiên. Ca khó là giới hạn của ngoại hình: người giống mục tiêu 0.90 (bằng trung vị của chính người thật) xuất hiện khi mục tiêu đang khuất thì không có gì để phân biệt — bản mới dùng thời gian thử thách 3 s sau khi nhận lại để chuyển sang người giống hơn, nên phần lớn lần nhầm chỉ vài khung.
 
+## YOLO26n + OSNet x0.5 bằng ONNX Runtime (09/10) — chống khoá nhầm người, chạy được trên mini PC
+
+**Vấn đề:** xe thỉnh thoảng khoá nhầm sang người khác dù khác màu áo quần. Phân tích log thật 08/10: mạng ReID của DeepSORT (`ckpt.t7`, học trên Market-1501) cho người lạ điểm 0.81–0.89 so với chủ, ngang ngưỡng nhận lại 0.80–0.86. Đổi YOLO **không** sửa được việc này (YOLO chỉ báo "có người"), nên đổi mạng ReID và đặt lại ngưỡng, đồng thời nâng detector để chạy nhanh trên mini PC i5-5200U.
+
+**Dữ liệu thật** (`~/reid_data/20261009_145308`, ghi bằng `scripts/record_reid_data.py`, 2 người: A áo xanh sáng + quần sẫm, B áo đen + quần sáng, 8 pha, 3418 khung). Chạy lại **toàn bộ** logic camera trên đoạn quay (`scripts/replay_identity.py`, enroll A ở pha 2, chấm bbox mục tiêu theo màu áo/quần):
+
+| Cấu hình | Khoá nhầm | Pha chỉ có B (chủ vắng) | Đợt nhầm dài nhất | Bám chủ khi đi tự do |
+|---|---|---|---|---|
+| Cũ: YOLOv5n PyTorch + `ckpt.t7` | 227/2630 khung (8.6%) | **60.1%** | **8.9 s** | 47.5% |
+| **Mới: YOLO26n 416 + OSNet x0.5** | **2/2630 (0.1%)** — cả hai là hộp dự đoán 1 khung khi YOLO sót | 0.3% (1 khung) | 1 khung | **59.4%** |
+
+Lần nhầm 8.9 s của bản cũ: kho "người lạ" còn trống (B chưa từng đứng cùng lúc với chủ) → B đạt 0.856 > ngưỡng 0.85 → nhận nhầm → kho ảnh chủ học luôn B (ngưỡng học 0.70 < điểm của B) → điểm tự tăng lên 0.95.
+
+Phân bố điểm so với kho chủ (`scripts/eval_reid_data.py`): `ckpt.t7` chủ p10 0.876 / người lạ trung vị 0.794, tối đa 0.870, người ở xa (bbox < 150 px) AUC chỉ 0.80; **OSNet x0.5** chủ p5 0.798 / người lạ tối đa **0.707**, người ở xa AUC 0.99.
+
+Detector (`scripts/eval_detector_data.py`, 2854 khung biết trước số người):
+
+| Detector | Đúng số người | Pha khó (sát mép, rất gần, xa, nấp) | Thời gian |
+|---|---|---|---|
+| YOLOv5n 640×480 (cũ) | 91.3% | 85.2% | 19.9 ms |
+| YOLOv5n 416×320 | 83.6% (thừa hộp 7.8%) | 81.8% | 8.9 ms |
+| **YOLO26n 416×320 @0.30** | **91.8%** | **85.5%** | **6.4 ms** |
+
+Tốc độ cả pipeline, ghim **2 lõi** (giả lập mini PC i5-5200U), 4 người: cũ 70.6 ms/khung → **~21 ms**. OSNet x0.25 nhanh gấp ~2 lần x0.5, khoá nhầm trên dữ liệu này cũng 0.1% nhưng tách người kém hơn (d′ 5.6 so với 6.3) — để dành nếu mini PC không kịp.
+
+**Cấu hình** (`person_follow_robot/config/identity_lock_kingsen.yaml`): `detector_onnx: "yolo26n_416x320.onnx"`, `reid_onnx: "osnet_x0_5_msmt17.onnx"`, `ort_threads: 2`, `det_conf_thres: 0.30`, `deepsort_max_dist: 0.30` và các ngưỡng ReID mới (mỗi dòng ghi kèm giá trị cũ "(ckpt.t7: …)"). Để trống `detector_onnx` / `reid_onnx` và trả các ngưỡng về giá trị cũ là quay lại bản PyTorch. Mô hình nằm trong `person_reid_tracker/model_assets/` (xuất ONNX từ `yolo26n.pt` của Ultralytics 8.4.174 và OSNet MSMT17 của torchreid). Giấy phép: YOLO26 là AGPL-3.0 (như YOLOv5), OSNet/torchreid là MIT.
+
+**Triển khai lên mini PC:**
+
+```bash
+# Python của ROS cần thêm onnxruntime (--no-deps: không đụng numpy 1.26 của ROS; 1.31 đã kiểm chạy được)
+python3 -m pip install --user --no-deps --break-system-packages onnxruntime==1.31.0
+python3 -c "import onnxruntime, numpy; print(onnxruntime.__version__, numpy.__version__)"
+# Build LUÔN với --symlink-install (bản chép trong install/ từng làm xe chạy mã cũ — CLAUDE.md 7.3)
+colcon build --symlink-install --packages-select person_reid_tracker person_follow_identity person_follow_robot
+```
+
+Chạy rồi xem log `camera: nhan … fps, xu ly … Hz, TB … ms/khung`. Nếu xử lý < 10 Hz: hạ `processing_hz` về 10, hoặc đổi sang `osnet_x0_25_msmt17.onnx` với bộ ngưỡng riêng (đo cùng dữ liệu): `deepsort_max_dist 0.28, reid_threshold 0.75, current_min_reid 0.61, recover_min_reid 0.71, recover_strong_reid 0.84, reid_margin 0.09, global_search_min_reid 0.74, recovery_single_candidate_min_reid 0.74`, còn lại như x0.5.
+
+**Ghi dữ liệu mới + đánh giá lại** (khi đổi camera, độ cao/góc camera, ánh sáng, hay mô hình):
+
+```bash
+python3 scripts/record_reid_data.py                     # 2 người A/B, ~5 phút, theo hướng dẫn trên cửa sổ
+python3 scripts/eval_reid_data.py                       # so 6 mạng ReID (~/.cache/reid_models/*.pth)
+~/.venvs/yolo/bin/python scripts/eval_detector_data.py  # so detector (cần onnxruntime; model trong ~/.cache/yolo_models)
+python3 scripts/replay_identity.py                      # chạy lại toàn bộ logic với cấu hình hiện tại: số khung khoá nhầm
+python3 scripts/replay_identity.py --set reid_onnx=… --override nguong.yaml --name thu   # thử cấu hình khác
+```
+
+Dữ liệu ghi nằm ở `~/reid_data/` (ngoài repo, có ảnh người — không đẩy lên GitHub). Ngưỡng ReID đặt theo nguyên tắc: nhận lại / học kho chủ phải **cao hơn mức tối đa của người lạ**, giữ khoá dưới p1 của chủ, khoảng chênh nhân theo độ giãn thang điểm.
+
 ## Nếu có GPU
 
 Config dùng `device: auto`. Nếu PyTorch nhìn thấy CUDA hoặc ROCm, package sẽ dùng backend đó. Nếu không, nó tự chạy CPU. Với AMD Radeon trên laptop, PyTorch thường không dùng được GPU nếu chưa cài ROCm build, nên CPU là mặc định an toàn.

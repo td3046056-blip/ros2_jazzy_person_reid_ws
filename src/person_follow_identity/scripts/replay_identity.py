@@ -26,6 +26,9 @@ import yaml
 
 from person_follow_identity.core import IdentityFollowCore
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from eval_reid_data import color_label  # noqa: E402
+
 HERE = Path(__file__).resolve().parent
 CFG = HERE.parents[1] / "person_follow_robot" / "config" / "identity_lock_kingsen.yaml"
 
@@ -45,6 +48,8 @@ def main():
     ap.add_argument("--name", default="cau_hinh")
     ap.add_argument("--threads", type=int, default=2)
     ap.add_argument("--log", default=None, help="ghi tung khung (jsonl) de xem lai")
+    ap.add_argument("--judge", default="color", choices=["color", "phase"],
+                    help="color = cham bbox muc tieu theo mau ao/quan (A ao sang quan sam), khong ro thi theo pha")
     args = ap.parse_args()
     import torch
     torch.set_num_threads(args.threads)
@@ -63,7 +68,7 @@ def main():
     frames = [json.loads(l) for l in open(sess / "meta.jsonl")]
     st = defaultdict(lambda: {"n": 0, "found": 0, "wrong": 0, "right": 0, "episodes": 0, "wrong_streak": 0.0})
     enrolled = False
-    in_wrong, wrong_t0 = False, 0.0
+    in_wrong, wrong_t0, wrong_last, wrong_phase = False, 0.0, 0.0, None
     prev_phase = None
     logf = open(args.log, "w") if args.log else None
     for f in frames:
@@ -78,12 +83,22 @@ def main():
         found = bool(payload.get("target_found"))
         bbox = payload.get("bbox")
         verdict = "-"
-        if rule in ("A", "B", "none", "A_left", "A_right") and core.identity.identity_ready and ph != "A_dangky":
+        if in_wrong and ph != wrong_phase:            # dot nham khong keo qua ranh gioi pha (co dem nguoc giua pha)
+            st[wrong_phase]["wrong_streak"] = max(st[wrong_phase]["wrong_streak"], wrong_last - wrong_t0)
+            in_wrong = False
+        judged = rule in ("A", "B", "none", "A_left", "A_right") or (rule == "free" and args.judge == "color")
+        if judged and core.identity.identity_ready and ph != "A_dangky":
             s = st[ph]
             s["n"] += 1
             s["found"] += found
             wrong = False
-            if found and rule in ("B", "none"):
+            col = "?"
+            if found and bbox and args.judge == "color":
+                col = color_label(cv2.cvtColor(img, cv2.COLOR_BGR2LAB), [int(v) for v in bbox])
+            if found and col in ("A", "B"):
+                wrong = col == "B"
+                s["right"] += not wrong
+            elif found and rule in ("B", "none"):
                 wrong = True
             elif found and rule in ("A_left", "A_right") and bbox:
                 cx = 0.5 * (bbox[0] + bbox[2])
@@ -95,10 +110,12 @@ def main():
                 s["right"] += 1
             s["wrong"] += wrong
             if wrong and not in_wrong:
-                in_wrong, wrong_t0 = True, t
+                in_wrong, wrong_t0, wrong_phase = True, t, ph
                 s["episodes"] += 1
-            if in_wrong and (not wrong or not found):
-                st[ph]["wrong_streak"] = max(st[ph]["wrong_streak"], t - wrong_t0)
+            if wrong:
+                wrong_last = t
+            if in_wrong and not wrong:
+                st[ph]["wrong_streak"] = max(st[ph]["wrong_streak"], wrong_last - wrong_t0)
                 in_wrong = False
             verdict = "NHAM" if wrong else ("dung" if found else "khong thay")
         if logf:
@@ -110,7 +127,7 @@ def main():
           f"reid={params.get('reid_onnx') or 'ckpt.t7'} ===")
     print(f"{'pha':12s} {'khung':>6s} {'thay chu':>9s} {'KHOA NHAM':>10s} {'so lan':>7s} {'lau nhat':>9s}")
     tot_wrong = tot_n = 0
-    for ph in ("B_dangky", "A_thu", "B_thu", "AB_A_trai", "AB_A_phai", "nen"):
+    for ph in ("B_dangky", "A_thu", "B_thu", "AB_A_trai", "AB_A_phai", "AB_tudo", "nen"):
         if ph not in st:
             continue
         s = st[ph]

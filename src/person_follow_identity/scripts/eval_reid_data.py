@@ -73,15 +73,44 @@ class Embedder:
         return f / np.maximum(1e-9, np.linalg.norm(f, axis=1, keepdims=True))
 
 
-def load_items(sess, min_conf, min_area):
+def color_label(lab_img, bbox, a_top_lighter=True, thr=30.0):
+    """Nhan theo DO SANG than tren - than duoi (Lab L). Dung khi hai nguoi mac nguoc mau nhau (phien 09/10:
+    A ao xanh sang + quan sam, B ao den + quan sang -> hai cum ro, khop 100% voi nhan theo ben o pha A_trai).
+    Doc lap voi cac mang ReID dang cham. Tra ve 'A' / 'B' / '?' (gan 0: bi che, bi cat, hai nguoi chong nhau)."""
+    x1, y1, x2, y2 = bbox
+    h, w = y2 - y1, x2 - x1
+    if h < 80 or w < 25:
+        return "?"
+    cx1, cx2 = x1 + int(0.25 * w), x2 - int(0.25 * w)
+    t = lab_img[y1 + int(0.22 * h): y1 + int(0.45 * h), cx1:cx2, 0]
+    l = lab_img[y1 + int(0.60 * h): y1 + int(0.88 * h), cx1:cx2, 0]
+    if t.size == 0 or l.size == 0:
+        return "?"
+    dv = float(np.median(t)) - float(np.median(l))
+    if abs(dv) <= thr:
+        return "?"
+    return "A" if (dv > 0) == a_top_lighter else "B"
+
+
+def load_items(sess, min_conf, min_area, labels="phase"):
     items = []
     for line in open(sess / "meta.jsonl"):
         m = json.loads(line)
+        lab_img = None
         for d in m["dets"]:
             x1, y1, x2, y2 = d["bbox"]
-            if d["conf"] < min_conf or d["label"] not in ("A", "B") or (x2 - x1) * (y2 - y1) < min_area:
+            if d["conf"] < min_conf or (x2 - x1) * (y2 - y1) < min_area:
                 continue
-            items.append({"i": m["i"], "file": m["file"], "phase": m["phase"], "label": d["label"], "bbox": d["bbox"],
+            single = m["rule"] in ("A", "B")
+            if labels == "phase" or (labels == "auto" and single):
+                label = d["label"] if m["rule"] != "free" else "?"       # pha mot nguoi: chi co nguoi do
+            else:
+                if lab_img is None:
+                    lab_img = cv2.cvtColor(cv2.imread(str(sess / "frames" / m["file"])), cv2.COLOR_BGR2LAB)
+                label = color_label(lab_img, d["bbox"])
+            if label not in ("A", "B"):
+                continue
+            items.append({"i": m["i"], "file": m["file"], "phase": m["phase"], "label": label, "bbox": d["bbox"],
                           "tid": d["tid"], "cut": y1 <= 2 or y2 >= 477, "edge": x1 <= 2 or x2 >= 637,
                           "far": (y2 - y1) < 150, "pair": m["phase"].startswith("AB_")})
     return items
@@ -139,18 +168,21 @@ def main():
     ap.add_argument("--min-conf", type=float, default=0.5)
     ap.add_argument("--min-area", type=float, default=1800)
     ap.add_argument("--threads", type=int, default=2)
+    ap.add_argument("--labels", default="auto", choices=["auto", "phase", "color"],
+                    help="auto = pha mot nguoi theo pha (ca anh bi che / cat), pha hai nguoi + tu do theo mau; "
+                         "phase = theo pha/ben luc ghi; color = theo do sang ao/quan")
     args = ap.parse_args()
     torch.set_num_threads(args.threads)
     root = Path.home() / "reid_data"
     sess = Path(args.session).expanduser() if args.session else sorted(p for p in root.iterdir() if p.is_dir())[-1]
-    items = load_items(sess, args.min_conf, args.min_area)
+    items = load_items(sess, args.min_conf, args.min_area, args.labels)
     lab = np.array([it["label"] for it in items])
     ph = np.array([it["phase"] for it in items])
     print(f"Phien {sess.name}: {len(items)} crop co nhan (A {int((lab == 'A').sum())}, B {int((lab == 'B').sum())})")
-    gA = np.where(ph == "A_dangky")[0][::3][:160]
-    gB = np.where(ph == "B_dangky")[0][::3][:160]
-    pA = np.where((lab == "A") & (ph != "A_dangky"))[0]
-    pB = np.where((lab == "B") & (ph != "B_dangky"))[0]
+    gA = np.where((ph == "A_dangky") & (lab == "A"))[0][::3][:160]
+    gB = np.where((ph == "B_dangky") & (lab == "B"))[0][::3][:160]
+    pA = np.where((lab == "A") & (ph != "A_dangky") & (ph != "B_dangky"))[0]
+    pB = np.where((lab == "B") & (ph != "A_dangky") & (ph != "B_dangky"))[0]
     print(f"Kho chu A {len(gA)} mau, kho nguoi la B {len(gB)} mau; thu: A {len(pA)}, B {len(pB)}")
     cond = {"hai nguoi cung khung": np.array([it["pair"] for it in items]),
             "bi cat mep tren/duoi": np.array([it["cut"] for it in items]),

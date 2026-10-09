@@ -23,6 +23,22 @@ identity_lock_node:
     # 50 Hz (dien Viet Nam; camera dang de 60 Hz); tat che do thieu sang (ha nua fps)
     camera_v4l2_controls: "backlight_compensation=0,exposure_dynamic_framerate=0,power_line_frequency=1"
 
+    # ── Mo hinh (09/10): YOLO26n + OSNet x0.5 chay bang onnxruntime ─────────
+    # Do tren du lieu THAT tu camera nay (~/reid_data/20261009_145308, 2 nguoi, 8 pha; scripts/
+    # eval_detector_data.py, eval_reid_data.py, replay_identity.py):
+    #  - YOLO26n 416x320 @0.30: dung so nguoi 91.8% (YOLOv5n 640 dang dung: 91.3%), pha kho 85.5% (85.2%),
+    #    6.4 ms so voi 19.9 ms. YOLOv5n ha xuong 416 thi kem han (83.6%, thua hop 7.8%).
+    #  - OSNet x0.5 (MSMT17): nguoi la toi da 0.707 so voi kho chu, chu p5 0.798 (ckpt.t7: nguoi la trung vi
+    #    0.794, toi da 0.870 — de hon nguong nhan lai cu 0.80/0.85). Chay lai toan bo logic tren doan quay:
+    #    KHOA NHAM 227/2630 khung (8.6%, pha chi co B 60%, dot dai 8.9 s) -> 2/2630 (0.1%, ca hai la hop
+    #    du doan 1 khung khi YOLO sot); bam chu o pha tu do 47.5% -> 59.4%.
+    #  - Ca pipeline, 2 loi (gia lap mini PC i5-5200U), 4 nguoi: 70.6 ms/khung -> ~21 ms.
+    # Can: pip install --user --no-deps onnxruntime (chay duoc voi numpy 1.26 cua ROS).
+    # QUAY LAI ban cu: detector_onnx: "", reid_onnx: "", det_conf_thres 0.40, deepsort_max_dist 0.18 va
+    # cac nguong ReID ghi "(ckpt.t7: ...)" ben duoi. Ten ngan = file trong person_reid_tracker/model_assets.
+    detector_onnx: "yolo26n_416x320.onnx"     # kich thuoc vao CO DINH 416x320 (img_size / rect_inference chi cho ban PyTorch)
+    reid_onnx: "osnet_x0_5_msmt17.onnx"       # nhe hon: osnet_x0_25_msmt17.onnx (phai doi nguong, xem eval_reid_data.py)
+    ort_threads: 2                            # mini PC 2 loi; may hien tai cung du (pipeline ~10 ms)
     model_weights: ""
     deepsort_ckpt: ""
     device: "auto"
@@ -34,13 +50,17 @@ identity_lock_node:
     # 0.55 -> 0.40 (30/09): nguoi o gan bi cat khung (chi thay chan, hoac goi toi nguc) YOLOv5n
     # chi cho conf ~0.4-0.7 (do tren anh nguoi that bi cat); o 0.55 hay mat nguoi dang bam o 1 m.
     # Doi lai phat hien sai (khong phai nguoi) tang 2 -> 6 tren 128 anh coco128 — khoa ReID loai.
-    det_conf_thres: 0.40
+    # YOLO26n: 0.30 tot hon 0.40 tren du lieu that (dung so nguoi 91.8% / 91.0%, pha kho 85.5% / 83.5%,
+    # bao thua 0.3% / 0.0%) — nguoi la / vat la bi khoa ReID loai. (YOLOv5n PyTorch: 0.40)
+    det_conf_thres: 0.30
     det_iou_thres: 0.50
     person_class_id: 0
 
     deepsort_max_age: 30
     deepsort_n_init: 4
-    deepsort_max_dist: 0.18
+    # Cong khoang cach cosine cua DeepSORT theo thang OSNet x0.5: cung track khung ke p99 0.185 / p99.9 0.328,
+    # A-B cung khung p0.1 0.366 / p1 0.405. (ckpt.t7: 0.18 — nam ngay A-B p1 0.182, de trao ID)
+    deepsort_max_dist: 0.30
 
     min_stable_frames: 4
     min_bbox_area: 1800
@@ -56,27 +76,27 @@ identity_lock_node:
     reid_match_mode: "topk_mean"
     reid_top_k: 5
 
-    # ── Nguong ReID (29/09) ──────────────────────────────────────────────
-    # Dat theo phan bo do tren Market-1501 SAU KHI sua loi nap BGR vao mang RGB
-    # (gallery 10 mau, top-5 mean): nguoi that trung vi 0.90 (p5 0.83); nguoi la 0.72
-    # (p99 0.83); nguoi GIONG NHAT trong ~300 nguoi 0.84. Mau: nguoi that 0.51 (p1 0.27),
-    # nguoi la 0.27. Nguong tuyet doi khong tach duoc nguoi mac giong -> quyet dinh chinh
-    # dua vao SO SANH voi nguoi khac trong khung + tich luy bang chung nhieu khung.
-    reid_threshold: 0.82          # "khop chac": duoi muc nay moi xet track doi ngoai hinh dot ngot
-    current_min_reid: 0.70        # giu khoa (anh nua nguoi khi dung gan, truoc khi hoc: p1 0.70)
-    current_min_combined: 0.62
+    # ── Nguong ReID (09/10, theo thang OSNet x0.5) ─────────────────────────
+    # Tu du lieu that 09/10 (kho chu = 160 mau enroll, top-5 mean): chu p1 0.648 p5 0.798 p10 0.840 p20 0.869
+    # p50 0.904; nguoi la p50 0.567 p99 0.674 toi da 0.707; cung nguoi cach 0.5 s p1 0.624; A-B cung khung p99
+    # 0.595. Nguyen tac: nhan lai / hoc kho chu phai CAO HON muc toi da cua nguoi la; khoang chenh nhan
+    # 2.65 lan (do gian thang: chu p50 - nguoi la p50 = 0.337 so voi 0.127 cua ckpt.t7).
+    # Ban cu (29/09, ckpt.t7) dat theo Market-1501 — ghi trong ngoac "(ckpt.t7: ...)" de quay lai.
+    reid_threshold: 0.78          # "khop chac" ~ chu p4; duoi muc nay moi xet track doi ngoai hinh dot ngot (ckpt.t7: 0.82)
+    current_min_reid: 0.60        # giu khoa: duoi chu p1 0.648, tren nguoi la p50 0.567 (ckpt.t7: 0.70)
+    current_min_combined: 0.54    # (ckpt.t7: 0.62) — 0.79*reid + 0.21*mau, doi theo current_min_reid
     current_min_color: 0.20       # chi loai khi lech mau ro (truoc 0.28 = p1 cua nguoi that)
-    recover_min_combined: 0.72    # truoc 0.80 loai ~40% khung cua chinh nguoi that
-    recover_min_reid: 0.80
+    recover_min_combined: 0.66    # (ckpt.t7: 0.72)
+    recover_min_reid: 0.72        # tren nguoi la toi da 0.707; ~97% khung cua chu qua (ckpt.t7: 0.80 ~ nguoi la p50!)
     recover_min_color: 0.25
-    recover_strong_reid: 0.88     # khop manh: +2 bang chung
-    reid_margin: 0.04             # hon nguoi giong thu hai it nhat bay nhieu (moi khung)
-    combined_margin: 0.03
-    negative_margin: 0.03         # pos - (giong nguoi da biet) khi tim lai
+    recover_strong_reid: 0.86     # khop manh: +2 bang chung, ~chu p17 (ckpt.t7: 0.88)
+    reid_margin: 0.10             # hon nguoi giong thu hai it nhat bay nhieu (moi khung) (ckpt.t7: 0.04)
+    combined_margin: 0.07         # (ckpt.t7: 0.03)
+    negative_margin: 0.08         # pos - (giong nguoi da biet) khi tim lai (ckpt.t7: 0.03)
     current_negative_margin: 0.0  # giu khoa: khong duoc giong nguoi da biet hon muc tieu
-    strong_negative_margin: 0.04  # anh sach ma giong nguoi da biet hon muc tieu 0.04 -> bo khoa ngay
-    switch_margin: 0.08           # nguoi khac giong muc tieu hon track dang khoa 0.08 -> bo khoa ngay
-    self_consistency_min: 0.72    # cung nguoi cung camera p1 0.75; nguoi khac trung vi 0.70
+    strong_negative_margin: 0.10  # anh sach ma giong nguoi da biet hon muc tieu 0.10 -> bo khoa ngay (ckpt.t7: 0.04)
+    switch_margin: 0.20           # nguoi khac giong muc tieu hon track dang khoa 0.20 -> bo khoa ngay (ckpt.t7: 0.08)
+    self_consistency_min: 0.60    # cung nguoi cach 0.5 s p1 0.624; A-B cung khung p99 0.595 (ckpt.t7: 0.72)
     # So lan kiem tra hong LIEN TIEP (anh sach) truoc khi bo khoa. Truoc 1: mot khung bi
     # che mot phan / quay lung la mat khoa -> phai tim lai tu dau.
     verification_fail_limit: 3
@@ -87,13 +107,15 @@ identity_lock_node:
 
     verify_every_n_frames: 1      # feature lay lai tu DeepSORT nen kiem tra moi khung gan nhu mien phi
     update_gallery_every_n_frames: 3
-    target_update_min_similarity: 0.70
-    max_duplicate_similarity: 0.985
-    negative_add_max_reid: 0.65
+    # Hoc them vao kho chu chi khi tren muc toi da cua nguoi la 0.707: lo khoa nham cung khong hoc ngoai hinh
+    # nguoi la vao kho chu (ban cu 0.70 < nguoi la p50 0.794: khoa nham B roi hoc luon B, diem tang 0.86 -> 0.95)
+    target_update_min_similarity: 0.72   # (ckpt.t7: 0.70)
+    max_duplicate_similarity: 0.95       # OSNet: khung ke tiep giong ~0.956 (ckpt.t7: 0.985 ~ 0.987)
+    negative_add_max_reid: 0.60          # (ckpt.t7: 0.65)
     # Khi khoa da tin cay: hoc MOI nguoi khac lam 'khong phai muc tieu', ke ca nguoi giong
     # hon track dang khoa toi 0.05. Hoc nham chi lam kho nhan lai (an toan); khong hoc nguoi
     # mac giong thi luc muc tieu khuat se nhan nham ho (nguy hiem).
-    negative_add_min_margin: -0.05
+    negative_add_min_margin: -0.13       # (ckpt.t7: -0.05)
     view_bucket_min_samples: 5
     bucket_bootstrap_frames: 8
     edge_margin_px: 6
@@ -106,7 +128,7 @@ identity_lock_node:
     # với ngưỡng ReID vẫn NGHIÊM để bù lại việc bỏ điều kiện vị trí pixel.
     spatial_gate_px: 140.0
     global_search_after_sec: 1.5
-    global_search_min_reid: 0.86
+    global_search_min_reid: 0.76         # giua nguoi la toi da 0.707 va chu p5 0.798 (ckpt.t7: 0.86)
     enable_global_recovery: true
     allow_single_candidate_global_recovery: false
     # Diem bang chung can de nhan lai (khop thuong +1, khop manh +2, hong -1).
@@ -119,8 +141,10 @@ identity_lock_node:
     # Vua nhan lai: trong ngan nay giay, ai giong muc tieu hon track dang khoa >= 0.03 la
     # mot lan hong -> nhan nham nguoi mac giong thi chuyen nhanh sang nguoi dung.
     recovery_probation_sec: 3.0
-    recovery_single_candidate_min_reid: 0.85
-    recovery_single_candidate_min_combined: 0.75
+    # Chi mot nguoi trong khung sau khi mat chu = ca nguy hiem nhat (09/10: ban cu nhan nham B o 0.856 khi kho
+    # nguoi la con TRONG vi B chua tung dung cung luc voi chu)
+    recovery_single_candidate_min_reid: 0.76       # (ckpt.t7: 0.85)
+    recovery_single_candidate_min_combined: 0.68   # (ckpt.t7: 0.75)
     max_lost_keep_id_sec: 3.0
 
     reid_weight: 0.75
