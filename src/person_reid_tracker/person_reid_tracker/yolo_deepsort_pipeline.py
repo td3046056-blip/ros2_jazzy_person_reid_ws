@@ -8,6 +8,7 @@ import cv2
 import numpy as np
 import torch
 
+from .onnx_models import OnnxReidExtractor, OnnxYoloDetector
 from .types import BBox, TrackCandidate
 
 # The bundled YOLOv5 code uses absolute imports such as `from models.common import ...`.
@@ -34,6 +35,9 @@ class YoloDeepSortPipeline:
         deepsort_n_init: int = 3,
         deepsort_max_dist: float = 0.2,
         rect_inference: bool = True,
+        detector_onnx: str = "",
+        reid_onnx: str = "",
+        ort_threads: int = 2,
     ) -> None:
         self.model_weights = str(Path(model_weights).expanduser())
         self.deepsort_ckpt = str(Path(deepsort_ckpt).expanduser())
@@ -53,13 +57,24 @@ class YoloDeepSortPipeline:
         self.device = torch.device(device)
         self.use_cuda = bool(use_cuda and self.device.type == "cuda")
 
-        self.model = DetectMultiBackend(weights=self.model_weights, device=self.device)
+        # 09/10: detector_onnx / reid_onnx (duong dan file .onnx) -> chay bang onnxruntime (nhanh hon PyTorch
+        # 1.6 lan cho YOLO, OSNet nhanh hon mang ReID ckpt.t7 10-14 lan; can cho mini PC i5-5200U). De trong
+        # = PyTorch + ckpt.t7 nhu truoc. Doi mang ReID thi PHAI doi nguong ReID cua identity + deepsort_max_dist.
+        self.onnx_det: Optional[OnnxYoloDetector] = None
+        if str(detector_onnx).strip():
+            self.onnx_det = OnnxYoloDetector(str(Path(detector_onnx).expanduser()), self.conf_thres, self.iou_thres,
+                                             self.person_class_id, ort_threads)
+            self.model = None
+        else:
+            self.model = DetectMultiBackend(weights=self.model_weights, device=self.device)
+        extractor = OnnxReidExtractor(str(Path(reid_onnx).expanduser()), ort_threads) if str(reid_onnx).strip() else None
         self.deepsort = DeepSort(
             model_path=self.deepsort_ckpt,
             use_cuda=self.use_cuda,
             max_age=int(deepsort_max_age),
             n_init=int(deepsort_n_init),
             max_dist=float(deepsort_max_dist),
+            extractor=extractor,
         )
 
     @staticmethod
@@ -128,14 +143,20 @@ class YoloDeepSortPipeline:
     def detect_and_track(self, frame_bgr: np.ndarray) -> List[TrackCandidate]:
         """Return current DeepSORT tracks for person detections."""
         h, w = frame_bgr.shape[:2]
-        img_tensor = self._preprocess(frame_bgr)
-        pred = self.model(img_tensor)
-        pred = non_max_suppression(
-            pred,
-            self.conf_thres,
-            self.iou_thres,
-            classes=self.person_class_id,
-        )
+        if self.onnx_det is not None:
+            # Hop (x1, y1, x2, y2) da o toa do anh goc -> khong scale_coords
+            xyxy, conf = self.onnx_det(frame_bgr)
+            det = torch.from_numpy(np.concatenate([xyxy, conf[:, None], np.zeros((len(conf), 1), np.float32)], 1))
+            pred, img_tensor = [det], None
+        else:
+            img_tensor = self._preprocess(frame_bgr)
+            pred = self.model(img_tensor)
+            pred = non_max_suppression(
+                pred,
+                self.conf_thres,
+                self.iou_thres,
+                classes=self.person_class_id,
+            )
 
         tracks: List[TrackCandidate] = []
         self._feature_cache_frame = frame_bgr
@@ -151,7 +172,10 @@ class YoloDeepSortPipeline:
                 outputs = self.deepsort.update(empty_boxes, empty_vals, empty_vals, frame_bgr)
                 det_boxes_xyxy, det_confs = [], []
             else:
-                det[:, :4] = scale_coords(img_tensor.shape[2:], det[:, :4], frame_bgr.shape).round()
+                if img_tensor is not None:
+                    det[:, :4] = scale_coords(img_tensor.shape[2:], det[:, :4], frame_bgr.shape).round()
+                else:
+                    det[:, :4] = det[:, :4].round()
                 xywhs = xyxy2xywh(det[:, 0:4])
                 confs = det[:, 4]
                 clss = det[:, 5]

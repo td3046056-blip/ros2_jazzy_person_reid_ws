@@ -237,6 +237,10 @@ class IdentityLockNode(Node):
             "frame_height": 480,
             "model_weights": "",
             "deepsort_ckpt": "",
+            # 09/10: file .onnx (ten ngan = tim trong model_assets) -> onnxruntime; de trong = PyTorch + ckpt.t7
+            "detector_onnx": "",
+            "reid_onnx": "",
+            "ort_threads": 2,
             "device": "auto",
             "use_cuda": True,
             "img_size": 640,

@@ -8,7 +8,7 @@ import cv2
 import numpy as np
 import torch
 
-from person_reid_tracker.path_utils import resolve_path
+from person_reid_tracker.path_utils import default_model_path, resolve_path
 from person_reid_tracker.types import TrackCandidate
 from person_reid_tracker.yolo_deepsort_pipeline import YoloDeepSortPipeline
 
@@ -23,6 +23,14 @@ def parse_camera_source(source: Any) -> Any:
     if text.isdigit():
         return int(text)
     return text
+
+
+def _model_file(value: Any) -> str:
+    """'' -> '' (dung PyTorch); ten ngan (khong co '/') -> tim trong model_assets; duong dan -> giu nguyen."""
+    v = str(value or "").strip()
+    if not v:
+        return ""
+    return default_model_path(v) if "/" not in v else str(v)
 
 
 def choose_device(device: str, use_cuda: bool) -> Tuple[str, bool, str]:
@@ -62,6 +70,9 @@ class IdentityFollowCore:
             deepsort_n_init=int(params.get("deepsort_n_init", 4)),
             deepsort_max_dist=float(params.get("deepsort_max_dist", 0.18)),
             rect_inference=bool(params.get("rect_inference", True)),
+            detector_onnx=_model_file(params.get("detector_onnx", "")),
+            reid_onnx=_model_file(params.get("reid_onnx", "")),
+            ort_threads=int(params.get("ort_threads", 2)),
         )
         self._setup_camera_model(params)
 
