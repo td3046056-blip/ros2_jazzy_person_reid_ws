@@ -1,0 +1,25 @@
+    giay STATE      lenh v/w      | nguon tracker  kc    goc  | kc-cam (tu)  cao  lech-ngua | camera trang thai  Hz  tre | rssi dBm/mau-s | canh bao | note
+     0.5 IDLE      v+0.00 w+0.00 | camera+lidar  1.69m  -11d | 1.67m (dau+chan) 1.70m -16.2d | TRACKING           3.0  76ms | A-74/20 B-70/19 C-72/16 | - | disabled
+     1.0 IDLE      v+0.00 w+0.00 | camera+lidar  1.65m   -8d | 1.72m (dau+chan) 1.71m -16.2d | TRACKING           6.0  64ms | A-74/20 B-70/19 C-72/16 | - | disabled
+     1.5 IDLE      v+0.00 w+0.00 | camera+lidar  1.80m   +9d | 1.84m (dau+chan) 1.70m -16.2d | TRACKING           9.5  34ms | A-81/16 B-80/16 C-81/14 | - | disabled
+     2.0 IDLE      v+0.00 w+0.00 | camera+lidar  2.00m   +9d | 1.82m (dau+chan) 1.70m -16.3d | TRACKING          12.5  23ms | A-81/16 B-80/16 C-81/14 | - | disabled
+     2.5 IDLE      v+0.00 w+0.00 | camera+lidar  1.82m  +20d | 1.94m (dau+chan) 1.71m -16.2d | TRACKING          12.5  75ms | A-85/12 B-84/14 C-84/14 | - | disabled
+     3.0 IDLE      v+0.00 w+0.00 | camera+lidar  1.91m  +28d | 1.96m (dau+chan) 1.70m -16.1d | TRACKING          12.5  70ms | A-85/12 B-84/14 C-84/14 | - | disabled
+     3.5 IDLE      v+0.00 w+0.00 | camera+lidar  1.99m  +31d | 1.82m (dau+chan) 1.72m -16.1d | TRACKING          12.5  36ms | A-82/14 B-84/14 C-84/14 | - | disabled
+     4.0 IDLE      v+0.00 w+0.00 | camera+lidar  1.83m  +38d | 1.82m (dau+chan) 1.74m -16.0d | TRACKING          12.5  23ms | A-82/14 B-84/14 C-84/14 | - | disabled
+     4.5 IDLE      v+0.00 w+0.00 | camera+bbox   1.88m  +39d | 1.91m (dau+chan) 1.74m -16.0d | TRACKING          12.5  80ms | A-76/18 B-82/16 C-81/18 | - | disabled
+     5.0 IDLE      v+0.00 w+0.00 | camera+bbox   1.86m  +31d | 1.86m (dau+chan) 1.74m -16.0d | TRACKING          12.5  63ms | A-76/18 B-82/16 C-81/18 | scan:cu-0.9s | disabled
+     5.5 IDLE      v+0.00 w+0.00 | camera+bbox   1.49m  +26d | 1.48m (dau+chan) 1.74m -16.0d | TRACKING          12.5  36ms | A-73/20 B-79/20 C-76/20 | scan:cu-1.4s | disabled
+     6.0 IDLE      v+0.00 w+0.00 | camera+bbox   1.30m  +16d | 1.31m (dau+chan) 1.74m -16.0d | TRACKING          12.5  22ms | A-73/20 B-79/20 C-76/20 | scan:cu-1.9s | disabled
+     6.5 IDLE      v+0.00 w+0.00 | camera+bbox   1.35m   +8d | 1.36m (dau+chan) 1.74m -16.0d | TRACKING          12.5  76ms | A-74/22 B-78/20 C-75/19 | scan:cu-2.4s | disabled
+     7.0 IDLE      v+0.00 w+0.00 | camera+bbox   1.39m   -5d | 1.40m (dau+chan) 1.74m -16.0d | TRACKING          12.5  63ms | A-74/22 B-78/20 C-75/19 | scan:cu-2.9s | disabled
+     7.5 IDLE      v+0.00 w+0.00 | camera+bbox   1.46m  -12d | 1.47m (dau+chan) 1.74m -16.0d | TRACKING          12.5  38ms | A-74/21 B-76/19 C-75/18 | scan:cu-3.4s | disabled
+     8.0 IDLE      v+0.00 w+0.00 | camera+bbox   1.54m  -19d | 1.54m (dau+chan) 1.74m -16.0d | TRACKING          12.5  21ms | A-74/21 B-76/19 C-75/18 | scan:cu-3.9s | disabled
+     8.5 IDLE      v+0.00 w+0.00 | camera+bbox   1.83m  -19d | 1.85m (dau+chan) 1.74m -16.0d | TRACKING          12.5  76ms | A-73/21 B-74/18 C-75/19 | scan:cu-4.4s | disabled
+     9.0 IDLE      v+0.00 w+0.00 | camera+bbox   1.98m  -18d | 1.94m (dau+chan) 1.74m -16.0d | TRACKING          12.5  64ms | A-73/21 B-74/18 C-75/19 | scan:cu-4.9s | disabled
+     9.5 IDLE      v+0.00 w+0.00 | camera+bbox   2.01m  -19d | 1.98m (dau+chan) 1.74m -16.0d | TRACKING          12.5  36ms | A-76/20 B-74/20 C-77/19 | scan:cu-5.4s | disabled
+    10.0 IDLE      v+0.00 w+0.00 | camera+bbox   1.74m  -18d | 1.74m (dau+chan) 1.74m -16.0d | TRACKING          12.5  24ms | A-76/20 B-74/20 C-77/19 | scan:cu-5.9s | disabled
+    10.5 IDLE      v+0.00 w+0.00 | camera+bbox   1.69m  -13d | 1.69m (dau+chan) 1.74m -16.0d | TRACKING          12.5  78ms | A-81/21 B-75/20 C-80/16 | scan:cu-6.4s | disabled
+    11.0 IDLE      v+0.00 w+0.00 | camera+bbox   1.73m   -7d | 1.73m (dau+chan) 1.74m -16.0d | TRACKING          12.5  69ms | A-81/21 B-75/20 C-80/16 | scan:cu-6.9s | disabled
+    11.5 IDLE      v+0.00 w+0.00 | camera+bbox   1.81m   +6d | 1.81m (dau+chan) 1.74m -16.0d | TRACKING          12.5  37ms | A-79/20 B-77/19 C-80/14 | scan:cu-7.4s | disabled
+    12.0 IDLE      v+0.00 w+0.00 | camera+bbox   1.82m  +12d | 1.84m (dau+chan) 1.74m -16.0d | TRACKING          12.5  23ms | A-79/20 B-77/19 C-80/14 | scan:cu-7.9s | disabled

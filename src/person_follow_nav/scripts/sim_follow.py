@@ -61,6 +61,10 @@ DUNG LUC XE DANG TRONG KHUNG CUA — do la con so quyet dinh xe co ca vao khung 
     TALLWALL="x1:y1:x2:y2;..."       vach cao (che ca LiDAR lan camera)
     CAM_HEIGHT=0.34 CAM_PITCH=0 CAM_PITCH_ERR=0 PERSON_H=1.70   hinh hoc bbox doc cua camera
     RSSI=1                            /rssi/bearing gia (hop le sau khi xe xoay >= 250 do, sai so ~15 do)
+    PASS_LINE="x1:y1:x2:y2"           vach (vd. ngang o cua): in "qua vach: CO" neu xe ket thuc CUNG PHIA vach voi nguoi
+    PL_SET="ten=gia_tri,..."          ghi de tham so planner (thu nghiem tinh chinh, khong doi follow_nav.yaml)
+    SEED=n                            doi mam so ngau nhien (nhieu lidar / camera / RSSI gia) — kich ban hon loan thi
+                                      chay nhieu mam roi moi so (cua ben hong: mot mam lech khong noi len dieu gi)
     PX=2.4 PY=0                       cho nguoi dung cua kich ban sau_vat_thap
     WP="x:y;x:y;..." WPV=0.4 WPT=40   duong di tuy y cua kich ban duong_di
     # Canh nguoi dung bao 07/10: nguoi sau thung 50x30 cm cao 30 cm, thung thu hai cach 50 cm ben trai:
@@ -99,7 +103,7 @@ TT.time = _ft
 FP.time = _ft
 
 CFG = yaml.safe_load(open(os.path.join(PKG, "config/follow_nav.yaml")))
-RNG = np.random.default_rng(1)
+RNG = np.random.default_rng(int(os.environ.get("SEED", "1")))   # SEED=n: doi mam nhieu (lidar, camera, RSSI gia)
 
 
 def wrap(a):
@@ -113,6 +117,9 @@ def make_nodes():
     tr.filter = G.AlphaBeta2D(alpha=tr.ab_alpha, beta=tr.ab_beta, max_speed=tr.max_person_speed)
     pl = FP.FollowPlannerNode()
     pl._p.update(CFG["follow_planner_node"]["ros__parameters"])
+    for kv in [x for x in os.environ.get("PL_SET", "").split(",") if x.strip()]:   # PL_SET="ten=gia_tri,..."
+        k, v = kv.split("=", 1)
+        pl._p[k.strip()] = yaml.safe_load(v)
     pl._read_params()
     pl.t_arr = np.arange(1, pl.horizon_steps + 1, dtype=np.float64) * pl.horizon_dt
     pl.enabled = True
@@ -530,6 +537,14 @@ def blocker(t, x=2.2, t_in=5.0, stay=6.0, v=1.0, y0=1.6, ys=0.0):
     return None
 
 
+def _env_chan():
+    """CHAN="x:t_in:stay:ys:y0" — nguoi thu hai tu y0 buoc vao DUNG o (x, ys) `stay` giay (kich ban vong_chan)."""
+    if not os.environ.get("CHAN"):
+        return None
+    x, t_in, stay, ys, y0 = (float(v) for v in os.environ["CHAN"].split(":"))
+    return lambda t: blocker(t, x=x, t_in=t_in, stay=stay, ys=ys, y0=y0, v=0.8)
+
+
 def _env_chen():
     """CHEN="x:t_in:stay:ys" TGT=di|dung — nguoi thu hai buoc vao chen, tham so tu bien moi truong."""
     x, t_in, stay, ys = (float(v) for v in os.environ.get("CHEN", "2.2:5.0:6.0:0.0").split(":"))
@@ -654,6 +669,13 @@ SCEN = {
                                          for p_ in os.environ.get("WP", "1.6:0;3.0:0").split(";")],
                                      float(os.environ.get("WPV", "0.4"))), float(os.environ.get("WPT", "40"))),
     "sau_vat_thap": (lambda t: (float(os.environ.get("PX", "2.1")), float(os.environ.get("PY", "0.0")), 0.0, 0.0), 25.0),
+    # 14/10 — nguoi DUNG YEN sau vat can chinh (PX, PY), xe dang vong qua mot ben thi bi CHAN giua chung: nguoi thu
+    # hai buoc vao (CHAN="x:t_in:stay:ys:y0") hoac vat thap khuat sau vat chinh (LOWBOX thu hai). Xe co quay lai di
+    # ben kia khong? Vd. hanh lang hai ben, thung chinh, nguoi thu hai chan loi vong ben trai sau 4 s:
+    #   CAM_HALF=55 TALLWALL="0.0:1.5:4.5:1.5;0.0:-1.6:4.5:-1.6" LOWBOX="1.3:-0.5:1.7:0.5" PX=3.3 PY=0.3 \
+    #   CHAN="1.5:4.0:40:1.0:1.45" python3 sim_follow.py vong_chan     (nhom vong_chan trong regress_follow.py)
+    "vong_chan": (lambda t: (float(os.environ.get("PX", "2.8")), float(os.environ.get("PY", "0.0")), 0.0, 0.0),
+                  float(os.environ.get("T_END", "45")), lambda t: (_env_chan() or (lambda t_: None))(t)),
     # Nguoi DUNG YEN ben kia cua — de thu rieng dong tac chui cua tu nhieu tu the xuat phat
     # (dung kem START="x:y:yaw" va SIDE_DOOR). Khong lan voi chuyen mat nguoi.
     "cua_ben_yen": (lambda t: (3.405, -2.4, -math.pi / 2, 0.0), 30.0),
@@ -705,6 +727,14 @@ def metrics(name, rows, hit):
         jerr = [math.hypot(r["ex"] - r["px"], r["ey"] - r["py"]) for r in rows if r["ex"] is not None]
         print(f"{'':15s} qua cua: {'CO' if rows[-1]['rx'] > dx + 0.4 else 'KHONG'} (xe_x cuoi={rows[-1]['rx']:.2f}), "
               f"tam_xe_gan_thanh_cua_nhat={jgap:.2f} m, sai_uoc_max={max(jerr) if jerr else float('nan'):.2f} m")
+    if os.environ.get("PASS_LINE"):
+        # Xe da qua vach (vd. o cua cua mot the gioi dung bang TALLWALL) chua: cung phia voi nguoi luc ket thuc
+        x1, y1, x2, y2 = (float(v) for v in os.environ["PASS_LINE"].split(":"))
+        side = lambda x, y: (x2 - x1) * (y - y1) - (y2 - y1) * (x - x1)      # noqa: E731
+        r = rows[-1]
+        ok = side(r["rx"], r["ry"]) * side(r["px"], r["py"]) > 0.0
+        print(f"{'':15s} qua vach: {'CO' if ok else 'KHONG'} (xe cuoi=({r['rx']:.2f},{r['ry']:.2f}), "
+              f"nguoi=({r['px']:.2f},{r['py']:.2f}))")
     if LOW_BOXES:
         # vat thap dau tien: xe vuot qua no ben nao (y TB cua xe khi ngang vat), co toi duoc gan nguoi khong
         bx0, by0, bx1, by1, _ = LOW_BOXES[0]

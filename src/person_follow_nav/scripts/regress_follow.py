@@ -14,6 +14,9 @@ Nhom kich ban:
   hard       chu U, ghe dai, thung lon xon, nguoi di vong thung, camera ngua sai goc, nguoi cao / thap, nap sau tu
   pitch      camera ngua / cui sai 12-18 do so voi camera_pitch_deg (xe that 08/10: chi xoay, khong di toi)
   rssi       nguoi khuat sau vach co cua, co / khong RSSI
+  vong_chan  xe dang vong qua vat can chinh thi bi chan giua chung (nguoi thu hai / vat khuat) -> vong ben kia
+  cua_bep    cua bep THAT 0.80 m tu bag 14/10 (canh cua mo ap ben phai, cho mo gia 0.95 m phia trong), co / khong
+             tuong hanh lang trai; nguoi re vao cua, di thang vao cua, dung yen trong bep (5 tu the xuat phat)
 
 CACH DUNG (trong src/person_follow_nav/scripts):
   python3 regress_follow.py                        # tat ca nhom, ban hien tai (~10 phut tren 32 nhan)
@@ -21,7 +24,7 @@ CACH DUNG (trong src/person_follow_nav/scripts):
   python3 regress_follow.py --groups lowbox,hard   # chi vai nhom
   python3 regress_follow.py --jobs 8 --json kq.json
 
-DAT nghia la: cua -> qua cua va khong cham tuong; vat thap / kho -> ket thuc ARRIVED/FOLLOW cach nguoi 0.8-1.4 m va
+DAT nghia la: cua / cua_bep -> qua cua va khong cham tuong; vat thap / kho -> ket thuc ARRIVED/FOLLOW cach nguoi 0.8-1.4 m va
 khong cham; chen -> uoc luong khong gan nguoi thu hai hon > 10 % thoi gian va ho voi chan ho luc ho dung yen
 >= 5 cm (3 ca "di:2.2:8.0:*" nguoi thu hai buoc thang vao cho xe dang dung — ban nao cung cham, khong tinh).
 """
@@ -137,6 +140,48 @@ for r_ in ("", "1"):
     J("rssi", f"sau_tu:RSSI={r_ or '0'}", "duong_di", CAM_HALF=55, RSSI=r_, TALLWALL="2.6:-0.6:2.6:0.6",
       WP="1.6:0;2.2:0.9;3.1:0.9;3.1:0.0", WPV=0.6, WPT=50)
 
+# Cua bep THAT (bag follow_1014_153520, 14/10): cua 0.80 m giua hai thanh, mat hanh lang y = 1.10..1.22, canh cua mo
+# ap ben phai sau vao bep, mat trong ben trai lui ra -> cho mo 0.95 m PHIA TRONG (khe gia ma planner cu chon), tuong
+# hanh lang trai cach thanh cua trai 0.2 m (rem buoc gon). Xe that ket ca 2 lan vao bep tu ben phai.
+KITCHEN = ("-0.78:1.22:14.0:1.22;-0.78:1.22:-0.78:1.30;-0.78:1.30:-0.83:1.30;-0.83:1.30:-0.83:2.10;"
+           "-0.78:1.34:0.50:1.34;-1.80:1.10:-1.60:1.10;-1.60:1.10:-1.60:1.32;-1.60:1.32:-1.70:1.62;"
+           "-1.70:1.62:-2.60:1.62;-2.60:1.62:-2.60:3.90;-2.60:3.90:0.50:3.90;0.50:3.90:0.50:1.34;"
+           "-1.30:2.95:-0.75:2.95;-1.80:1.10:-4.00:1.10")
+K_LEFT = ";-1.80:1.10:-1.80:-0.90"                   # tuong hanh lang trai (bo di = khong co vat can hai ben)
+K_PASS = "-1.80:1.45:-0.70:1.45"                     # vach ngang qua o cua (phia trong)
+for wl, wn in ((K_LEFT, "tuong_trai"), ("", "trong")):
+    for nz in (0.01, 0.02):
+        # nguoi di tu truoc mat xe, re trai vao cua (dung duong di trong bag), dung trong bep
+        J("cua_bep", f"{wn}:re_trai:nz{nz}", "duong_di", CAM_HALF=55, TALLWALL=KITCHEN + wl, PASS_LINE=K_PASS,
+          LIDAR_NOISE=nz, START="2.4:0.0:180", WP="1.2:0.30;-0.6:0.35;-1.15:0.75;-1.20:1.70;-1.55:2.60;-1.75:3.40",
+          WPV=0.30, WPT=60)
+        # nguoi di thang tu xa vao cua
+        J("cua_bep", f"{wn}:thang:nz{nz}", "duong_di", CAM_HALF=55, TALLWALL=KITCHEN + wl, PASS_LINE=K_PASS,
+          LIDAR_NOISE=nz, START="-1.10:-1.40:90", WP="-1.15:-0.30;-1.20:1.70;-1.55:2.60;-1.75:3.40", WPV=0.30,
+          WPT=55)
+    # nguoi DUNG YEN trong bep, xe xuat phat o nhieu tu the truoc cua (lech truc / lech goc) — thu rieng dong tac chui
+    for st in ("-0.40:0.20:150", "-0.80:0.45:120", "-1.20:0.30:90", "-1.35:0.45:75", "-0.95:0.70:105"):
+        J("cua_bep", f"{wn}:yen:{st}", "sau_vat_thap", CAM_HALF=55, TALLWALL=KITCHEN + wl, PASS_LINE=K_PASS,
+          LIDAR_NOISE=0.01, PX=-1.60, PY=2.90, START=st)
+    if not wl:
+        # khong co tuong trai: nguoi di tu phia TRAI vong vao cua (doi xung voi bag)
+        J("cua_bep", f"{wn}:re_phai", "duong_di", CAM_HALF=55, TALLWALL=KITCHEN, PASS_LINE=K_PASS,
+          START="-3.40:0.10:0", WP="-2.40:0.30;-1.60:0.35;-1.25:0.75;-1.20:1.70;-1.55:2.60;-1.75:3.40",
+          WPV=0.30, WPT=60)
+
+# 14/10 — xe dang VONG qua vat can chinh (nguoi dung sau no) thi bi CHAN giua chung o ben dang vong: nguoi thu hai buoc
+# vao dung chan hanh lang (CHAN), hoac vat thap khuat sau vat chinh. Xe phai quay lai, vong ben kia toi nguoi.
+VC_WALLS = "0.0:1.5:4.5:1.5;0.0:-1.6:4.5:-1.6"          # tuong hai ben: hanh lang trai 1.0 m, phai 1.1 m
+VC_BOX = "1.3:-0.5:1.7:0.5"
+for lab, kw in (
+        ("chan_trai", dict(TALLWALL=VC_WALLS, PX=3.3, PY=0.3, CHAN="1.5:4.0:40:1.0:1.45")),
+        ("chan_phai", dict(TALLWALL=VC_WALLS, PX=3.3, PY=-0.3, CHAN="1.5:4.0:40:-1.05:-1.55")),
+        ("chan_trai_muon", dict(TALLWALL=VC_WALLS, PX=3.3, PY=0.3, CHAN="1.9:6.5:40:1.0:1.45")),
+        ("chan_trai_khong_tuong", dict(PX=3.3, PY=0.3, CHAN="1.5:4.0:40:1.0:1.6")),
+        ("khuat_sau_trai", dict(TALLWALL=VC_WALLS, PX=3.3, PY=0.3, LOWBOX=VC_BOX + ";2.0:0.45:2.4:1.5"))):
+    box = kw.pop("LOWBOX", VC_BOX)
+    J("vong_chan", lab, "vong_chan", CAM_HALF=55, LOWBOX=box, T_END=45, **kw)
+
 # ── Doc ket qua tu dong chi so cua sim_follow.py ─────────────────────────
 NUM = r"(-?[0-9.]+|nan|inf)"
 PATS = [(r"camera=\s*" + NUM + "%", "cam", float), (r"mat_cam_dai_nhat=\s*" + NUM + "s", "mat_cam", float),
@@ -144,7 +189,7 @@ PATS = [(r"camera=\s*" + NUM + "%", "cam", float), (r"mat_cam_dai_nhat=\s*" + NU
         (r"ho_nho_nhat_voi_tuong=\s*" + NUM, "ho", float), (r"dung im trong cua lau nhat=\s*" + NUM, "stall", float),
         (r"qua cua ben: (\S+)", "qua_ben", str), (r"qua cua: (\S+)", "qua", str),
         (r"uoc_gan_ng2_hon=\s*" + NUM, "nham", float), (r"luc_ng2_dung_yen=\s*" + NUM, "ho_ng2", float),
-        (r"ngang vat ben (TRAI|PHAI|khong toi)", "ben", str)]
+        (r"ngang vat ben (TRAI|PHAI|khong toi)", "ben", str), (r"qua vach: (\S+)", "qua_vach", str)]
 
 
 def parse(out):
@@ -181,7 +226,9 @@ def passed(group, label, x):
         return False
     if group.startswith("door") or group == "stuck":
         return x.get("qua_ben") == "CO" and x.get("ho", 0.0) > 0.0
-    if group in ("lowbox", "hard") or (group == "rssi" and label.endswith("RSSI=1")):
+    if group == "cua_bep":
+        return x.get("qua_vach") == "CO" and x.get("ho", 0.0) > 0.0
+    if group in ("lowbox", "hard", "vong_chan") or (group == "rssi" and label.endswith("RSSI=1")):
         return x.get("tt") in ("ARRIVED", "FOLLOW") and 0.8 <= x.get("d", 9.0) <= 1.4 and x.get("ho", 0.0) > 0.0
     if group == "pitch":
         # nguoi van dang di o cuoi kich ban -> xe bam sau 1.2-1.6 m (camera dung goc: 1.30)

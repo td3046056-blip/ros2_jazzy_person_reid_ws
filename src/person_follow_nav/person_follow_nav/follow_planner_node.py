@@ -111,6 +111,8 @@ class FollowPlannerNode(Node):
         self.gap_back_used = 0.0            # da lui bao nhieu met trong dong tac chui khe
         self.gap_back_time = 0.0            # lan cuoi lui (de cap lai han muc)
         self.gap_cross_time = 0.0           # lan cuoi o pha qua khe (tre dung sai truc)
+        self.gap_axis_prev: Optional[Tuple[float, float, float, float]] = None   # truc khe nhip truoc (odom)
+        self.gap_mem: Optional[Dict[str, float]] = None   # khe da chon gan nhat (odom) — dung lai o mieng cua
         self.last_target_odom: Optional[Tuple[float, float]] = None   # cho thay nguoi lan cuoi
         self.search_goto = False            # SEARCH dang o pha lai toi cho do
         self.nav_rotating = False           # bo bam duong ban do dang xoay tai cho ve huong duong
@@ -982,7 +984,7 @@ class FollowPlannerNode(Node):
             if cost < best_cost:
                 best_cost, best = cost, (A, B, mx, my)
         if best is None:
-            return None
+            return self._gap_recall(target_xy)
 
         A, B, mx, my = best
         ux, uy = B[0] - A[0], B[1] - A[1]
@@ -1000,8 +1002,156 @@ class FollowPlannerNode(Node):
         along = -(nx * mx + ny * my)                   # khoang cach tu xe toi mat khe
         lat = abs(ux * mx + uy * my)                   # xe lech khoi truc giua khe bao nhieu
         psi = math.atan2(-ny, -nx)                     # huong chui qua khe
-        return {"mx": mx, "my": my, "nx": nx, "ny": ny, "gw": float(math.hypot(ux * un, uy * un)),
-                "psi": psi, "along": along, "lat": lat}
+        g = {"mx": mx, "my": my, "nx": nx, "ny": ny, "gw": float(math.hypot(ux * un, uy * un)),
+             "psi": psi, "along": along, "lat": lat}
+        g2 = self._gap_refine(g, target_xy)
+        if g2 is not None and g2.get("corridor"):
+            return None
+        return self._gap_store(g2 or g)
+
+    def _gap_store(self, g: Dict[str, float]) -> Dict[str, float]:
+        """Nho khe (khung odom) va LOC theo thoi gian: cua dung yen, con so do moi nhip nhay vai cm vi nhieu
+        lidar (goc thanh cua luc bat duoc luc khong) -> 'along' nhay +-6 cm qua nguong lui / tien -> xe lui
+        tien lien tuc truoc cua (mo phong cua bep 14/10). Cung mot khe (lech < 25 cm, < 15 do) thi trung binh
+        truot; khe khac thi lay luon. Tra ve khe da loc, tinh lai theo tu the xe hien tai."""
+        ox, oy = self._odom_of(g["mx"], g["my"])
+        ax = wrap_pi(g["psi"] + self.robot_yaw)
+        gw = g["gw"]
+        m = self.gap_mem
+        now_ = time.time()
+        if (m is not None and now_ - m["t"] < 1.0 and math.hypot(ox - m["ox"], oy - m["oy"]) < 0.25
+                and abs(wrap_pi(ax - m["axis"])) < math.radians(15.0)):
+            a = 0.25
+            ox, oy = m["ox"] + a * (ox - m["ox"]), m["oy"] + a * (oy - m["oy"])
+            ax = wrap_pi(m["axis"] + a * wrap_pi(ax - m["axis"]))
+            gw = m["gw"] + a * (gw - m["gw"])
+        self.gap_mem = {"ox": ox, "oy": oy, "axis": ax, "gw": gw, "t": now_}
+        mx, my = self._base_of(ox, oy)
+        th = wrap_pi(ax - self.robot_yaw)
+        dx, dy = math.cos(th), math.sin(th)
+        return {"mx": mx, "my": my, "nx": -dx, "ny": -dy, "gw": gw, "psi": th,
+                "along": dx * mx + dy * my, "lat": abs(-dy * mx + dx * my)}
+
+    def _gap_recall(self, target_xy: Optional[Tuple[float, float]]) -> Optional[Dict[str, float]]:
+        """Khong tim thay khe o nhip nay: dung lai khe da chon trong 2 s qua (khung odom) neu xe con o cua.
+
+        Xe toi MIENG cua thi hai thanh cua nam hai ben than xe, khong con ke nhau theo goc (giua chung la
+        moi diem trong phong ben kia) -> _gap_target khong ra khe nao -> ban do lai, ma ban do thi khong
+        thay doan tuong nam ngang tam lidar -> ve duong xuyen tuong, xe lui ra (mo phong cua bep 14/10).
+        Chi dung lai khi: duoi xe chua qua mat cua, nguoi van o BEN KIA, va _gap_refine van thay loi di.
+        """
+        m = self.gap_mem
+        if m is None or time.time() - m["t"] > 2.0:
+            return None
+        mx, my = self._base_of(m["ox"], m["oy"])
+        th = wrap_pi(m["axis"] - self.robot_yaw)
+        dx, dy = math.cos(th), math.sin(th)
+        along = dx * mx + dy * my
+        if along < -(self.rear_len + 0.10) or along > self.gap_engage_range:
+            return None
+        if target_xy is not None and dx * (target_xy[0] - mx) + dy * (target_xy[1] - my) <= 0.0:
+            return None
+        g = {"mx": mx, "my": my, "nx": -dx, "ny": -dy, "gw": m["gw"], "psi": th, "along": along,
+             "lat": abs(-dy * mx + dx * my)}
+        g2 = self._gap_refine(g, target_xy)
+        if g2 is None or g2.get("corridor"):
+            return None
+        return self._gap_store(g2)
+
+    def _gap_refine(self, g: Dict[str, float],
+                    target_xy: Optional[Tuple[float, float]] = None) -> Optional[Dict[str, float]]:
+        """Dat lai khe vao MAT CAT HEP NHAT cua loi di quanh khe vua chon (14/10).
+
+        _gap_target lay hai diem lidar KE NHAU THEO GOC. O cua that, cho do thuong KHONG phai cho
+        hep nhat: tuong day, khung cua nho ra, rem buoc gon, canh cua mo ap mot ben bien loi di thanh
+        mot "duong ham" ngan, va hai thanh cua o mieng cua nam o goc nhin rat cheo nen khong ke nhau
+        theo goc. Xe that 14/10 (bag follow_1014_153520, cua bep 0.80 m): khe chon duoc la cho mo
+        0.95 m PHIA TRONG bep (tuong trai trong bep <-> canh cua), lech 7-8 do so voi cua that ->
+        xe "da vao truc" (lech 0-1 cm) theo truc sai, that ra lech trai 4 cm + nghieng 8 do -> goc
+        truoc trai cach thanh cua 4-5 cm -> xoay qua xoay lai mai; lan sau khe nhay qua lai giua cua
+        that va mot cap diem cheo -> xe tien lui mai.
+
+        Cach tinh: thu cac huong chui quanh huong cu (+-16 do, buoc 2 do). Voi moi huong, chieu cac
+        diem lidar tu 0.7 m truoc khe toi 0.3 m sau khe (ke ca canh than xe) len truc ngang, lay
+        khoang TRONG LIEN TUC chua tam khe cu = be rong duong THANG lot qua that. Chon huong rong
+        nhat, phat nhe khi lech huong cu / truc nhip truoc (1-2 mm moi do) de khong nhay vi nhieu. Tam
+        khe moi = giua khoang trong do, dat o mat cat hep dau tien xe gap. Duoi 2*(half_width +
+        gap_cross_margin) + 2 cm (xe khong the lot) hoac khong tinh duoc thi tra None.
+        """
+        P = self.obstacles
+        if P.shape[0] < 2:
+            return None
+        if target_xy is not None:
+            # Bo chan nguoi dang bam (nguoi vua buoc qua cua thi chan ho khong duoc lam lech khe). Vi tri du
+            # doan troi toi sat thanh cua thi xoa luon thanh cua -> khe "no" ra: bat o dieu kien be rong ben
+            # duoi (mat cat hep nhat khong the rong hon khe cu).
+            d_t = np.hypot(P[:, 0] - target_xy[0], P[:, 1] - target_xy[1])
+            P = P[d_t > min(0.35, self.target_clear_r)]
+        mx, my, psi0 = g["mx"], g["my"], g["psi"]
+        lat_w = 0.5 * g["gw"] + 0.35
+        cands = [psi0 + math.radians(float(d)) for d in range(-16, 17, 2)]
+        # Truc nhip truoc (khung odom) — chi khi cung mot khe (tam gan, huong gan)
+        prev = None
+        now_ = time.time()
+        gox, goy = self._odom_of(mx, my)          # tam khe CU (khung odom) — de nhan ra "cung mot khe"
+        if self.gap_axis_prev is not None and now_ - self.gap_axis_prev[3] < 1.0:
+            pa, pox, poy, _t = self.gap_axis_prev
+            pr = wrap_pi(pa - self.robot_yaw)
+            if math.hypot(gox - pox, goy - poy) < 0.5 and abs(wrap_pi(pr - psi0)) < math.radians(20.0):
+                prev = pr
+                cands.append(pr)
+        best = None
+        for th in cands:
+            c, s_ = math.cos(th), math.sin(th)
+            S = P[:, 0] * c + P[:, 1] * s_
+            L = -P[:, 0] * s_ + P[:, 1] * c
+            sm = mx * c + my * s_
+            lm = -mx * s_ + my * c
+            win = ((S >= max(sm - 0.70, -self.rear_len - 0.05)) & (S <= sm + 0.30)
+                   & (np.abs(L - lm) <= lat_w))
+            if not np.any(win):
+                continue
+            Lw, Sw = L[win], S[win]
+            lft = Lw > lm
+            if not lft.any() or lft.all():
+                continue                           # mot ben khong co gi chan: khong phai loi di
+            l_l = float(np.min(Lw[lft]))
+            l_r = float(np.max(Lw[~lft]))
+            w = l_l - l_r
+            # Phat lech: 1 mm moi do so voi huong khe cu, 2 mm moi do so voi truc nhip truoc (chong nhay vi
+            # nhieu). Phai NHO hon do doc be rong theo goc cua cua that: tuong day 12 cm chi hep them ~2 mm
+            # moi do nghieng — phat 4 mm/do thi khong bao gio xoay duoc truc ve phap tuyen that.
+            dev = 0.057 * abs(wrap_pi(th - psi0)) + (0.115 * abs(wrap_pi(th - prev)) if prev is not None else 0.0)
+            score = w - dev
+            if best is None or score > best[0]:
+                # Mat cat hep DAU TIEN xe gap: s nho nhat cua MOI diem sat mep khoang trong (trong 3 cm ra
+                # ngoai), khong chi diem chan mep. Tuong day: goc ngoai va goc trong thanh cua cung toa do
+                # ngang, lay diem nao la ngau nhien -> 'along' nhay 12 cm moi nhip, cham nguong lui (mo phong
+                # cua ben tuong day 14/10: xe lui - tien mai cach mat cua 0.5 m).
+                e_l = (Lw >= l_l - 1e-3) & (Lw <= l_l + 0.03)
+                e_r = (Lw <= l_r + 1e-3) & (Lw >= l_r - 0.03)
+                # Do SAU loi di: thanh chan mep chay dai bao nhieu doc truc (tuong song song truc = hanh lang).
+                # Dai 10 cm (khong phai 3 cm): truc lech tuong vai do thi tuong dai 1 m chi con ~0.3 m trong dai 3 cm.
+                d_l = (Lw >= l_l - 1e-3) & (Lw <= l_l + 0.10)
+                d_r = (Lw <= l_r + 1e-3) & (Lw >= l_r - 0.10)
+                depth = max(float(np.ptp(Sw[d_l])), float(np.ptp(Sw[d_r])))
+                best = (score, th, w, 0.5 * (l_l + l_r), float(np.min(Sw[e_l | e_r])), depth)
+        # Mat cat hep nhat KHONG THE rong hon khe cu (hai mep cu nam trong cua so): rong hon la da mat diem
+        # (bi che / bi loai nham) -> khong tin.
+        if (best is None or best[2] < 2.0 * (self.half_width + self.gap_cross_margin) + 0.02
+                or best[2] > min(g["gw"] + 0.03, self.gap_wp_max_w)):
+            return None
+        _sc, th, w, cl, s_star, depth = best
+        dx, dy = math.cos(th), math.sin(th)
+        mx2, my2 = s_star * dx - cl * dy, s_star * dy + cl * dx
+        self.gap_axis_prev = (wrap_pi(th + self.robot_yaw), gox, goy, now_)
+        return {"mx": mx2, "my": my2, "nx": -dx, "ny": -dy, "gw": w,
+                "psi": wrap_pi(th), "along": s_star, "lat": abs(cl),
+                # HANH LANG rong (thanh chan chay dai doc truc, vd. giua thung va tuong): khong phai khung cua,
+                # DWA / ban do tu di duoc. Dong tac chui khe o day thi 'along' tinh tu dau cua so (tuong chay
+                # suot) -> luat lui ve truc kich hoat -> lui - dung mai (mo phong 14/10: vong qua thung bi chan
+                # ben trai, sang phai thi ket o mieng hanh lang 1.1 m). Cua hep van chui (rong < 0.95 m).
+                "corridor": bool(w > 0.95 and depth > 0.45)}
 
     def _pose_clearance(self, px: float, py: float, yaw: float) -> float:
         """Do thoang footprint chu nhat neu xe dung o tu the (px, py, yaw) — khung base_link hien tai."""
@@ -1411,24 +1561,7 @@ class FollowPlannerNode(Node):
             # tu xa thi xe bo chi phi giu khung hinh va chay cham suot doan duong dai.
             return None
 
-        # DA SAT KHUNG CUA (duoi margin_hard): xoay NHE tai cho ve phia lam xe xa khung
-        # cua hon — dung dieu nguoi dung lam bang tay khi xe ket (23/09). Uu tien hon lui:
-        # xoay nhe chi dua duoi xe ra ngang vai cm, con lui thi di thang vao cung sau
-        # ma lidar khong nhin thay (blind_sectors_deg).
         c0 = self._clear_now()
-        if c0 <= self.margin_hard:
-            best = None
-            for w_try in (0.15, -0.15, 0.30, -0.30):
-                mn, en = self._arc_clearance(0.0, w_try)
-                if not bool(self._admissible(np.array([mn]), np.array([en]))[0]):
-                    continue
-                # cung nhu nhau thi chon chieu dua mui ve phap tuyen khe
-                score = en + (0.005 if w_try * psi > 0.0 else 0.0)
-                if best is None or score > best[1]:
-                    best = (w_try, score)
-            if best is not None:
-                return 0.0, best[0], "chui khe hep — sat khung cua %.0fcm, xoay nhe ve phia rong" % (
-                    100.0 * c0)
 
         # Dung sai "da vao truc" tinh theo KHE THAT: cua 0.81 m, xe 0.60 m -> du 10.5 cm moi
         # ben, tru khoang ho toi thieu -> chi con vai cm. Dung sai co dinh 12 cm (cu) cho xe
@@ -1442,6 +1575,38 @@ class FollowPlannerNode(Node):
         if now_ - self.gap_cross_time < 1.0:
             tol += 0.03                            # tre: dang chui thi khong nhay ve pha canh truc
         backing = (now_ - self.gap_back_time < 0.5) and along < stand + 0.05 and lat > 0.5 * tol
+        crossing = lat <= tol and not backing
+        if crossing:
+            # DA VAO TRUC: pha qua khe lam TRUOC. No co luat rieng khi sat khung (nguong gap_cross_margin
+            # 3 cm, lui ve truc, xoay cho thoang). Truoc 14/10 luat "sat khung <= margin_hard -> xoay nhe
+            # ve phia rong" ben duoi chay truoc: xe da vuong mat cua, ho 4-5 cm (van du qua voi nguong
+            # 3 cm) lai bi xoay ra, roi pha qua khe xoay vuong lai -> xoay qua xoay lai mai (xe that 14/10).
+            self.gap_cross_time = now_
+            out = self._gap_cross(g, c0)
+            if out is not None:
+                return out
+
+        # DA SAT KHUNG CUA (duoi margin_hard): xoay NHE tai cho ve phia lam xe xa khung
+        # cua hon — dung dieu nguoi dung lam bang tay khi xe ket (23/09). Uu tien hon lui:
+        # xoay nhe chi dua duoi xe ra ngang vai cm, con lui thi di thang vao cung sau
+        # ma lidar khong nhin thay (blind_sectors_deg). Khi da vao truc: chi khi pha qua khe
+        # khong con lenh nao an toan.
+        if c0 <= self.margin_hard:
+            best = None
+            for w_try in (0.15, -0.15, 0.30, -0.30):
+                mn, en = self._arc_clearance(0.0, w_try)
+                if not bool(self._admissible(np.array([mn]), np.array([en]))[0]):
+                    continue
+                # cung nhu nhau thi chon chieu dua mui ve phap tuyen khe
+                score = en + (0.005 if w_try * psi > 0.0 else 0.0)
+                if best is None or score > best[1]:
+                    best = (w_try, score)
+            if best is not None:
+                return 0.0, best[0], "chui khe hep — sat khung cua %.0fcm, xoay nhe ve phia rong" % (
+                    100.0 * c0)
+        if crossing:
+            return None
+
         if (lat > tol and along < stand - 0.05) or backing:
             # Da qua gan mat khe ma con lech truc -> LUI VE TRUC roi vao lai.
             # Lui THEO CUNG toi mot diem tren truc khe phia sau (pure-pursuit cho chieu lui),
@@ -1471,9 +1636,6 @@ class FollowPlannerNode(Node):
             head_des = math.atan2(ay, ax)
             v_des, turn_thr = min(self.v_max, 0.8 * math.hypot(ax, ay)), math.radians(35.0)
             note = "chui khe hep — vao truc giua khe (lech %.2fm)" % lat
-        else:
-            self.gap_cross_time = now_
-            return self._gap_cross(g, c0)
 
         err = wrap_pi(head_des)          # mui xe = 0 trong base_link
         # Vung chet goc: khong co thi cac lenh quay ti hon bi min_move_angular keo thanh
@@ -2070,7 +2232,13 @@ class FollowPlannerNode(Node):
         if ((blocked or blocked_person) and (goal_r > self.dist_deadband or spd > 0.15)
                 and not (nav is not None and nav["hold"])):
             gap = self._gap_target(goal_b, max(goal_r, dist), (tx, ty))
-            if gap is not None and not self._path_near(nav, gap["mx"], gap["my"]):
+            # Da toi MIENG CUA (khe trong tam dung cho, gan truc) thi tin khe, khong de ban do phu quyet:
+            # luc do lidar nam ngang mat tuong hai ben cua (tia quet song song mat tuong) nen vong quet hien
+            # tai KHONG thay doan tuong do -> ban do (chi lay vong quet hien tai) ve duong vong XUYEN tuong,
+            # xe lui ra "duong di nam phia sau — dung cho" (bag 14/10 luc 326 s; mo phong cua bep).
+            at_mouth = (gap is not None and gap["along"] < self.front_len + self.margin_soft + 0.35
+                        and gap["lat"] < 0.25)
+            if gap is not None and not at_mouth and not self._path_near(nav, gap["mx"], gap["my"]):
                 gap = None
             if gap is not None:
                 out = self._gap_maneuver(gap)

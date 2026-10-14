@@ -74,6 +74,15 @@ class IdentityFollowCore:
             reid_onnx=_model_file(params.get("reid_onnx", "")),
             ort_threads=int(params.get("ort_threads", 2)),
         )
+        # Ghi ro model dang chay vao log "Models loaded" (14/10): bag mini PC chi 7 Hz, ~70 ms moi nguoi trong
+        # khung — khong biet la ONNX hay ban PyTorch cu neu log khong noi.
+        d_onnx, r_onnx = _model_file(params.get("detector_onnx", "")), _model_file(params.get("reid_onnx", ""))
+        self.device_note += "; detector=%s, reid=%s" % (
+            (d_onnx.rsplit("/", 1)[-1] + " (onnxruntime)") if d_onnx else "yolov5n PyTorch",
+            (r_onnx.rsplit("/", 1)[-1] + " (onnxruntime)") if r_onnx else "ckpt.t7 PyTorch")
+        if d_onnx or r_onnx:
+            self.device_note += ", ort_threads=%d, torch_threads=%d" % (int(params.get("ort_threads", 2)),
+                                                                       torch.get_num_threads())
         self._setup_camera_model(params)
 
         self.identity = TargetIdentityManager(
