@@ -70,10 +70,13 @@ from visualization_msgs.msg import Marker, MarkerArray
 
 from .geometry import (
     downsample_polar,
+    grid_min_dist2,
     self_filter_mask,
     rect_clearance,
+    rect_clearance_min,
     scan_to_base_points,
     segment_blocked,
+    segments_blocked,
     wrap_pi,
     yaw_from_quaternion,
 )
@@ -826,13 +829,11 @@ class FollowPlannerNode(Node):
         direct_free = False
         for probe in self.probe_distances:
             reach = min(probe, max(0.35, goal_dist))
-            free: list = []
-            for phi in cand:
-                gx = reach * math.cos(phi)
-                gy = reach * math.sin(phi)
-                blocked, _ = segment_blocked(self.obstacles, gx, gy, corridor)
-                if not blocked:
-                    free.append(float(phi))
+            # 101 huong kiem tra MOT lan (segments_blocked) thay vi 101 lan segment_blocked — cung ket qua
+            # tung bit, nhanh hon nhieu tren mini PC (13/10)
+            blk = segments_blocked(self.obstacles,
+                                   [(reach * math.cos(phi), reach * math.sin(phi)) for phi in cand], corridor)
+            free: list = [float(phi) for phi, b in zip(cand, blk) if not b]
             if not free:
                 continue
 
@@ -1120,13 +1121,12 @@ class FollowPlannerNode(Node):
             Q = P[keep].astype(np.float32)
         else:
             Q = np.zeros((0, 2), dtype=np.float32)
-        d2 = np.full(GX.shape, np.inf, dtype=np.float32)
-        for i in range(0, Q.shape[0], 48):
-            q = Q[i:i + 48]
-            dd = (GX[..., None] - q[:, 0]) ** 2 + (GY[..., None] - q[:, 1]) ** 2
-            d2 = np.minimum(d2, dd.min(axis=2))
-        dobs = np.sqrt(d2)
         r_in = self.half_width + self.margin_hard
+        # dobs chi duoc dung khi < nav_lethal (o cam) hoac < r_in + nav_soft (vung phat); xa hon thi cost = 1.0
+        # dung — nen chi can CHINH XAC duoi nguong do. grid_min_dist2 chi xet diem gan tung khoi luoi: giong
+        # het vet can cu duoi nguong, nhanh hon ~10-20 lan (13/10, mini PC).
+        d2 = grid_min_dist2(GX, GY, Q, max(self.nav_lethal, r_in + self.nav_soft))
+        dobs = np.sqrt(d2)
         lethal = dobs < self.nav_lethal
         cost = 1.0 + self.nav_soft_cost * np.clip((r_in + self.nav_soft - dobs) / self.nav_soft, 0.0, 1.5) ** 2
 
@@ -1667,14 +1667,10 @@ class FollowPlannerNode(Node):
         # 3. Do thoang theo footprint chu nhat that
         P = self.obstacles
         if P.shape[0] > 0:
-            dx = P[None, None, :, 0] - X[:, :, None]
-            dy = P[None, None, :, 1] - Y[:, :, None]
-            c = np.cos(theta)[:, :, None]
-            s = np.sin(theta)[:, :, None]
-            lx = c * dx + s * dy
-            ly = -s * dx + c * dy
-            clear = rect_clearance(lx, ly, self.front_len, self.rear_len, self.half_width)
-            clr_t = clear.min(axis=2)                         # (N,K) tung buoc
+            # = rect_clearance(lx, ly, ...).min(axis=2) voi lx, ly theo tung tu the — giong het tung bit,
+            # nhanh hon ~2 lan (13/10, mini PC): min truoc sqrt sau, tinh theo khoi (geometry.py)
+            clr_t = rect_clearance_min(X, Y, theta, P, self.front_len, self.rear_len,
+                                       self.half_width)               # (N,K) tung buoc
             min_clear = clr_t.min(axis=1)                     # (N,)
             end_clear = clr_t[:, -1]
         else:

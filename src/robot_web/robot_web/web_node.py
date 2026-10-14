@@ -1727,6 +1727,10 @@ class RobotWeb(Node):
                     while not app.closing:                 # luong video da gioi han image_max_fps
                         jpg, fid = app.wait_frame(last_id, 2.0)
                         if jpg is None:
+                            # 13/10: ghi nhan khung nay (du khong ma hoa duoc / anh cu / chua co camera) -> lan sau
+                            # wait_frame CHO khung moi. Truoc day giu last_id cu: frame_id (0) != last_id (-1) nen
+                            # wait_frame tra ngay -> vong lap quay khong nghi, an 100 % mot nhan khi mat anh camera.
+                            last_id = fid
                             if self._client_gone():          # khong co anh moi: van phai biet khi nguoi xem roi di
                                 break
                             continue

@@ -1,5 +1,6 @@
 import json
 import struct
+import threading
 import time
 
 import rclpy
@@ -118,8 +119,13 @@ class BWDR03DecodedSerialNode(Node):
         self.odom_yaw = 0.0
         self.last_odom_time = self.get_clock().now()
 
-        # Timer đọc serial từ BW-DR03
-        self.read_timer = self.create_timer(0.005, self.read_serial)
+        # Doc serial tu BW-DR03 bang LUONG RIENG (13/10, mini PC i5-5200U): truoc la rclpy timer 5 ms -> ca
+        # driver ~28 % mot nhan, phan lon la chi phi timer cua rclpy. Luong nay van hoi moi 5 ms (do tre nhu cu)
+        # nhung bang time.sleep: do tren cong that 2.5 % CPU (cho 1 byte + read(in_waiting): 11.7 %, vi chip FTDI
+        # do tre thap gui moi goi ~130 byte thanh ~10 manh -> vong lap quay ~600 lan/s).
+        self._stop_reader = threading.Event()
+        self._reader = threading.Thread(target=self._read_loop, daemon=True, name='bw_dr03_read')
+        self._reader.start()
 
         # Watchdog tự dừng nếu mất /cmd_vel
         self.watchdog_timer = self.create_timer(0.1, self.cmd_watchdog)
@@ -136,28 +142,35 @@ class BWDR03DecodedSerialNode(Node):
     # SERIAL READ + DECODE
     # ============================================================
 
-    def read_serial(self):
-        try:
-            n = self.ser.in_waiting
+    def _read_loop(self):
+        """Luong doc: moi 5 ms doc het phan dang co trong cong roi giai ma (giong timer cu). Loi cong thi bao
+        (toi da 1 lan/s) va thu lai sau 50 ms — nhu ban timer cu (khong tu mo lai cong)."""
+        while not self._stop_reader.wait(0.005):
+            try:
+                n = self.ser.in_waiting
 
-            if n <= 0:
-                return
+                if n <= 0:
+                    continue
 
-            data = self.ser.read(n)
+                data = self.ser.read(n)
 
-            if not data:
-                return
+                if not data:
+                    continue
 
-            self.buffer.extend(data)
-            self.parse_buffer()
+                self.buffer.extend(data)
+                self.parse_buffer()
 
-        except serial.SerialException as e:
-            self.get_logger().warn(f'Serial read warning: {e}')
-            return
+            except serial.SerialException as e:
+                if self._stop_reader.is_set():
+                    break
+                self.get_logger().warn(f'Serial read warning: {e}', throttle_duration_sec=1.0)
+                time.sleep(0.05)
 
-        except Exception as e:
-            self.get_logger().error(f'Serial error: {e}')
-            return
+            except Exception as e:
+                if self._stop_reader.is_set():
+                    break
+                self.get_logger().error(f'Serial error: {e}', throttle_duration_sec=1.0)
+                time.sleep(0.05)
 
     def parse_buffer(self):
         while True:
@@ -259,6 +272,29 @@ class BWDR03DecodedSerialNode(Node):
         imu = [float(v) for v in values[15:24]]
         timestamp = int(values[24])
 
+        # /bw_dr03/power: web doc pin -> luon gui. Cac topic phu con lai (13/10): chi gui khi CO node dang ky
+        # (khong node nao cua he bam nguoi doc chung; 50 goi/s x 7 topic + json.dumps ton CPU mini PC).
+        # Ai dang ky (ros2 topic echo, ghi bag...) thi van nhan du nhu cu.
+        self.pub_power.publish(Float32(data=power))
+
+        if self.pub_decoded.get_subscription_count() > 0:
+            self._publish_decoded(status, power, theta, encoder_ppr, encoder_delta_r, encoder_delta_l,
+                                  encoder_delta_car, upward, max_speed, hbz, distance1, distance2, imu, timestamp)
+        if self.pub_status.get_subscription_count() > 0:
+            self.pub_status.publish(Int32(data=status))
+        if self.pub_theta.get_subscription_count() > 0:
+            self.pub_theta.publish(Float32(data=theta))
+        if self.pub_encoder_r.get_subscription_count() > 0:
+            self.pub_encoder_r.publish(Int32(data=encoder_delta_r))
+        if self.pub_encoder_l.get_subscription_count() > 0:
+            self.pub_encoder_l.publish(Int32(data=encoder_delta_l))
+        if self.pub_imu.get_subscription_count() > 0:
+            self.pub_imu.publish(Float32MultiArray(data=imu))
+        if self.pub_sonar.get_subscription_count() > 0:
+            self.pub_sonar.publish(Float32MultiArray(data=[distance1, distance2]))
+
+    def _publish_decoded(self, status, power, theta, encoder_ppr, encoder_delta_r, encoder_delta_l,
+                         encoder_delta_car, upward, max_speed, hbz, distance1, distance2, imu, timestamp):
         decoded = {
             'status': status,
             'power_v': power,
@@ -287,13 +323,6 @@ class BWDR03DecodedSerialNode(Node):
         }
 
         self.pub_decoded.publish(String(data=json.dumps(decoded)))
-        self.pub_status.publish(Int32(data=status))
-        self.pub_power.publish(Float32(data=power))
-        self.pub_theta.publish(Float32(data=theta))
-        self.pub_encoder_r.publish(Int32(data=encoder_delta_r))
-        self.pub_encoder_l.publish(Int32(data=encoder_delta_l))
-        self.pub_imu.publish(Float32MultiArray(data=imu))
-        self.pub_sonar.publish(Float32MultiArray(data=[distance1, distance2]))
 
     # ============================================================
     # MOTOR COMMAND - 13 BYTE PROTOCOL
@@ -384,7 +413,8 @@ class BWDR03DecodedSerialNode(Node):
 
         self.pub_odom.publish(odom_msg)
 
-        if self.publish_tf:
+        # /tf 50 Hz: tracker / planner dung /odom, khong dung tf -> chi gui khi co node dang ky (RViz, ghi bag)
+        if self.publish_tf and self.tf_broadcaster.pub_tf.get_subscription_count() > 0:
             tf_msg = TransformStamped()
             tf_msg.header.stamp = now.to_msg()
             tf_msg.header.frame_id = self.odom_frame_id
@@ -418,7 +448,8 @@ class BWDR03DecodedSerialNode(Node):
             0
         ])
 
-        self.get_logger().info(f'SEND MOTOR CMD: {packet.hex(" ")}')
+        # 13/10: toi da 1 dong/s (truoc: moi lenh, 15-30 dong/s chiem 87 % file log va ton CPU ca ros2 launch)
+        self.get_logger().info(f'SEND MOTOR CMD: {packet.hex(" ")}', throttle_duration_sec=1.0)
 
         try:
             self.ser.write(packet)
@@ -451,7 +482,8 @@ class BWDR03DecodedSerialNode(Node):
         self.last_cmd_time = time.time()
 
         self.get_logger().info(
-            f'RECEIVED /cmd_vel: linear.x={msg.linear.x}, angular.z={msg.angular.z}'
+            f'RECEIVED /cmd_vel: linear.x={msg.linear.x}, angular.z={msg.angular.z}',
+            throttle_duration_sec=1.0
         )
 
         x = msg.linear.x
@@ -507,6 +539,10 @@ class BWDR03DecodedSerialNode(Node):
                 self.is_stopped = True
 
     def destroy_node(self):
+        # Dung luong doc truoc (toi da ~10 ms: timeout cua ser.read) roi moi gui STOP + dong cong nhu cu
+        if hasattr(self, '_stop_reader'):
+            self._stop_reader.set()
+            self._reader.join(timeout=0.5)
         try:
             if hasattr(self, 'ser') and self.ser.is_open:
                 self.send_stop()

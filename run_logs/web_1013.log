@@ -1,0 +1,339 @@
+10:15:32 10.42.0.1       login           OK  dang nhap
+10:21:28 su_kien         sys             -   he thong STOPPED -> STARTING: he thong dang chay (bat ngoai web)
+10:21:32 su_kien         sys             OK  he thong STARTING -> RUNNING
+10:21:34 su_kien         beacon          CB  mat tin hieu beacon
+10:23:56 su_kien         cmdpubs         LOI co 0 node ghi /cmd_vel
+10:23:56 su_kien         sys             -   he thong RUNNING -> STOPPED: he thong da tat (ngoai web)
+10:23:57 su_kien         cmdpubs         LOI so node ghi /cmd_vel ve 1 sau 1.0 s
+10:23:57 su_kien         beacon          CB  mat beacon sau 143.5 s — khong con du lieu RSSI
+10:30:23 127.0.0.1       login           OK  dang nhap
+10:31:03 su_kien         sys             -   he thong STOPPED -> STARTING: he thong dang chay (bat ngoai web)
+10:31:05 su_kien         sys             -   he thong STARTING -> STOPPED: he thong da tat (ngoai web)
+10:35:59 10.42.0.1       login           LOI sai mat khau
+10:36:02 10.42.0.1       login           OK  dang nhap
+10:36:03 su_kien         sys             -   he thong STOPPED -> CHECKING: dang kiem tra thiet bi truoc khi chay
+10:36:03 10.42.0.1       start           OK  dang kiem tra roi khoi dong
+10:36:12 su_kien         sys             -   he thong CHECKING -> STARTING: dang khoi dong cac node
+10:36:17 su_kien         sys             OK  he thong STARTING -> RUNNING
+10:36:19 su_kien         beacon          CB  mat tin hieu beacon
+10:36:49 10.42.0.1       enroll_start    OK  Enrollment started. Stand the target person near the camera center.
+10:37:08 10.42.0.1       reset_identity  OK  Target identity reset
+10:37:09 su_kien         enroll          -   huy hoc nguoi (chua du mau)
+10:40:36 su_kien         beacon          CB  mat beacon sau 257.0 s — co lai
+10:49:51 su_kien         sys             -   he thong RUNNING -> STOPPING: dung xe roi tat cac node
+10:49:51 10.42.0.1       shutdown        OK  dang tat he thong (dung xe truoc)
+10:49:51 -               shutdown        OK  /follow/stop: DUNG KHAN CAP
+10:49:53 su_kien         sys             -   he thong STOPPING -> STOPPED: da tat
+10:52:47 su_kien         follow          OK  xe bat dau bam
+10:52:47 127.0.0.1       login           OK  dang nhap
+10:52:47 su_kien         bag             -   bat dau ghi bag (ngoai web)
+10:52:48 su_kien         plan            -   ne vat can: di vong theo ban do (trai, 2.2m duong)
+10:52:48 su_kien         bag             -   bat dau ghi bag (ngoai web)
+10:54:38 su_kien         follow          -   xe ngung bam
+10:54:45 su_kien         bag             CB  da luu bag: ?, 7.3 MB — THIEU metadata.yaml
+10:57:17 su_kien         follow          OK  xe bat dau bam
+10:57:17 127.0.0.1       login           OK  dang nhap
+10:57:17 su_kien         plan            -   ne vat can: di vong theo ban do (trai, 2.2m duong)
+10:58:26 su_kien         follow          -   xe ngung bam
+11:24:50 127.0.0.1       login           OK  dang nhap
+11:24:50 su_kien         sys             -   he thong STOPPED -> CHECKING: dang kiem tra thiet bi truoc khi chay
+11:24:50 127.0.0.1       start           OK  dang kiem tra roi khoi dong
+11:25:00 su_kien         sys             -   he thong CHECKING -> STARTING: dang khoi dong cac node
+11:25:05 su_kien         sys             OK  he thong STARTING -> RUNNING
+11:25:05 su_kien         beacon          CB  mat tin hieu beacon
+11:27:43 su_kien         sys             -   he thong RUNNING -> STOPPING: dung xe roi tat cac node
+11:27:43 127.0.0.1       shutdown        OK  dang tat he thong (dung xe truoc)
+11:27:43 -               shutdown        OK  /follow/stop: DUNG KHAN CAP
+11:27:44 su_kien         beacon          CB  mat beacon sau 158.5 s — khong con du lieu RSSI
+11:27:45 su_kien         sys             -   he thong STOPPING -> STOPPED: da tat
+11:28:23 su_kien         follow          OK  xe bat dau bam
+11:28:23 127.0.0.1       login           OK  dang nhap
+11:28:24 su_kien         plan            -   ne vat can: di vong theo ban do (trai, 2.2m duong)
+11:28:25 su_kien         bag             -   bat dau ghi bag (ngoai web)
+11:28:25 su_kien         bag             -   bat dau ghi bag (ngoai web)
+11:31:13 su_kien         bag             CB  da luu bag: ?, 11.3 MB — THIEU metadata.yaml
+11:43:28 su_kien         follow          OK  xe bat dau bam
+11:43:29 127.0.0.1       login           OK  dang nhap
+11:43:29 su_kien         plan            -   ne vat can: di vong theo ban do (trai, 2.2m duong)
+11:43:31 su_kien         bag             -   bat dau ghi bag (ngoai web)
+11:43:31 su_kien         bag             -   bat dau ghi bag (ngoai web)
+11:46:07 su_kien         follow          -   xe ngung bam
+11:46:13 su_kien         bag             CB  da luu bag: ?, 11.3 MB — THIEU metadata.yaml
+11:47:13 127.0.0.1       login           OK  dang nhap
+11:47:13 su_kien         follow          OK  xe bat dau bam
+11:47:13 su_kien         plan            -   ne vat can: di vong theo ban do (trai, 2.2m duong)
+11:47:14 su_kien         bag             -   bat dau ghi bag (ngoai web)
+11:47:15 su_kien         bag             -   bat dau ghi bag (ngoai web)
+11:49:09 su_kien         bag             CB  da luu bag: ?, 8.1 MB — THIEU metadata.yaml
+11:49:23 su_kien         sys             -   he thong STOPPED -> CHECKING: dang kiem tra thiet bi truoc khi chay
+11:49:23 127.0.0.1       start           OK  dang kiem tra roi khoi dong
+11:49:32 su_kien         sys             -   he thong CHECKING -> STARTING: dang khoi dong cac node
+11:49:36 su_kien         sys             OK  he thong STARTING -> RUNNING
+11:49:37 su_kien         beacon          CB  mat tin hieu beacon
+11:56:36 10.42.0.1       login           OK  dang nhap
+11:58:59 su_kien         sys             -   he thong RUNNING -> STOPPING: dung xe roi tat cac node
+11:58:59 10.42.0.1       shutdown        OK  dang tat he thong (dung xe truoc)
+11:58:59 -               shutdown        OK  /follow/stop: DUNG KHAN CAP
+11:58:59 su_kien         beacon          CB  mat beacon sau 562.5 s — khong con du lieu RSSI
+11:59:00 su_kien         sys             -   he thong STOPPING -> STOPPED: da tat
+12:55:11 su_kien         sys             -   he thong STOPPED -> CHECKING: dang kiem tra thiet bi truoc khi chay
+12:55:11 10.42.0.1       start           OK  dang kiem tra roi khoi dong
+12:55:20 su_kien         sys             -   he thong CHECKING -> STARTING: dang khoi dong cac node
+12:55:24 su_kien         sys             OK  he thong STARTING -> RUNNING
+12:55:25 su_kien         beacon          CB  mat tin hieu beacon
+12:55:49 10.42.0.1       enroll_start    OK  Enrollment started. Stand the target person near the camera center.
+12:55:52 su_kien         beacon          CB  mat beacon sau 27.0 s — co lai
+12:56:30 su_kien         enroll          OK  hoc xong nguoi (80 mau)
+12:57:02 10.42.0.1       follow_enable   OK  Bam nguoi: BAT
+12:57:02 su_kien         follow          OK  xe bat dau bam
+12:57:29 su_kien         plan            -   ne vat can: di vong theo ban do (phai, 3.7m duong)
+12:57:30 su_kien         plan            -   het ne vat can sau 1.0 s -> FOLLOW
+12:57:49 su_kien         plan            -   ne vat can: chui khe hep — vao truc giua khe (lech 0.48m)
+12:57:54 su_kien         plan            -   het ne vat can sau 5.0 s -> SEARCH
+12:57:54 su_kien         plan            CB  tim nguoi: mat nguoi — lai toi cho thay lan cuoi (di vong theo ban do (phai, 4.5m duong))
+12:58:04 su_kien         plan            CB  het tim nguoi sau 9.5 s -> IDLE
+12:58:04 su_kien         plan            CB  dung cho (khong thay nguoi): cho tin hieu muc tieu
+12:58:08 su_kien         plan            CB  het dung cho (khong thay nguoi) sau 4.0 s -> FOLLOW
+12:58:22 su_kien         plan            -   nguoi khuat camera: nguoi ra khoi camera — xoay ve huong nho cuoi
+12:58:26 su_kien         plan            -   het nguoi khuat camera sau 4.5 s -> SEARCH
+12:58:26 su_kien         plan            CB  tim nguoi: mat nguoi — chui khe hep — vao truc giua khe (lech 0.53m)
+12:58:29 10.42.0.1       follow_disable  OK  Bam nguoi: TAT
+12:58:30 su_kien         follow          -   xe ngung bam
+12:58:30 su_kien         plan            CB  het tim nguoi sau 4.0 s -> OFF
+12:58:34 su_kien         sys             -   he thong RUNNING -> STOPPING: dung xe roi tat cac node
+12:58:34 10.42.0.1       shutdown        OK  dang tat he thong (dung xe truoc)
+12:58:34 -               shutdown        OK  /follow/stop: DUNG KHAN CAP
+12:58:36 su_kien         sys             -   he thong STOPPING -> STOPPED: da tat
+14:59:09 192.168.1.102   login           OK  dang nhap
+14:59:19 su_kien         sys             -   he thong STOPPED -> CHECKING: dang kiem tra thiet bi truoc khi chay
+14:59:19 192.168.1.102   start           OK  dang kiem tra roi khoi dong
+14:59:22 su_kien         sys             LOI he thong CHECKING -> FAILED: kiem tra co 3 muc HONG — khong khoi dong (xem ket qua)
+14:59:46 su_kien         sys             -   he thong FAILED -> CHECKING: dang kiem tra thiet bi
+14:59:46 192.168.1.102   check           OK  dang kiem tra
+14:59:49 su_kien         sys             -   he thong CHECKING -> STOPPED: kiem tra: 3 muc HONG, 1 canh bao — sua truoc khi chay
+15:01:50 su_kien         sys             -   he thong STOPPED -> CHECKING: dang kiem tra thiet bi
+15:01:50 192.168.1.102   check           OK  dang kiem tra
+15:01:59 su_kien         sys             -   he thong CHECKING -> STOPPED: kiem tra dat (2 canh bao) — bam Khoi dong
+15:02:03 su_kien         sys             -   he thong STOPPED -> CHECKING: dang kiem tra thiet bi truoc khi chay
+15:02:03 192.168.1.102   start           OK  dang kiem tra roi khoi dong
+15:02:08 su_kien         sys             -   he thong CHECKING -> STARTING: dang khoi dong cac node
+15:02:13 su_kien         sys             OK  he thong STARTING -> RUNNING
+15:02:13 su_kien         beacon          CB  mat tin hieu beacon
+15:03:49 su_kien         beacon          CB  mat beacon sau 95.5 s — co lai
+15:03:50 192.168.1.102   enroll_start    OK  Enrollment started. Stand the target person near the camera center.
+15:04:25 su_kien         enroll          OK  hoc xong nguoi (80 mau)
+15:06:26 192.168.1.102   follow_enable   OK  Bam nguoi: BAT
+15:06:26 su_kien         follow          OK  xe bat dau bam
+15:06:37 su_kien         plan            -   nguoi khuat camera: nguoi ra khoi camera — xoay ve huong nho cuoi
+15:06:38 su_kien         plan            -   het nguoi khuat camera sau 1.0 s -> FOLLOW
+15:06:43 su_kien         plan            -   ne vat can: di vong theo ban do (trai, 1.5m duong)
+15:06:48 su_kien         plan            -   het ne vat can sau 5.5 s -> OCCLUDED
+15:06:48 su_kien         plan            -   nguoi khuat camera: chui khe hep — vao truc giua khe (lech 0.38m)
+15:06:49 su_kien         plan            -   het nguoi khuat camera sau 1.0 s -> SEARCH
+15:06:49 su_kien         plan            CB  tim nguoi: mat nguoi — lai toi cho thay lan cuoi (di vong theo ban do (trai, 0.6m duong))
+15:06:52 su_kien         plan            CB  het tim nguoi sau 2.5 s -> AVOID
+15:06:52 su_kien         plan            -   ne vat can: chui khe hep — vao truc giua khe (lech 0.11m)
+15:06:57 su_kien         plan            -   het ne vat can sau 5.5 s -> FOLLOW
+15:07:03 su_kien         plan            -   ne vat can: ne vat can (phai)
+15:07:05 su_kien         plan            -   het ne vat can sau 2.0 s -> FOLLOW
+15:07:07 su_kien         plan            -   nguoi khuat camera: nguoi bi che — di theo du doan
+15:07:09 su_kien         plan            -   het nguoi khuat camera sau 1.5 s -> SEARCH
+15:07:09 su_kien         plan            CB  tim nguoi: mat nguoi — lai toi cho thay lan cuoi (di vong theo ban do (trai, 0.8m duong))
+15:07:31 su_kien         plan            CB  het tim nguoi sau 22.5 s -> AVOID
+15:07:31 su_kien         plan            -   ne vat can: chui khe hep — vao truc giua khe (lech 1.45m)
+15:07:36 su_kien         plan            -   het ne vat can sau 4.5 s -> SEARCH
+15:07:36 su_kien         plan            CB  tim nguoi: mat nguoi — chui khe hep — vao truc giua khe (lech 1.28m)
+15:07:39 su_kien         plan            CB  het tim nguoi sau 3.0 s -> FOLLOW
+15:07:40 su_kien         plan            -   ne vat can: chui khe hep — qua khe theo truc (lech -4 do)
+15:07:41 su_kien         plan            -   het ne vat can sau 1.5 s -> FOLLOW
+15:07:43 su_kien         plan            -   ne vat can: chui khe hep — qua khe theo truc (lech -4 do)
+15:07:44 su_kien         plan            -   het ne vat can sau 4.5 s -> FOLLOW (gop 2 lan)
+15:07:49 su_kien         plan            CB  tim nguoi: mat nguoi — nhin ve cho thay lan cuoi
+15:07:53 su_kien         plan            CB  het tim nguoi sau 4.0 s -> AVOID
+15:07:53 su_kien         plan            -   ne vat can: ban do: xoay ve huong duong di
+15:08:06 su_kien         plan            -   het ne vat can sau 13.0 s -> FOLLOW
+15:08:19 su_kien         plan            -   ne vat can: di vong theo ban do (trai, 2.0m duong)
+15:08:22 su_kien         plan            -   het ne vat can sau 2.5 s -> OCCLUDED
+15:08:22 su_kien         plan            -   nguoi khuat camera: nguoi ra khoi camera — xoay ve huong nho cuoi
+15:08:23 su_kien         plan            -   het nguoi khuat camera sau 1.5 s -> AVOID
+15:08:23 su_kien         plan            -   ne vat can: di vong theo ban do (trai, 2.9m duong)
+15:08:27 su_kien         plan            -   het ne vat can sau 3.5 s -> FOLLOW
+15:08:30 su_kien         plan            -   ne vat can: di vong theo ban do (trai, 2.9m duong)
+15:08:36 su_kien         plan            -   het ne vat can sau 13.0 s -> FOLLOW (gop 2 lan)
+15:08:38 su_kien         plan            -   ne vat can: di vong theo ban do (trai, 2.9m duong)
+15:08:41 su_kien         plan            -   het ne vat can sau 17.5 s -> FOLLOW (gop 3 lan)
+15:08:43 su_kien         plan            -   ne vat can: di vong theo ban do (trai, 2.9m duong)
+15:08:53 su_kien         plan            -   het ne vat can sau 29.5 s -> FOLLOW (gop 4 lan)
+15:08:55 su_kien         plan            -   ne vat can: di vong theo ban do (trai, 2.9m duong)
+15:08:56 192.168.1.102   follow_disable  OK  Bam nguoi: TAT
+15:08:56 su_kien         follow          -   xe ngung bam
+15:08:57 su_kien         plan            -   het ne vat can sau 33.5 s -> OFF (gop 5 lan)
+15:09:01 192.168.1.102   follow_enable   OK  Bam nguoi: BAT
+15:09:01 su_kien         follow          OK  xe bat dau bam
+15:09:05 su_kien         plan            -   ne vat can: di vong theo ban do (phai, 1.7m duong)
+15:09:08 su_kien         plan            -   het ne vat can sau 3.5 s -> FOLLOW
+15:09:10 su_kien         plan            -   ne vat can: di vong theo ban do (phai, 1.7m duong)
+15:09:12 su_kien         plan            -   het ne vat can sau 7.0 s -> OCCLUDED (gop 2 lan)
+15:09:12 su_kien         plan            -   nguoi khuat camera: nguoi bi che — di theo du doan
+15:09:14 su_kien         plan            -   het nguoi khuat camera sau 2.0 s -> SEARCH
+15:09:14 su_kien         plan            CB  tim nguoi: mat nguoi — lai toi cho thay lan cuoi (di vong theo ban do (trai, 0.4m duong))
+15:09:30 su_kien         plan            CB  het tim nguoi sau 16.5 s -> FOLLOW
+15:09:33 su_kien         plan            -   nguoi khuat camera: nguoi bi che — di theo du doan
+15:09:35 su_kien         plan            -   het nguoi khuat camera sau 2.0 s -> SEARCH
+15:09:35 su_kien         plan            CB  tim nguoi: mat nguoi — lai toi cho thay lan cuoi (di vong theo ban do (phai, 0.9m duong))
+15:09:48 su_kien         plan            CB  het tim nguoi sau 13.0 s -> AVOID
+15:09:48 su_kien         plan            -   ne vat can: ban do: duong di nam phia sau — dung cho
+15:09:55 su_kien         plan            -   het ne vat can sau 7.5 s -> FOLLOW
+15:09:56 su_kien         plan            -   ne vat can: ban do: duong di nam phia sau — dung cho
+15:10:46 su_kien         plan            -   het ne vat can sau 58.5 s -> FOLLOW (gop 2 lan)
+15:10:48 su_kien         plan            -   ne vat can: ban do: duong di nam phia sau — dung cho
+15:10:50 su_kien         plan            -   het ne vat can sau 62.0 s -> OCCLUDED (gop 3 lan)
+15:10:50 su_kien         plan            -   nguoi khuat camera: nguoi ra khoi camera — xoay ve huong nho cuoi
+15:10:51 su_kien         plan            -   het nguoi khuat camera sau 1.5 s -> AVOID
+15:10:51 su_kien         plan            -   ne vat can: ban do: xoay ve huong duong di
+15:10:56 su_kien         plan            -   het ne vat can sau 5.0 s -> SEARCH
+15:10:56 su_kien         plan            CB  tim nguoi: mat nguoi — lai toi cho thay lan cuoi (di vong theo ban do (phai, 0.8m duong))
+15:10:58 su_kien         plan            CB  het tim nguoi sau 2.0 s -> AVOID
+15:10:58 su_kien         plan            -   ne vat can: ban do: duong di nam phia sau — dung cho
+15:11:04 su_kien         plan            -   het ne vat can sau 5.5 s -> SEARCH
+15:11:04 su_kien         plan            CB  tim nguoi: mat nguoi — lai toi cho thay lan cuoi (ban do: xoay ve huong duong di)
+15:11:22 su_kien         plan            CB  het tim nguoi sau 18.0 s -> ARRIVED
+15:11:23 su_kien         plan            -   ne vat can: ban do: duong di nam phia sau — dung cho
+15:11:33 su_kien         plan            -   het ne vat can sau 10.5 s -> OCCLUDED
+15:11:33 su_kien         plan            -   nguoi khuat camera: nguoi bi che — di theo du doan
+15:11:35 su_kien         plan            -   het nguoi khuat camera sau 2.0 s -> SEARCH
+15:11:35 su_kien         plan            CB  tim nguoi: mat nguoi — nhin ve cho thay lan cuoi
+15:11:45 su_kien         plan            CB  het tim nguoi sau 9.5 s -> FOLLOW
+15:11:49 su_kien         plan            -   ne vat can: di vong theo ban do (trai, 2.1m duong)
+15:12:06 su_kien         plan            -   het ne vat can sau 17.0 s -> FOLLOW
+15:12:10 su_kien         plan            -   ne vat can: di vong theo ban do (trai, 1.9m duong)
+15:12:13 su_kien         plan            -   het ne vat can sau 3.0 s -> OCCLUDED
+15:12:13 su_kien         plan            -   nguoi khuat camera: nguoi ra khoi camera — xoay ve huong nho cuoi
+15:12:14 su_kien         plan            -   het nguoi khuat camera sau 1.0 s -> AVOID
+15:12:14 su_kien         plan            -   ne vat can: di vong theo ban do (trai, 4.4m duong)
+15:12:15 su_kien         plan            -   het ne vat can sau 1.0 s -> SEARCH
+15:12:15 su_kien         plan            CB  tim nguoi: mat nguoi — lai toi cho thay lan cuoi (di vong theo ban do (trai, 4.3m duong))
+15:12:35 su_kien         plan            CB  het tim nguoi sau 19.5 s -> AVOID
+15:12:35 su_kien         plan            -   ne vat can: chui khe hep — vao truc giua khe (lech 2.04m)
+15:12:46 su_kien         plan            -   het ne vat can sau 11.0 s -> FOLLOW
+15:12:47 su_kien         plan            -   ne vat can: chui khe hep — vao truc giua khe (lech 2.04m)
+15:13:14 su_kien         plan            -   het ne vat can sau 39.5 s -> FOLLOW (gop 2 lan)
+15:13:16 su_kien         plan            -   ne vat can: chui khe hep — vao truc giua khe (lech 2.04m)
+15:13:18 su_kien         plan            -   het ne vat can sau 43.5 s -> FOLLOW (gop 3 lan)
+15:13:28 su_kien         plan            -   ne vat can: ban do: xoay ve huong duong di
+15:13:35 su_kien         plan            -   het ne vat can sau 7.0 s -> SEARCH
+15:13:35 su_kien         plan            CB  tim nguoi: mat nguoi — lai toi cho thay lan cuoi (di vong theo ban do (phai, 4.2m duong))
+15:13:37 su_kien         plan            CB  het tim nguoi sau 2.5 s -> AVOID
+15:13:37 su_kien         plan            -   ne vat can: di vong theo ban do (phai, 2.1m duong)
+15:13:39 su_kien         plan            -   het ne vat can sau 1.5 s -> FOLLOW
+15:13:44 192.168.1.102   follow_disable  OK  Bam nguoi: TAT
+15:13:45 su_kien         follow          -   xe ngung bam
+15:13:50 192.168.1.102   estop           OK  DUNG KHAN CAP
+15:13:59 su_kien         sys             -   he thong RUNNING -> STOPPING: dung xe roi tat cac node
+15:13:59 192.168.1.102   shutdown        OK  dang tat he thong (dung xe truoc)
+15:13:59 -               shutdown        OK  /follow/stop: DUNG KHAN CAP
+15:14:01 su_kien         sys             -   he thong STOPPING -> STOPPED: da tat
+15:16:50 192.168.1.101   login           OK  dang nhap
+15:17:42 192.168.1.101   estop           LOI KHONG DUNG DUOC QUA WEB (/follow/stop chua san sang; /follow/disable chua san sang) — dung cong tac nguon dong co
+15:45:26 su_kien         sys             -   he thong STOPPED -> CHECKING: dang kiem tra thiet bi truoc khi chay
+15:45:26 192.168.1.101   start           OK  dang kiem tra roi khoi dong
+15:45:35 su_kien         sys             -   he thong CHECKING -> STARTING: dang khoi dong cac node
+15:45:40 su_kien         sys             OK  he thong STARTING -> RUNNING
+15:45:40 su_kien         beacon          CB  mat tin hieu beacon
+15:45:41 su_kien         beacon          CB  mat beacon sau 1.0 s — co lai
+15:45:46 su_kien         enroll          -   khong con nguoi da hoc
+15:46:12 192.168.1.101   bag_start       OK  bat dau ghi bag
+15:46:13 su_kien         bag             -   bat dau ghi follow_1013_154613
+15:46:20 192.168.1.101   enroll_start    OK  Enrollment started. Stand the target person near the camera center.
+15:46:25 192.168.1.101   reset_identity  OK  Target identity reset
+15:46:26 su_kien         enroll          -   huy hoc nguoi (chua du mau)
+15:46:27 192.168.1.101   enroll_start    OK  Enrollment started. Stand the target person near the camera center.
+15:47:15 su_kien         enroll          OK  hoc xong nguoi (80 mau)
+15:48:59 192.168.1.101   follow_enable   OK  Bam nguoi: BAT
+15:49:00 su_kien         follow          OK  xe bat dau bam
+15:49:16 su_kien         plan            -   ne vat can: di vong theo ban do (trai, 2.3m duong)
+15:49:26 su_kien         plan            -   het ne vat can sau 10.0 s -> FOLLOW
+15:49:28 su_kien         plan            -   ne vat can: di vong theo ban do (trai, 2.3m duong)
+15:49:41 su_kien         plan            -   het ne vat can sau 24.5 s -> FOLLOW (gop 2 lan)
+15:49:45 su_kien         plan            -   ne vat can: di vong theo ban do (trai, 2.0m duong)
+15:49:47 su_kien         plan            -   het ne vat can sau 2.0 s -> FOLLOW
+15:49:58 su_kien         plan            -   ne vat can: chui khe hep — vao truc giua khe (lech 0.70m)
+15:50:02 su_kien         plan            -   het ne vat can sau 3.5 s -> FOLLOW
+15:50:05 su_kien         plan            -   ne vat can: chui khe hep — vao truc giua khe (lech 0.70m)
+15:50:22 su_kien         plan            -   het ne vat can sau 23.5 s -> OCCLUDED (gop 2 lan)
+15:50:22 su_kien         plan            -   nguoi khuat camera: di vong theo ban do (phai, 3.3m duong)
+15:50:23 su_kien         plan            -   het nguoi khuat camera sau 1.5 s -> SEARCH
+15:50:23 su_kien         plan            CB  tim nguoi: mat nguoi — lai toi cho thay lan cuoi (di vong theo ban do (phai, 3.8m duong))
+15:50:27 su_kien         plan            CB  het tim nguoi sau 3.5 s -> AVOID
+15:50:27 su_kien         plan            -   ne vat can: ne vat can (phai)
+15:50:28 su_kien         plan            -   het ne vat can sau 1.0 s -> OCCLUDED
+15:50:28 su_kien         plan            -   nguoi khuat camera: di vong theo ban do (phai, 3.0m duong)
+15:50:29 su_kien         plan            -   het nguoi khuat camera sau 1.0 s -> AVOID
+15:50:29 su_kien         plan            -   ne vat can: di vong theo ban do (phai, 3.8m duong)
+15:50:30 su_kien         plan            -   het ne vat can sau 1.0 s -> SEARCH
+15:50:30 su_kien         plan            CB  tim nguoi: mat nguoi — lai toi cho thay lan cuoi (di vong theo ban do (phai, 3.0m duong))
+15:51:19 su_kien         plan            CB  het tim nguoi sau 49.5 s -> AVOID
+15:51:19 su_kien         plan            -   ne vat can: chui khe hep — vao truc giua khe (lech 0.99m)
+15:51:26 su_kien         plan            -   het ne vat can sau 7.0 s -> FOLLOW
+15:51:28 192.168.1.101   follow_disable  OK  Bam nguoi: TAT
+15:51:28 su_kien         follow          -   xe ngung bam
+15:51:50 192.168.1.101   follow_enable   OK  Bam nguoi: BAT
+15:51:51 su_kien         follow          OK  xe bat dau bam
+15:51:58 su_kien         plan            -   ne vat can: di vong theo ban do (trai, 1.3m duong)
+15:52:11 su_kien         plan            -   het ne vat can sau 13.0 s -> FOLLOW
+15:52:12 su_kien         plan            -   ne vat can: di vong theo ban do (trai, 1.3m duong)
+15:52:13 su_kien         plan            -   het ne vat can sau 15.0 s -> FOLLOW (gop 2 lan)
+15:52:15 su_kien         plan            -   ne vat can: di vong theo ban do (trai, 1.3m duong)
+15:52:19 su_kien         plan            -   het ne vat can sau 20.5 s -> FOLLOW (gop 3 lan)
+15:52:25 su_kien         plan            -   nguoi khuat camera: nguoi bi che — di theo du doan
+15:52:27 su_kien         plan            -   het nguoi khuat camera sau 2.0 s -> SEARCH
+15:52:27 su_kien         plan            CB  tim nguoi: mat nguoi — nhin ve cho thay lan cuoi
+15:52:33 su_kien         plan            CB  het tim nguoi sau 6.0 s -> OCCLUDED
+15:52:33 su_kien         plan            -   nguoi khuat camera: nguoi ra khoi camera — xoay ve huong nho cuoi
+15:52:34 su_kien         plan            -   het nguoi khuat camera sau 1.5 s -> FOLLOW
+15:52:38 su_kien         plan            -   ne vat can: di vong theo ban do (trai, 1.4m duong)
+15:52:44 su_kien         plan            -   het ne vat can sau 6.5 s -> FOLLOW
+15:52:46 su_kien         plan            -   ne vat can: di vong theo ban do (trai, 1.4m duong)
+15:53:05 su_kien         plan            -   het ne vat can sau 27.5 s -> OCCLUDED (gop 2 lan)
+15:53:05 su_kien         plan            -   nguoi khuat camera: chui khe hep — vao truc giua khe (lech 0.17m)
+15:53:05 192.168.1.101   follow_disable  OK  Bam nguoi: TAT
+15:53:06 su_kien         follow          -   xe ngung bam
+15:53:06 su_kien         plan            -   het nguoi khuat camera sau 1.0 s -> OFF
+15:53:15 192.168.1.101   follow_enable   OK  Bam nguoi: BAT
+15:53:16 su_kien         follow          OK  xe bat dau bam
+15:53:16 su_kien         plan            CB  dung cho (khong thay nguoi): cho tin hieu muc tieu
+15:53:22 su_kien         plan            CB  het dung cho (khong thay nguoi) sau 5.5 s -> FOLLOW
+15:53:27 su_kien         plan            -   nguoi khuat camera: canh huong tai cho
+15:53:29 su_kien         plan            -   het nguoi khuat camera sau 2.0 s -> SEARCH
+15:53:29 su_kien         plan            CB  tim nguoi: mat nguoi — nhin ve cho thay lan cuoi
+15:53:35 su_kien         plan            CB  het tim nguoi sau 6.0 s -> FOLLOW
+15:53:37 su_kien         plan            -   ne vat can: di vong theo ban do (trai, 2.4m duong)
+15:53:38 192.168.1.101   follow_disable  OK  Bam nguoi: TAT
+15:53:38 su_kien         follow          -   xe ngung bam
+15:53:39 su_kien         plan            -   het ne vat can sau 1.5 s -> OFF
+15:54:07 192.168.1.101   follow_enable   OK  Bam nguoi: BAT
+15:54:07 su_kien         follow          OK  xe bat dau bam
+15:54:23 su_kien         plan            -   ne vat can: di vong theo ban do (phai, 3.0m duong)
+15:54:28 su_kien         plan            -   het ne vat can sau 5.0 s -> SEARCH
+15:54:28 su_kien         plan            CB  tim nguoi: mat nguoi — lai toi cho thay lan cuoi (di vong theo ban do (phai, 2.9m duong))
+15:54:44 su_kien         plan            CB  het tim nguoi sau 16.0 s -> FOLLOW
+15:54:49 192.168.1.101   follow_disable  OK  Bam nguoi: TAT
+15:54:49 su_kien         follow          -   xe ngung bam
+15:55:09 192.168.1.101   follow_enable   OK  Bam nguoi: BAT
+15:55:09 su_kien         follow          OK  xe bat dau bam
+15:55:09 su_kien         plan            -   ne vat can: di vong theo ban do (phai, 1.4m duong)
+15:55:11 192.168.1.101   follow_disable  OK  Bam nguoi: TAT
+15:55:11 su_kien         follow          -   xe ngung bam
+15:55:12 su_kien         plan            -   het ne vat can sau 2.5 s -> OFF
+15:55:14 192.168.1.101   follow_enable   OK  Bam nguoi: BAT
+15:55:14 su_kien         follow          OK  xe bat dau bam
+15:55:18 su_kien         plan            -   ne vat can: ne vat can (phai)
+15:55:23 192.168.1.101   follow_disable  OK  Bam nguoi: TAT
+15:55:23 su_kien         follow          -   xe ngung bam
+15:55:24 su_kien         plan            -   het ne vat can sau 5.5 s -> OFF
+15:55:27 192.168.1.101   bag_stop        OK  dang dung ghi bag
+15:55:27 su_kien         bag             OK  da luu follow_1013_154613: 9:12, 59.1 MB (bam Dung ghi)
+15:55:51 su_kien         sys             -   he thong RUNNING -> STOPPING: dung xe roi tat cac node
+15:55:51 192.168.1.101   shutdown        OK  dang tat he thong (dung xe truoc)
+15:55:51 -               shutdown        OK  /follow/stop: DUNG KHAN CAP
+15:55:53 su_kien         sys             -   he thong STOPPING -> STOPPED: da tat

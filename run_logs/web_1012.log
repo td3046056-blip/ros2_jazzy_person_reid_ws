@@ -1,0 +1,20 @@
+13:10:57 su_kien         follow          OK  xe bat dau bam
+13:10:58 127.0.0.1       login           OK  dang nhap
+13:10:58 su_kien         bag             -   bat dau ghi bag (ngoai web)
+13:10:58 su_kien         plan            -   ne vat can: di vong theo ban do (trai, 2.2m duong)
+13:10:58 su_kien         bag             -   bat dau ghi bag (ngoai web)
+13:13:39 su_kien         follow          -   xe ngung bam
+13:13:46 su_kien         bag             CB  da luu bag: ?, 12.1 MB — THIEU metadata.yaml
+13:14:54 127.0.0.1       login           OK  dang nhap
+13:14:54 su_kien         follow          OK  xe bat dau bam
+13:14:54 su_kien         bag             -   bat dau ghi bag (ngoai web)
+13:14:54 su_kien         plan            -   ne vat can: di vong theo ban do (trai, 2.2m duong)
+13:14:54 su_kien         bag             -   bat dau ghi bag (ngoai web)
+13:17:33 su_kien         follow          -   xe ngung bam
+13:17:40 su_kien         bag             CB  da luu bag: ?, 11.3 MB — THIEU metadata.yaml
+13:18:21 su_kien         follow          OK  xe bat dau bam
+13:18:21 127.0.0.1       login           OK  dang nhap
+13:18:22 su_kien         bag             -   bat dau ghi bag (ngoai web)
+13:18:22 su_kien         bag             -   bat dau ghi bag (ngoai web)
+13:20:10 su_kien         follow          -   xe ngung bam
+13:20:16 su_kien         bag             CB  da luu bag: ?, 8.1 MB — THIEU metadata.yaml
