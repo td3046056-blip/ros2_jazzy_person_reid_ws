@@ -262,6 +262,9 @@ follow_planner_node:
     # (tu lanh / ghe sau tuong + nguoi re vao cua bep, 6 mam): noi tiep 84/90, chi tren duong 72, chi cap tia 79.
     # false = chi cap tia (nhu 14/10).
     gap_on_path: true
+    # Be rong toi da mat cat cho cach tim tren duong. Mo phong: ha 0.85 thi cua bi di cheo kem han (83 -> 73/90);
+    # ha xuong neu thuc dia thay xe canh truc / lui o loi 0.85-0.95 m giua do dac (DWA tu qua duoc).
+    gap_path_max_width_m: 0.95
     # Cap tia khong thay khe thi nho khe da thay: crossing = chi luc dang chui (03/11); legacy = nhu 14/10 (2 s, tu
     # lam moi); off. gap_at_mouth: luat 14/10 "o mieng cua tin khe hon ban do". Chi doi khi can so voi ban 14/10.
     gap_recall_mode: crossing

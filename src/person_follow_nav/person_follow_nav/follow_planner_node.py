@@ -328,6 +328,11 @@ class FollowPlannerNode(Node):
             # nguoi (mo phong cua bep). Hai cach noi tiep: 84/90 dat (rieng tren duong 72, rieng cap tia 79). false = chi
             # cap tia nhu 14/10.
             "gap_on_path": True,
+            # Be rong toi da mat cat cho cach tim tren duong (<= gap_waypoint_max_width_m). Phat lai bag 15/10 (vong ho):
+            # mat cat 0.85-0.95 m giua do dac lam xe canh truc o cho ban 14/10 cu bam nguoi; nhung mo phong vong kin ha
+            # xuong 0.85 thi cua bi di cheo (nguoi re vao) kem han: 83 -> 73/90. Giu 0.95; ha neu thuc dia thay xe chui
+            # khe o loi rong khong can.
+            "gap_path_max_width_m": 0.95,
             # Cap tia (_gap_target) khong thay khe thi NHO khe da thay: "crossing" = chi luc dang chui (03/11), "legacy" =
             # nhu 14/10 (2 s, tu lam moi — giu dong tac chui khe ca khi da het khe), "off". gap_at_mouth = luat 14/10
             # "o mieng cua tin khe hon ban do". Hai tuy chon nay de quay lai cach 14/10 khi can so sanh ngoai thuc dia.
@@ -512,6 +517,7 @@ class FollowPlannerNode(Node):
         self.target_clear_r = float(g("target_clear_radius_m"))
         self.gap_wp_max_w = float(g("gap_waypoint_max_width_m"))
         self.gap_on_path = bool(g("gap_on_path"))
+        self.gap_path_max_w = float(g("gap_path_max_width_m"))
         self.gap_recall_mode = str(g("gap_recall_mode"))
         self.gap_at_mouth = bool(g("gap_at_mouth"))
         self.mem_sec = float(g("obstacle_memory_sec"))
@@ -1560,7 +1566,10 @@ class FollowPlannerNode(Node):
         # dong tac qua khe. Khong dang chui thi KHONG: xe dung giua hai vat o hai ben sau lung (vd. vua qua cua, canh
         # tu lanh) cho ra "khe" tai cho xe dung, truc lech 60 do -> xe lui nguoc vao cua (mo phong 03/11).
         crossing_now = (time.time() - self.gap_cross_time) < 0.6
-        res = self._gap_on_path_scan(Pa, P, cum, crossing_now)
+        # Xet het tam gap_engage_range + 0.3 m, ca khi cho dung cho (cach nguoi follow_distance) con truoc cua: nguoi
+        # qua cua roi re ngay sau tuong thi xe PHAI qua cua moi thay lai nguoi (thu gioi han "chi doan xe se di" 03/11:
+        # mo phong tu lanh re trai 6/6 -> 1-2/6).
+        res = self._gap_on_path_scan(Pa, P, cum, crossing_now, self.gap_engage_range + 0.3)
         if res is None:
             return None
         w, i, il, ir, tdx, tdy = res
@@ -1585,12 +1594,13 @@ class FollowPlannerNode(Node):
         return self._gap_store(g)
 
     def _gap_on_path_scan(self, Pa: np.ndarray, P: np.ndarray, cum: np.ndarray,
-                          body: bool) -> Optional[Tuple[float, int, int, int, float, float]]:
-        """Di doc duong Pa, tra ve mat cat HEP NHAT cua doan hep dau tien (be rong, chi so, mep trai, mep phai,
-        tiep tuyen). body = o vi tri xe xet ca doan than xe (duoi xe con trong khe)."""
+                          body: bool, s_max: float) -> Optional[Tuple[float, int, int, int, float, float]]:
+        """Di doc duong Pa (toi quang s_max), tra ve mat cat HEP NHAT cua doan hep dau tien (be rong, chi so, mep trai,
+        mep phai, tiep tuyen). body = o vi tri xe xet ca doan than xe (duoi xe con trong khe)."""
         run = []
+        w_max = min(self.gap_wp_max_w, self.gap_path_max_w)
         for i in range(Pa.shape[0]):
-            if cum[i] > self.gap_engage_range + 0.3:
+            if cum[i] > s_max:
                 break
             j0, j1 = max(0, i - 2), min(Pa.shape[0] - 1, i + 2)
             tdx, tdy = Pa[j1, 0] - Pa[j0, 0], Pa[j1, 1] - Pa[j0, 1]
@@ -1611,7 +1621,7 @@ class FollowPlannerNode(Node):
             il = int(np.where(lm)[0][np.argmin(la[lm])])
             ir = int(np.where(rm_)[0][np.argmax(la[rm_])])
             w = float(la[il] - la[ir])
-            if w < self.gap_wp_max_w:
+            if w < w_max:
                 run.append((w, i, il, ir, tdx, tdy))
             elif run:
                 break
