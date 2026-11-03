@@ -261,6 +261,10 @@ class FollowPlannerNode(Node):
             "follow_speed_gain": 0.8,    # 1/s: lech 0.25 m khoang cach -> them 0.2 m/s
             "follow_headway_s": 0.6,     # nguoi di 0.4 m/s -> giu xa them 0.24 m (toi da +0.4 m)
             "adaptive_open_clear_m": 1.0,
+            # ... va dai rong nay (m, giua la xe) tu hong xe toi 2 m phia truoc KHONG co vat nao (tru quanh nguoi): chay
+            # nhanh men tuong / hanh lang / canh do dac thi nguoi re vao cua ben hong la xe khong kip phan ung (mo phong
+            # cua ben camera +-25 do: 6/10 -> 10/10 khi tat che do nhanh).
+            "adaptive_open_width_m": 2.0,
             # Gioi han GIAM toc (m/s^2) — lon hon accel_lin de phanh kip o toc do cao. Cho hang nang: do lai (13.49).
             "decel_lin": 0.60,
             "v_min": -0.06,             # chi dung khi thoat ket
@@ -471,6 +475,7 @@ class FollowPlannerNode(Node):
         self.follow_gain = float(g("follow_speed_gain"))
         self.follow_headway = float(g("follow_headway_s"))
         self.open_clear = float(g("adaptive_open_clear_m"))
+        self.open_width = float(g("adaptive_open_width_m"))
         self.decel_lin = max(float(g("decel_lin")), float(g("accel_lin")))
         self.v_min = float(g("v_min"))
         self.w_max = float(g("w_max"))
@@ -1299,6 +1304,14 @@ class FollowPlannerNode(Node):
         free = self._free_ahead()
         if free < self.open_clear:
             return None, None
+        # cho THOANG that: dai rong open_width tu hong xe toi 2 m phia truoc khong co vat (tru chan nguoi)
+        P = self.obstacles_full if self.obstacles_full.shape[0] else self.obstacles
+        if P.shape[0]:
+            px, py = dist * math.cos(bearing), dist * math.sin(bearing)
+            band = (P[:, 0] > -self.rear_len) & (P[:, 0] < 2.0) & (np.abs(P[:, 1]) < 0.5 * self.open_width)
+            band &= np.hypot(P[:, 0] - px, P[:, 1] - py) > self.target_clear_r
+            if np.any(band):
+                return None, None
         v_p = max(0.0, self._person_radial_speed(tgt, bearing))
         d_des = self.follow_distance + min(0.4, self.follow_headway * v_p)
         v_cap = min(self.v_max_open, math.sqrt(2.0 * self.decel_lin * max(0.0, free - 0.30)))
@@ -3072,7 +3085,13 @@ class FollowPlannerNode(Node):
         sgy = sub_r * math.sin(phi)
 
         # ── TANG 2: DWA lam muot + dam bao an toan ───────────────────────
-        v_top, v_ref = self._adaptive_speed(tgt, dist, bearing, source, blocked or blocked_person)
+        # Toc do thich ung chi khi duong toi NGUOI thoang — xet toi cach nguoi target_clear_radius_m (chan nguoi luon nam
+        # trong hanh lang toi tan tam nguoi, blocked_person vi vay gan nhu luon dung -> che do nhanh khong bao gio bat).
+        # Khung cua nam giua xe va nguoi (nguoi re vao cua) van bi bat.
+        r_ex = dist - self.target_clear_r
+        blk_ex = (segment_blocked(self.obstacles, r_ex * tx / max(dist, 1e-6), r_ex * ty / max(dist, 1e-6),
+                                  corridor)[0] if r_ex > 0.1 else False)
+        v_top, v_ref = self._adaptive_speed(tgt, dist, bearing, source, blocked or blk_ex)
         if v_ref is not None:
             # dich phu: di tiep ve phia nguoi (toc do do v_ref quyet), khong dung o diem cach nguoi follow_distance
             sub_r = max(sub_r, min(reach, 0.6))

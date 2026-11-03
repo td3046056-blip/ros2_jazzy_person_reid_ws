@@ -185,7 +185,8 @@ follow_planner_node:
     # ── Gioi han dong hoc — toc do THAT (driver da hieu chinh max_linear 0.49) ─
     v_max: 0.22
     # TOC DO THICH UNG (03/11): dang FOLLOW o cho THOANG (camera thay nguoi, duong toi dich va toi nguoi khong bi
-    # chan, nguoi lech < 26 do, phia truoc trong >= adaptive_open_clear_m) thi toc do = toc do nguoi (huong ra xa)
+    # chan, nguoi lech < 26 do, phia truoc trong >= adaptive_open_clear_m, khong vat nao trong dai adaptive_open_width_m)
+    # thi toc do = toc do nguoi (huong ra xa)
     # + follow_speed_gain * (khoang cach - khoang cach mong muon), toi da v_max_open va toc do con phanh kip truoc
     # vat gan nhat phia truoc (decel_lin, chua 0.30 m). Khoang cach mong muon = follow_distance + follow_headway_s *
     # toc do nguoi (toi da +0.4 m). Gan vat / qua cua / di vong / mat camera: v_max nhu cu. false = nhu truoc 03/11.
@@ -195,6 +196,7 @@ follow_planner_node:
     follow_speed_gain: 0.8              # 1/s: xa hon mong muon 0.25 m -> them 0.2 m/s
     follow_headway_s: 0.6               # nguoi di 0.4 m/s -> giu xa them 0.24 m
     adaptive_open_clear_m: 1.0
+    adaptive_open_width_m: 2.0          # + dai rong 2 m tu hong xe toi 2 m phia truoc phai trong (tru quanh nguoi)
     decel_lin: 0.60                     # m/s^2 — chi dung khi dang chay nhanh hon v_max
     v_min: -0.06
     # 29/09: 0.80 -> 1.00, accel_ang 1.60 -> 2.40 — nguoi dung thay xe xoay theo nguoi hoi cham.
