@@ -552,7 +552,10 @@ class TargetTrackerNode(Node):
         if not clusters:
             return
         c = min(clusters, key=lambda k: k.range_m)
-        if not (self.person_r_min <= c.range_m <= 4.0 and self.person_w_min <= c.width_m <= self.person_w_max):
+        # 03/11: chi lay mau tu 1.2 m tro ra. Lidar (cao 0.18 m) do mat truoc ONG CHAN, day bbox la MUI GIAY gan xe hon
+        # ~0.1 m: o gan, chenh lech do lam sai lech goc ngua tinh ra lech vai do (camera cao 0.70 m: 3 do o 1 m) ->
+        # trung vi bi keo, sai lech goc ngua nhay 5-9 do (bag 15/10 luc xe dung truoc thung xop).
+        if not (max(self.person_r_min, 1.2) <= c.range_m <= 4.0 and self.person_w_min <= c.width_m <= self.person_w_max):
             return
         b = geom["bot"] + math.atan2(self.cam_h, c.range_m)
         top = geom["top"] - b

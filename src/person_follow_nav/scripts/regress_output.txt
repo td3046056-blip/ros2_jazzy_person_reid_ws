@@ -1,0 +1,265 @@
+220 kich ban x 1 ban, 8 tien trinh song song ...
+
+=== regress ===
+  kich ban                 |                    moi                    
+  thang                    |     100%  0.0s d1.30 FOLLOW  h10.00 
+  re_trai_gat              |      97%  0.1s d4.15 FOLLOW  h10.00 
+  re_phai_gat              |      99%  0.1s d4.14 FOLLOW  h10.00 
+  ne_ngang_nhanh           |      96%  0.3s d1.08 ARRIVED h10.00 
+  cheo_thoat               |      99%  0.1s d1.15 ARRIVED h10.00 
+  chan_giua                |     100%  0.0s d2.38 FOLLOW  h10.00 
+  cat_ngang                |     100%  0.0s d1.41 FOLLOW  h10.00 
+  chan_sat                 |     100%  0.0s d1.15 ARRIVED h10.00 
+  sau_ne_re                |     100%  0.0s d3.09 FOLLOW  h10.00 
+  goc_tuong                |      41% 11.8s d1.41 FOLLOW  h 0.15 
+  thoat_khung              |      95%  0.7s d1.07 ARRIVED h10.00 
+  cat_ngang_gan            |      97%  0.4s d1.38 FOLLOW  h10.00 
+  qua_cua                  | DAT 100%  0.0s d1.17 FOLLOW  h 0.10 C
+  qua_cua_lech             | DAT 100%  0.0s d1.29 FOLLOW  h 0.09 C
+  qua_cua_cheo             | DAT 100%  0.0s d1.15 ARRIVED h 0.09 C
+  qua_cua_cheo+HL          | DAT 100%  0.0s d1.14 ARRIVED h 0.10 C
+  cua_ben                  | DAT  76%  4.6s d1.14 ARRIVED h 0.09 C
+  cua_ben+day              | DAT  85%  4.7s d1.14 ARRIVED h 0.09 C
+  cua_ben_cham             | LOI  38% 23.4s d2.28 IDLE    h 0.21 K
+  cua_ben_cham+day         | DAT  92%  2.1s d1.14 ARRIVED h 0.09 C
+  cua_ben_dung             | LOI  38% 26.4s d1.92 IDLE    h 0.26 K
+  cua_ben_dung+day         | DAT  90%  3.9s d0.84 ARRIVED h 0.08 C
+  chan_giua55              |     100%  0.0s d2.38 FOLLOW  h10.00 
+  sau_ne_re55              |     100%  0.0s d3.09 FOLLOW  h10.00 
+
+=== door_near_0.01 ===
+  kich ban                 |                    moi                    
+  3.365:-0.62:-95          | DAT 100%  0.0s d1.07 ARRIVED h 0.08 C
+  3.365:-0.62:-90          | DAT 100%  0.0s d1.05 FOLLOW  h 0.08 C
+  3.365:-0.62:-85          | DAT 100%  0.0s d1.04 FOLLOW  h 0.08 C
+  3.365:-0.8:-95           | DAT 100%  0.0s d1.00 FOLLOW  h 0.05 C
+  3.365:-0.8:-90           | DAT 100%  0.0s d1.07 FOLLOW  h 0.07 C
+  3.365:-0.8:-85           | DAT 100%  0.0s d1.08 FOLLOW  h 0.07 C
+  3.385:-0.62:-95          | DAT 100%  0.0s d1.04 FOLLOW  h 0.08 C
+  3.385:-0.62:-90          | DAT 100%  0.0s d1.07 FOLLOW  h 0.08 C
+  3.385:-0.62:-85          | DAT 100%  0.0s d1.04 FOLLOW  h 0.07 C
+  3.385:-0.8:-95           | DAT 100%  0.0s d1.04 FOLLOW  h 0.07 C
+  3.385:-0.8:-90           | DAT 100%  0.0s d1.04 FOLLOW  h 0.08 C
+  3.385:-0.8:-85           | DAT 100%  0.0s d1.04 FOLLOW  h 0.08 C
+  3.405:-0.62:-95          | DAT 100%  0.0s d1.07 FOLLOW  h 0.08 C
+  3.405:-0.62:-90          | DAT 100%  0.0s d1.06 FOLLOW  h 0.08 C
+  3.405:-0.62:-85          | DAT 100%  0.0s d1.06 FOLLOW  h 0.08 C
+  3.405:-0.8:-95           | DAT 100%  0.0s d1.04 FOLLOW  h 0.08 C
+  3.405:-0.8:-90           | DAT 100%  0.0s d1.06 FOLLOW  h 0.08 C
+  3.405:-0.8:-85           | DAT 100%  0.0s d1.07 FOLLOW  h 0.08 C
+  3.425:-0.62:-95          | DAT 100%  0.0s d1.04 FOLLOW  h 0.08 C
+  3.425:-0.62:-90          | DAT 100%  0.0s d1.05 FOLLOW  h 0.08 C
+  3.425:-0.62:-85          | DAT 100%  0.0s d1.04 FOLLOW  h 0.08 C
+  3.425:-0.8:-95           | DAT 100%  0.0s d1.06 FOLLOW  h 0.08 C
+  3.425:-0.8:-90           | DAT 100%  0.0s d1.02 FOLLOW  h 0.08 C
+  3.425:-0.8:-85           | DAT 100%  0.0s d1.03 FOLLOW  h 0.07 C
+  3.445:-0.62:-95          | DAT 100%  0.0s d1.04 FOLLOW  h 0.08 C
+  3.445:-0.62:-90          | DAT 100%  0.0s d1.07 FOLLOW  h 0.08 C
+  3.445:-0.62:-85          | DAT 100%  0.0s d1.08 FOLLOW  h 0.08 C
+  3.445:-0.8:-95           | DAT 100%  0.0s d1.06 FOLLOW  h 0.07 C
+  3.445:-0.8:-90           | DAT 100%  0.1s d1.08 ARRIVED h 0.07 C
+  3.445:-0.8:-85           | DAT 100%  0.0s d1.04 FOLLOW  h 0.05 C
+
+=== door_near_0.02 ===
+  kich ban                 |                    moi                    
+  3.365:-0.62:-95          | DAT 100%  0.0s d1.01 FOLLOW  h 0.08 C
+  3.365:-0.62:-90          | DAT 100%  0.0s d1.03 FOLLOW  h 0.09 C
+  3.365:-0.62:-85          | DAT 100%  0.0s d1.01 ARRIVED h 0.09 C
+  3.365:-0.8:-95           | DAT 100%  0.0s d1.02 ARRIVED h 0.05 C
+  3.365:-0.8:-90           | DAT 100%  0.0s d1.03 FOLLOW  h 0.07 C
+  3.365:-0.8:-85           | DAT 100%  0.0s d1.01 FOLLOW  h 0.07 C
+  3.385:-0.62:-95          | DAT 100%  0.0s d1.01 FOLLOW  h 0.09 C
+  3.385:-0.62:-90          | DAT 100%  0.0s d1.01 FOLLOW  h 0.08 C
+  3.385:-0.62:-85          | DAT 100%  0.0s d1.02 FOLLOW  h 0.08 C
+  3.385:-0.8:-95           | DAT 100%  0.0s d0.99 FOLLOW  h 0.07 C
+  3.385:-0.8:-90           | DAT 100%  0.0s d0.98 FOLLOW  h 0.08 C
+  3.385:-0.8:-85           | DAT 100%  0.0s d1.00 FOLLOW  h 0.09 C
+  3.405:-0.62:-95          | DAT 100%  0.0s d1.02 FOLLOW  h 0.08 C
+  3.405:-0.62:-90          | DAT 100%  0.0s d1.01 ARRIVED h 0.09 C
+  3.405:-0.62:-85          | DAT 100%  0.0s d1.01 ARRIVED h 0.09 C
+  3.405:-0.8:-95           | DAT 100%  0.0s d0.99 FOLLOW  h 0.09 C
+  3.405:-0.8:-90           | DAT 100%  0.0s d1.02 FOLLOW  h 0.08 C
+  3.405:-0.8:-85           | DAT 100%  0.0s d1.02 FOLLOW  h 0.09 C
+  3.425:-0.62:-95          | DAT 100%  0.0s d1.00 FOLLOW  h 0.08 C
+  3.425:-0.62:-90          | DAT 100%  0.0s d0.98 FOLLOW  h 0.09 C
+  3.425:-0.62:-85          | DAT 100%  0.0s d1.00 FOLLOW  h 0.09 C
+  3.425:-0.8:-95           | DAT 100%  0.0s d0.98 FOLLOW  h 0.09 C
+  3.425:-0.8:-90           | DAT 100%  0.0s d1.02 FOLLOW  h 0.08 C
+  3.425:-0.8:-85           | DAT 100%  0.0s d0.99 FOLLOW  h 0.07 C
+  3.445:-0.62:-95          | DAT 100%  0.0s d1.01 ARRIVED h 0.09 C
+  3.445:-0.62:-90          | DAT 100%  0.0s d1.00 ARRIVED h 0.09 C
+  3.445:-0.62:-85          | DAT 100%  0.0s d1.03 FOLLOW  h 0.08 C
+  3.445:-0.8:-95           | DAT 100%  0.0s d1.02 ARRIVED h 0.07 C
+  3.445:-0.8:-90           | DAT 100%  0.0s d1.00 FOLLOW  h 0.05 C
+  3.445:-0.8:-85           | DAT 100%  0.0s d0.98 FOLLOW  h 0.05 C
+
+=== door_grid_wt0 ===
+  kich ban                 |                    moi                    
+  2.8:0.0:-105             | DAT  84%  4.6s d1.15 FOLLOW  h 0.09 C
+  2.8:0.0:-90              | DAT  85%  4.2s d1.14 FOLLOW  h 0.09 C
+  2.8:0.0:-75              | DAT  85%  4.1s d1.14 FOLLOW  h 0.08 C
+  3.1:0.0:-105             | DAT  91%  2.6s d1.14 FOLLOW  h 0.09 C
+  3.1:0.0:-90              | DAT  92%  2.1s d1.14 FOLLOW  h 0.09 C
+  3.1:0.0:-75              | DAT  94%  1.8s d1.13 FOLLOW  h 0.09 C
+  3.4:0.0:-105             | DAT 100%  0.0s d1.15 FOLLOW  h 0.08 C
+  3.4:0.0:-90              | DAT 100%  0.0s d1.15 FOLLOW  h 0.08 C
+  3.4:0.0:-75              | DAT 100%  0.0s d1.14 FOLLOW  h 0.09 C
+  3.7:0.0:-105             | DAT  94%  1.7s d1.15 FOLLOW  h 0.09 C
+  3.7:0.0:-90              | DAT  93%  2.0s d1.14 FOLLOW  h 0.09 C
+  3.7:0.0:-75              | DAT  92%  2.3s d1.14 FOLLOW  h 0.09 C
+  4.0:0.0:-105             | DAT  86%  4.0s d1.14 FOLLOW  h 0.09 C
+  4.0:0.0:-90              | DAT  84%  4.6s d1.14 FOLLOW  h 0.09 C
+  4.0:0.0:-75              | DAT  83%  4.7s d1.14 FOLLOW  h 0.09 C
+
+=== door_grid_wt0.12 ===
+  kich ban                 |                    moi                    
+  2.8:0.0:-105             | DAT  82%  5.0s d1.06 FOLLOW  h 0.08 C
+  2.8:0.0:-90              | DAT  84%  4.6s d1.05 FOLLOW  h 0.08 C
+  2.8:0.0:-75              | DAT  85%  4.3s d1.06 ARRIVED h 0.08 C
+  3.1:0.0:-105             | DAT  89%  3.1s d1.06 ARRIVED h 0.08 C
+  3.1:0.0:-90              | DAT  92%  2.2s d1.04 FOLLOW  h 0.08 C
+  3.1:0.0:-75              | DAT  92%  2.3s d1.02 FOLLOW  h 0.07 C
+  3.4:0.0:-105             | DAT 100%  0.0s d1.07 FOLLOW  h 0.08 C
+  3.4:0.0:-90              | DAT 100%  0.0s d1.07 FOLLOW  h 0.08 C
+  3.4:0.0:-75              | DAT 100%  0.0s d1.07 FOLLOW  h 0.08 C
+  3.7:0.0:-105             | DAT  91%  2.5s d1.07 FOLLOW  h 0.08 C
+  3.7:0.0:-90              | DAT  90%  2.8s d1.12 FOLLOW  h 0.07 C
+  3.7:0.0:-75              | DAT  89%  3.2s d1.05 FOLLOW  h 0.08 C
+  4.0:0.0:-105             | DAT  84%  4.6s d1.04 FOLLOW  h 0.08 C
+  4.0:0.0:-90              | DAT  83%  4.8s d1.04 FOLLOW  h 0.08 C
+  4.0:0.0:-75              | DAT  82%  5.0s d1.04 FOLLOW  h 0.08 C
+
+=== stuck ===
+  kich ban                 |                    moi                    
+  3.300:-0.790:-105.0      | DAT 100%  0.0s d1.13 FOLLOW  h 0.04 C
+  3.480:-0.840:-105.0      | DAT 100%  0.0s d1.13 FOLLOW  h 0.03 C
+  3.290:-0.770:-100.0      | DAT 100%  0.0s d1.14 FOLLOW  h 0.04 C
+  3.480:-0.840:-100.0      | DAT 100%  0.0s d1.03 FOLLOW  h 0.02 C
+  3.300:-0.750:-95.0       | DAT 100%  0.0s d1.14 FOLLOW  h 0.04 C
+  3.480:-0.840:-95.0       | DAT 100%  0.0s d1.14 FOLLOW  h 0.03 C
+  3.340:-0.840:-85.0       | DAT 100%  0.0s d1.12 FOLLOW  h 0.04 C
+  3.460:-0.790:-85.0       | DAT 100%  0.0s d1.13 FOLLOW  h 0.04 C
+  3.330:-0.840:-80.0       | DAT 100%  0.0s d1.15 FOLLOW  h 0.03 C
+  3.450:-0.800:-80.0       | DAT 100%  0.0s d1.11 FOLLOW  h 0.04 C
+  3.340:-0.840:-75.0       | DAT 100%  0.0s d1.13 FOLLOW  h 0.04 C
+  3.460:-0.810:-75.0       | DAT 100%  0.0s d1.13 FOLLOW  h 0.03 C
+
+=== chen ===
+  kich ban                 |                    moi                    
+  dung:2.2:5.0:-0.15       | DAT  65%  6.3s d1.15 ARRIVED h10.00 
+  dung:2.2:5.0:0.0         | DAT  65%  6.3s d1.15 ARRIVED h10.00 
+  dung:2.2:5.0:0.15        | DAT  63%  6.6s d1.15 ARRIVED h10.00 
+  dung:2.2:8.0:-0.15       | DAT  65%  6.3s d1.14 ARRIVED h10.00 
+  dung:2.2:8.0:0.0         | DAT  63%  6.2s d1.14 ARRIVED h10.00 
+  dung:2.2:8.0:0.15        | DAT  64%  6.5s d1.14 ARRIVED h10.00 
+  dung:2.45:5.0:-0.15      | LOI  64%  6.4s d1.14 ARRIVED h10.00 
+  dung:2.45:5.0:0.0        | DAT  64%  6.4s d1.13 ARRIVED h10.00 
+  dung:2.45:5.0:0.15       | DAT  64%  6.5s d1.16 ARRIVED h10.00 
+  dung:2.45:8.0:-0.15      | DAT  65%  6.3s d1.14 ARRIVED h10.00 
+  dung:2.45:8.0:0.0        | DAT  63%  6.2s d1.11 ARRIVED h10.00 
+  dung:2.45:8.0:0.15       | DAT  64%  6.5s d1.14 ARRIVED h10.00 
+  di:2.2:5.0:-0.15         | DAT  75%  4.5s d1.67 FOLLOW  h10.00 
+  di:2.2:5.0:0.0           | DAT  65%  6.3s d2.45 FOLLOW  h10.00 
+  di:2.2:5.0:0.15          | DAT  73%  4.8s d1.75 FOLLOW  h10.00 
+  di:2.2:8.0:-0.15         |      64%  6.5s d2.87 FOLLOW  h10.00 
+  di:2.2:8.0:0.0           |      63%  6.7s d2.96 FOLLOW  h10.00 
+  di:2.2:8.0:0.15          |      64%  6.5s d2.85 FOLLOW  h10.00 
+  di:2.45:5.0:-0.15        | DAT  63%  6.6s d1.68 FOLLOW  h10.00 
+  di:2.45:5.0:0.0          | DAT  65%  6.3s d2.14 FOLLOW  h10.00 
+  di:2.45:5.0:0.15         | DAT  56%  7.8s d2.33 FOLLOW  h10.00 
+  di:2.45:8.0:-0.15        | DAT  65%  6.3s d2.73 FOLLOW  h10.00 
+  di:2.45:8.0:0.0          | DAT  61%  7.0s d2.85 FOLLOW  h10.00 
+  di:2.45:8.0:0.15         | DAT  64%  6.5s d2.82 FOLLOW  h10.00 
+
+=== turn ===
+  kich ban                 |                    moi                    
+  vong_trai                |     100%  0.0s d1.49 FOLLOW  h10.00 
+  vong_phai                |     100%  0.0s d1.49 FOLLOW  h10.00 
+  vong_nhanh_trai          |      99%  0.1s d4.07 FOLLOW  h10.00 
+  vong_nhanh_phai          |      99%  0.1s d4.08 FOLLOW  h10.00 
+  vong_nguoi_trai          |     100%  0.0s d4.70 FOLLOW  h10.00 
+  vong_nguoi_phai          |     100%  0.0s d4.70 FOLLOW  h10.00 
+
+=== lowbox ===
+  kich ban                 |                    moi                    
+  L5:px2.4:0:0:0           | DAT  99%  0.3s d1.13 ARRIVED h 0.15 P
+  L5:px2.4:0:0.35:5        | DAT  87%  2.9s d1.13 ARRIVED h 0.15 P
+  L5:px3.2:0:0:0           | DAT 100%  0.0s d1.15 ARRIVED h 0.17 P
+  L5:px3.2:0:0.35:5        | DAT  90%  2.2s d1.15 ARRIVED h 0.16 P
+  L8:px2.4:0:0:0           | DAT  99%  0.3s d1.13 ARRIVED h 0.15 P
+  L8:px2.4:0:0.35:5        | DAT  87%  2.9s d1.13 ARRIVED h 0.15 P
+  L8:px3.2:0:0:0           | DAT 100%  0.0s d1.15 ARRIVED h 0.17 P
+  L8:px3.2:0:0.35:5        | DAT  90%  2.2s d1.15 ARRIVED h 0.16 P
+  R5:px2.4:0:0:0           | DAT  97%  0.7s d1.15 ARRIVED h 0.15 T
+  R5:px2.4:0:-0.35:-5      | DAT  88%  2.8s d1.11 ARRIVED h 0.14 T
+  R5:px3.2:0:0:0           | DAT 100%  0.0s d1.15 ARRIVED h 0.17 T
+  R5:px3.2:0:-0.35:-5      | DAT  90%  2.4s d1.14 ARRIVED h 0.15 T
+  don:px2.6:py0.3          | DAT 100%  0.0s d1.15 ARRIVED h 0.15 T
+
+=== hard ===
+  kich ban                 |                    moi                    
+  U_trap:px2.6             | DAT  70%  6.1s d1.10 ARRIVED h 0.08 T
+  U_trap:px3.2             | DAT  82%  4.2s d1.11 ARRIVED h 0.14 P
+  ghe_dai:px2.2            | DAT 100%  0.0s d1.34 ARRIVED h 0.29 k
+  ghe_dai:px2.6            | DAT  79%  4.9s d1.07 ARRIVED h 0.14 P
+  ghe_dai:px3.0            | DAT  82%  4.1s d1.08 ARRIVED h 0.14 P
+  lon_xon:px3.4            | DAT  97%  0.7s d1.15 ARRIVED h 0.15 P
+  lon_xon:px3.4:py-0.5     | DAT 100%  0.0s d1.15 ARRIVED h 0.17 P
+  L5:khe_thang             | DAT  86%  3.2s d1.14 ARRIVED h 0.14 P
+  L8:khe_thang             | DAT  85%  3.2s d1.15 ARRIVED h 0.15 P
+  di_qua_thung             | DAT 100%  0.0s d1.15 ARRIVED h 0.15 P
+  di_vong_thung            | DAT  93%  2.2s d1.15 ARRIVED h 0.06 P
+  ngua12_sai3              | DAT  87%  3.0s d1.15 ARRIVED h 0.13 P
+  ngua12_sai-3             | DAT  97%  0.7s d1.11 ARRIVED h 0.14 P
+  nguoi_cao1.9             | LOI 100%  0.0s d1.48 ARRIVED h 0.12 k
+  nguoi_thap1.5            | DAT 100%  0.0s d1.12 ARRIVED h 0.14 P
+  nguoi_cao1.9_hoc         | DAT 100%  0.0s d1.13 ARRIVED h 0.14 P
+  ngua12_sai3_hoc          | DAT 100%  0.1s d1.06 ARRIVED h 0.10 P
+
+=== pitch ===
+  kich ban                 |                    moi                    
+  thang:ngua18_sai-18      | DAT 100%  0.0s d1.50 FOLLOW  h10.00 
+  re_trai:ngua18_sai-18    | DAT 100%  0.0s d1.33 FOLLOW  h10.00 
+  vong_trai:ngua18_sai-18  | DAT 100%  0.0s d1.63 FOLLOW  h10.00 
+  thang:ngua18_sai-12      | DAT 100%  0.0s d1.50 FOLLOW  h10.00 
+  thang:cui12_sai12        | DAT  40%  0.3s d1.26 FOLLOW  h10.00 
+  vat_thap_hoc:ngua18_sai- | DAT  96%  1.0s d1.08 FOLLOW  h 0.10 P
+
+=== rssi ===
+  kich ban                 |                    moi                    
+  an_sau_vach:RSSI=0       |       6% 63.8s d3.95 IDLE    h 0.38 
+  sau_tu:RSSI=0            |       3% 46.1s d1.23 IDLE    h 0.32 
+  an_sau_vach:RSSI=1       | DAT  78% 15.0s d1.14 FOLLOW  h 0.12 
+  sau_tu:RSSI=1            | DAT  72% 13.4s d0.95 FOLLOW  h 0.15 
+
+=== cua_bep ===
+  kich ban                 |                    moi                    
+  tuong_trai:re_trai:nz0.0 | LOI  16% 48.7s d3.27 IDLE    h 0.15 
+  tuong_trai:thang:nz0.01  | DAT  64%  0.3s d0.70 ARRIVED h 0.08 
+  tuong_trai:re_trai:nz0.0 | DAT  64%  5.2s d0.71 ARRIVED h 0.07 
+  tuong_trai:thang:nz0.02  | DAT  65%  0.3s d0.70 ARRIVED h 0.08 
+  tuong_trai:yen:-0.40:0.2 | DAT  70%  3.5s d1.02 FOLLOW  h 0.07 
+  tuong_trai:yen:-0.80:0.4 | DAT  84%  1.6s d0.92 ARRIVED h 0.07 
+  tuong_trai:yen:-1.20:0.3 | DAT  94%  0.3s d0.98 ARRIVED h 0.08 
+  tuong_trai:yen:-1.35:0.4 | DAT  81%  0.3s d1.02 ARRIVED h 0.07 
+  tuong_trai:yen:-0.95:0.7 | DAT  83%  2.3s d1.04 ARRIVED h 0.07 
+  trong:re_trai:nz0.01     | DAT  62%  2.5s d0.69 ARRIVED h 0.08 
+  trong:thang:nz0.01       | DAT  65%  0.3s d0.68 ARRIVED h 0.08 
+  trong:re_trai:nz0.02     | DAT  68%  2.5s d0.73 ARRIVED h 0.06 
+  trong:thang:nz0.02       | DAT  66%  0.3s d0.68 ARRIVED h 0.07 
+  trong:yen:-0.40:0.20:150 | DAT  96%  0.2s d0.99 ARRIVED h 0.07 
+  trong:yen:-0.80:0.45:120 | DAT  97%  0.2s d1.05 ARRIVED h 0.08 
+  trong:yen:-1.20:0.30:90  | DAT  97%  0.2s d0.98 ARRIVED h 0.08 
+  trong:yen:-1.35:0.45:75  | DAT  98%  0.1s d1.05 ARRIVED h 0.07 
+  trong:yen:-0.95:0.70:105 | DAT  96%  0.3s d0.66 ARRIVED h 0.06 
+  trong:re_phai            | DAT  62%  7.3s d0.69 ARRIVED h 0.08 
+
+=== vong_chan ===
+  kich ban                 |                    moi                    
+  chan_trai                | DAT  82%  7.7s d1.14 ARRIVED h 0.16 P
+  chan_phai                | DAT  83%  7.5s d1.13 ARRIVED h 0.12 T
+  chan_trai_muon           | DAT  68% 10.1s d1.14 ARRIVED h 0.11 T
+  chan_trai_khong_tuong    | LOI  80%  3.0s d2.37 AVOID   h 0.21 T
+  khuat_sau_trai           | DAT  92%  3.5s d1.11 ARRIVED h 0.14 P
+
+TONG (cac kich ban co tieu chi): moi: 189/195 DAT

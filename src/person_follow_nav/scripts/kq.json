@@ -1,0 +1,2549 @@
+{
+ "regress|thang": {
+  "moi": {
+   "cam": 100.0,
+   "mat_cam": 0.0,
+   "d": 1.3,
+   "tt": "FOLLOW",
+   "ho": 10.0,
+   "sec": 1.3
+  }
+ },
+ "regress|re_trai_gat": {
+  "moi": {
+   "cam": 97.0,
+   "mat_cam": 0.1,
+   "d": 4.15,
+   "tt": "FOLLOW",
+   "ho": 10.0,
+   "sec": 0.9
+  }
+ },
+ "regress|re_phai_gat": {
+  "moi": {
+   "cam": 99.0,
+   "mat_cam": 0.1,
+   "d": 4.14,
+   "tt": "FOLLOW",
+   "ho": 10.0,
+   "sec": 0.8
+  }
+ },
+ "regress|ne_ngang_nhanh": {
+  "moi": {
+   "cam": 96.0,
+   "mat_cam": 0.3,
+   "d": 1.08,
+   "tt": "ARRIVED",
+   "ho": 10.0,
+   "sec": 0.7
+  }
+ },
+ "regress|cheo_thoat": {
+  "moi": {
+   "cam": 99.0,
+   "mat_cam": 0.1,
+   "d": 1.15,
+   "tt": "ARRIVED",
+   "ho": 10.0,
+   "sec": 0.8
+  }
+ },
+ "regress|chan_giua": {
+  "moi": {
+   "cam": 100.0,
+   "mat_cam": 0.0,
+   "d": 2.38,
+   "tt": "FOLLOW",
+   "ho": 10.0,
+   "nham": 0.0,
+   "ho_ng2": 0.09,
+   "sec": 1.6
+  }
+ },
+ "regress|cat_ngang": {
+  "moi": {
+   "cam": 100.0,
+   "mat_cam": 0.0,
+   "d": 1.41,
+   "tt": "FOLLOW",
+   "ho": 10.0,
+   "nham": 0.0,
+   "ho_ng2": 10.0,
+   "sec": 1.0
+  }
+ },
+ "regress|chan_sat": {
+  "moi": {
+   "cam": 100.0,
+   "mat_cam": 0.0,
+   "d": 1.15,
+   "tt": "ARRIVED",
+   "ho": 10.0,
+   "nham": 0.0,
+   "ho_ng2": 0.43,
+   "sec": 0.7
+  }
+ },
+ "regress|sau_ne_re": {
+  "moi": {
+   "cam": 100.0,
+   "mat_cam": 0.0,
+   "d": 3.09,
+   "tt": "FOLLOW",
+   "ho": 10.0,
+   "nham": 0.0,
+   "ho_ng2": 0.09,
+   "sec": 1.9
+  }
+ },
+ "regress|goc_tuong": {
+  "moi": {
+   "cam": 41.0,
+   "mat_cam": 11.8,
+   "d": 1.41,
+   "tt": "FOLLOW",
+   "ho": 0.15,
+   "sec": 4.8
+  }
+ },
+ "regress|thoat_khung": {
+  "moi": {
+   "cam": 95.0,
+   "mat_cam": 0.7,
+   "d": 1.07,
+   "tt": "ARRIVED",
+   "ho": 10.0,
+   "sec": 0.8
+  }
+ },
+ "regress|cat_ngang_gan": {
+  "moi": {
+   "cam": 97.0,
+   "mat_cam": 0.4,
+   "d": 1.38,
+   "tt": "FOLLOW",
+   "ho": 10.0,
+   "nham": 0.0,
+   "ho_ng2": 10.0,
+   "sec": 1.1
+  }
+ },
+ "regress|qua_cua": {
+  "moi": {
+   "cam": 100.0,
+   "mat_cam": 0.0,
+   "d": 1.17,
+   "tt": "FOLLOW",
+   "ho": 0.1,
+   "stall": 0.0,
+   "qua": "CO",
+   "sec": 2.9
+  }
+ },
+ "regress|qua_cua_lech": {
+  "moi": {
+   "cam": 100.0,
+   "mat_cam": 0.0,
+   "d": 1.29,
+   "tt": "FOLLOW",
+   "ho": 0.09,
+   "stall": 0.0,
+   "qua": "CO",
+   "sec": 2.8
+  }
+ },
+ "regress|qua_cua_cheo": {
+  "moi": {
+   "cam": 100.0,
+   "mat_cam": 0.0,
+   "d": 1.15,
+   "tt": "ARRIVED",
+   "ho": 0.09,
+   "stall": 0.0,
+   "qua": "CO",
+   "sec": 2.9
+  }
+ },
+ "regress|qua_cua_cheo+HL": {
+  "moi": {
+   "cam": 100.0,
+   "mat_cam": 0.0,
+   "d": 1.14,
+   "tt": "ARRIVED",
+   "ho": 0.1,
+   "stall": 0.0,
+   "qua": "CO",
+   "sec": 6.6
+  }
+ },
+ "regress|cua_ben": {
+  "moi": {
+   "cam": 76.0,
+   "mat_cam": 4.6,
+   "d": 1.14,
+   "tt": "ARRIVED",
+   "ho": 0.09,
+   "stall": 0.0,
+   "qua_ben": "CO",
+   "sec": 5.3
+  }
+ },
+ "regress|cua_ben+day": {
+  "moi": {
+   "cam": 85.0,
+   "mat_cam": 4.7,
+   "d": 1.14,
+   "tt": "ARRIVED",
+   "ho": 0.09,
+   "stall": 0.0,
+   "qua_ben": "CO",
+   "sec": 4.9
+  }
+ },
+ "regress|cua_ben_cham": {
+  "moi": {
+   "cam": 38.0,
+   "mat_cam": 23.4,
+   "d": 2.28,
+   "tt": "IDLE",
+   "ho": 0.21,
+   "qua_ben": "KHONG",
+   "sec": 4.9
+  }
+ },
+ "regress|cua_ben_cham+day": {
+  "moi": {
+   "cam": 92.0,
+   "mat_cam": 2.1,
+   "d": 1.14,
+   "tt": "ARRIVED",
+   "ho": 0.09,
+   "stall": 0.0,
+   "qua_ben": "CO",
+   "sec": 5.3
+  }
+ },
+ "regress|cua_ben_dung": {
+  "moi": {
+   "cam": 38.0,
+   "mat_cam": 26.4,
+   "d": 1.92,
+   "tt": "IDLE",
+   "ho": 0.26,
+   "qua_ben": "KHONG",
+   "sec": 4.9
+  }
+ },
+ "regress|cua_ben_dung+day": {
+  "moi": {
+   "cam": 90.0,
+   "mat_cam": 3.9,
+   "d": 0.84,
+   "tt": "ARRIVED",
+   "ho": 0.08,
+   "stall": 0.0,
+   "qua_ben": "CO",
+   "sec": 4.9
+  }
+ },
+ "regress|chan_giua55": {
+  "moi": {
+   "cam": 100.0,
+   "mat_cam": 0.0,
+   "d": 2.38,
+   "tt": "FOLLOW",
+   "ho": 10.0,
+   "nham": 0.0,
+   "ho_ng2": 0.09,
+   "sec": 1.7
+  }
+ },
+ "regress|sau_ne_re55": {
+  "moi": {
+   "cam": 100.0,
+   "mat_cam": 0.0,
+   "d": 3.09,
+   "tt": "FOLLOW",
+   "ho": 10.0,
+   "nham": 0.0,
+   "ho_ng2": 0.09,
+   "sec": 1.8
+  }
+ },
+ "door_near_0.01|3.365:-0.62:-95": {
+  "moi": {
+   "cam": 100.0,
+   "mat_cam": 0.0,
+   "d": 1.07,
+   "tt": "ARRIVED",
+   "ho": 0.08,
+   "stall": 0.2,
+   "qua_ben": "CO",
+   "sec": 1.0
+  }
+ },
+ "door_near_0.01|3.365:-0.62:-90": {
+  "moi": {
+   "cam": 100.0,
+   "mat_cam": 0.0,
+   "d": 1.05,
+   "tt": "FOLLOW",
+   "ho": 0.08,
+   "stall": 0.2,
+   "qua_ben": "CO",
+   "sec": 0.9
+  }
+ },
+ "door_near_0.01|3.365:-0.62:-85": {
+  "moi": {
+   "cam": 100.0,
+   "mat_cam": 0.0,
+   "d": 1.04,
+   "tt": "FOLLOW",
+   "ho": 0.08,
+   "stall": 0.2,
+   "qua_ben": "CO",
+   "sec": 0.9
+  }
+ },
+ "door_near_0.01|3.365:-0.8:-95": {
+  "moi": {
+   "cam": 100.0,
+   "mat_cam": 0.0,
+   "d": 1.0,
+   "tt": "FOLLOW",
+   "ho": 0.05,
+   "stall": 1.1,
+   "qua_ben": "CO",
+   "sec": 0.9
+  }
+ },
+ "door_near_0.01|3.365:-0.8:-90": {
+  "moi": {
+   "cam": 100.0,
+   "mat_cam": 0.0,
+   "d": 1.07,
+   "tt": "FOLLOW",
+   "ho": 0.07,
+   "stall": 0.9,
+   "qua_ben": "CO",
+   "sec": 1.2
+  }
+ },
+ "door_near_0.01|3.365:-0.8:-85": {
+  "moi": {
+   "cam": 100.0,
+   "mat_cam": 0.0,
+   "d": 1.08,
+   "tt": "FOLLOW",
+   "ho": 0.07,
+   "stall": 0.8,
+   "qua_ben": "CO",
+   "sec": 1.2
+  }
+ },
+ "door_near_0.01|3.385:-0.62:-95": {
+  "moi": {
+   "cam": 100.0,
+   "mat_cam": 0.0,
+   "d": 1.04,
+   "tt": "FOLLOW",
+   "ho": 0.08,
+   "stall": 0.2,
+   "qua_ben": "CO",
+   "sec": 0.8
+  }
+ },
+ "door_near_0.01|3.385:-0.62:-90": {
+  "moi": {
+   "cam": 100.0,
+   "mat_cam": 0.0,
+   "d": 1.07,
+   "tt": "FOLLOW",
+   "ho": 0.08,
+   "stall": 0.2,
+   "qua_ben": "CO",
+   "sec": 0.9
+  }
+ },
+ "door_near_0.01|3.385:-0.62:-85": {
+  "moi": {
+   "cam": 100.0,
+   "mat_cam": 0.0,
+   "d": 1.04,
+   "tt": "FOLLOW",
+   "ho": 0.07,
+   "stall": 0.2,
+   "qua_ben": "CO",
+   "sec": 0.8
+  }
+ },
+ "door_near_0.01|3.385:-0.8:-95": {
+  "moi": {
+   "cam": 100.0,
+   "mat_cam": 0.0,
+   "d": 1.04,
+   "tt": "FOLLOW",
+   "ho": 0.07,
+   "stall": 0.2,
+   "qua_ben": "CO",
+   "sec": 0.9
+  }
+ },
+ "door_near_0.01|3.385:-0.8:-90": {
+  "moi": {
+   "cam": 100.0,
+   "mat_cam": 0.0,
+   "d": 1.04,
+   "tt": "FOLLOW",
+   "ho": 0.08,
+   "stall": 0.2,
+   "qua_ben": "CO",
+   "sec": 0.8
+  }
+ },
+ "door_near_0.01|3.385:-0.8:-85": {
+  "moi": {
+   "cam": 100.0,
+   "mat_cam": 0.0,
+   "d": 1.04,
+   "tt": "FOLLOW",
+   "ho": 0.08,
+   "stall": 0.2,
+   "qua_ben": "CO",
+   "sec": 0.8
+  }
+ },
+ "door_near_0.01|3.405:-0.62:-95": {
+  "moi": {
+   "cam": 100.0,
+   "mat_cam": 0.0,
+   "d": 1.07,
+   "tt": "FOLLOW",
+   "ho": 0.08,
+   "stall": 0.2,
+   "qua_ben": "CO",
+   "sec": 0.9
+  }
+ },
+ "door_near_0.01|3.405:-0.62:-90": {
+  "moi": {
+   "cam": 100.0,
+   "mat_cam": 0.0,
+   "d": 1.06,
+   "tt": "FOLLOW",
+   "ho": 0.08,
+   "stall": 0.2,
+   "qua_ben": "CO",
+   "sec": 0.8
+  }
+ },
+ "door_near_0.01|3.405:-0.62:-85": {
+  "moi": {
+   "cam": 100.0,
+   "mat_cam": 0.0,
+   "d": 1.06,
+   "tt": "FOLLOW",
+   "ho": 0.08,
+   "stall": 0.2,
+   "qua_ben": "CO",
+   "sec": 0.8
+  }
+ },
+ "door_near_0.01|3.405:-0.8:-95": {
+  "moi": {
+   "cam": 100.0,
+   "mat_cam": 0.0,
+   "d": 1.04,
+   "tt": "FOLLOW",
+   "ho": 0.08,
+   "stall": 0.2,
+   "qua_ben": "CO",
+   "sec": 0.8
+  }
+ },
+ "door_near_0.01|3.405:-0.8:-90": {
+  "moi": {
+   "cam": 100.0,
+   "mat_cam": 0.0,
+   "d": 1.06,
+   "tt": "FOLLOW",
+   "ho": 0.08,
+   "stall": 0.2,
+   "qua_ben": "CO",
+   "sec": 0.9
+  }
+ },
+ "door_near_0.01|3.405:-0.8:-85": {
+  "moi": {
+   "cam": 100.0,
+   "mat_cam": 0.0,
+   "d": 1.07,
+   "tt": "FOLLOW",
+   "ho": 0.08,
+   "stall": 0.2,
+   "qua_ben": "CO",
+   "sec": 0.9
+  }
+ },
+ "door_near_0.01|3.425:-0.62:-95": {
+  "moi": {
+   "cam": 100.0,
+   "mat_cam": 0.0,
+   "d": 1.04,
+   "tt": "FOLLOW",
+   "ho": 0.08,
+   "stall": 0.2,
+   "qua_ben": "CO",
+   "sec": 0.9
+  }
+ },
+ "door_near_0.01|3.425:-0.62:-90": {
+  "moi": {
+   "cam": 100.0,
+   "mat_cam": 0.0,
+   "d": 1.05,
+   "tt": "FOLLOW",
+   "ho": 0.08,
+   "stall": 0.2,
+   "qua_ben": "CO",
+   "sec": 1.0
+  }
+ },
+ "door_near_0.01|3.425:-0.62:-85": {
+  "moi": {
+   "cam": 100.0,
+   "mat_cam": 0.0,
+   "d": 1.04,
+   "tt": "FOLLOW",
+   "ho": 0.08,
+   "stall": 0.2,
+   "qua_ben": "CO",
+   "sec": 0.9
+  }
+ },
+ "door_near_0.01|3.425:-0.8:-95": {
+  "moi": {
+   "cam": 100.0,
+   "mat_cam": 0.0,
+   "d": 1.06,
+   "tt": "FOLLOW",
+   "ho": 0.08,
+   "stall": 0.2,
+   "qua_ben": "CO",
+   "sec": 1.0
+  }
+ },
+ "door_near_0.01|3.425:-0.8:-90": {
+  "moi": {
+   "cam": 100.0,
+   "mat_cam": 0.0,
+   "d": 1.02,
+   "tt": "FOLLOW",
+   "ho": 0.08,
+   "stall": 0.2,
+   "qua_ben": "CO",
+   "sec": 0.9
+  }
+ },
+ "door_near_0.01|3.425:-0.8:-85": {
+  "moi": {
+   "cam": 100.0,
+   "mat_cam": 0.0,
+   "d": 1.03,
+   "tt": "FOLLOW",
+   "ho": 0.07,
+   "stall": 0.4,
+   "qua_ben": "CO",
+   "sec": 0.9
+  }
+ },
+ "door_near_0.01|3.445:-0.62:-95": {
+  "moi": {
+   "cam": 100.0,
+   "mat_cam": 0.0,
+   "d": 1.04,
+   "tt": "FOLLOW",
+   "ho": 0.08,
+   "stall": 0.2,
+   "qua_ben": "CO",
+   "sec": 1.0
+  }
+ },
+ "door_near_0.01|3.445:-0.62:-90": {
+  "moi": {
+   "cam": 100.0,
+   "mat_cam": 0.0,
+   "d": 1.07,
+   "tt": "FOLLOW",
+   "ho": 0.08,
+   "stall": 0.2,
+   "qua_ben": "CO",
+   "sec": 1.0
+  }
+ },
+ "door_near_0.01|3.445:-0.62:-85": {
+  "moi": {
+   "cam": 100.0,
+   "mat_cam": 0.0,
+   "d": 1.08,
+   "tt": "FOLLOW",
+   "ho": 0.08,
+   "stall": 0.2,
+   "qua_ben": "CO",
+   "sec": 1.0
+  }
+ },
+ "door_near_0.01|3.445:-0.8:-95": {
+  "moi": {
+   "cam": 100.0,
+   "mat_cam": 0.0,
+   "d": 1.06,
+   "tt": "FOLLOW",
+   "ho": 0.07,
+   "stall": 0.8,
+   "qua_ben": "CO",
+   "sec": 1.2
+  }
+ },
+ "door_near_0.01|3.445:-0.8:-90": {
+  "moi": {
+   "cam": 100.0,
+   "mat_cam": 0.1,
+   "d": 1.08,
+   "tt": "ARRIVED",
+   "ho": 0.07,
+   "stall": 0.9,
+   "qua_ben": "CO",
+   "sec": 1.2
+  }
+ },
+ "door_near_0.01|3.445:-0.8:-85": {
+  "moi": {
+   "cam": 100.0,
+   "mat_cam": 0.0,
+   "d": 1.04,
+   "tt": "FOLLOW",
+   "ho": 0.05,
+   "stall": 1.0,
+   "qua_ben": "CO",
+   "sec": 1.0
+  }
+ },
+ "door_near_0.02|3.365:-0.62:-95": {
+  "moi": {
+   "cam": 100.0,
+   "mat_cam": 0.0,
+   "d": 1.01,
+   "tt": "FOLLOW",
+   "ho": 0.08,
+   "stall": 0.2,
+   "qua_ben": "CO",
+   "sec": 1.1
+  }
+ },
+ "door_near_0.02|3.365:-0.62:-90": {
+  "moi": {
+   "cam": 100.0,
+   "mat_cam": 0.0,
+   "d": 1.03,
+   "tt": "FOLLOW",
+   "ho": 0.09,
+   "stall": 0.2,
+   "qua_ben": "CO",
+   "sec": 1.2
+  }
+ },
+ "door_near_0.02|3.365:-0.62:-85": {
+  "moi": {
+   "cam": 100.0,
+   "mat_cam": 0.0,
+   "d": 1.01,
+   "tt": "ARRIVED",
+   "ho": 0.09,
+   "stall": 0.2,
+   "qua_ben": "CO",
+   "sec": 1.2
+  }
+ },
+ "door_near_0.02|3.365:-0.8:-95": {
+  "moi": {
+   "cam": 100.0,
+   "mat_cam": 0.0,
+   "d": 1.02,
+   "tt": "ARRIVED",
+   "ho": 0.05,
+   "stall": 1.1,
+   "qua_ben": "CO",
+   "sec": 1.1
+  }
+ },
+ "door_near_0.02|3.365:-0.8:-90": {
+  "moi": {
+   "cam": 100.0,
+   "mat_cam": 0.0,
+   "d": 1.03,
+   "tt": "FOLLOW",
+   "ho": 0.07,
+   "stall": 1.4,
+   "qua_ben": "CO",
+   "sec": 1.9
+  }
+ },
+ "door_near_0.02|3.365:-0.8:-85": {
+  "moi": {
+   "cam": 100.0,
+   "mat_cam": 0.0,
+   "d": 1.01,
+   "tt": "FOLLOW",
+   "ho": 0.07,
+   "stall": 0.8,
+   "qua_ben": "CO",
+   "sec": 2.0
+  }
+ },
+ "door_near_0.02|3.385:-0.62:-95": {
+  "moi": {
+   "cam": 100.0,
+   "mat_cam": 0.0,
+   "d": 1.01,
+   "tt": "FOLLOW",
+   "ho": 0.09,
+   "stall": 0.2,
+   "qua_ben": "CO",
+   "sec": 1.0
+  }
+ },
+ "door_near_0.02|3.385:-0.62:-90": {
+  "moi": {
+   "cam": 100.0,
+   "mat_cam": 0.0,
+   "d": 1.01,
+   "tt": "FOLLOW",
+   "ho": 0.08,
+   "stall": 0.2,
+   "qua_ben": "CO",
+   "sec": 0.9
+  }
+ },
+ "door_near_0.02|3.385:-0.62:-85": {
+  "moi": {
+   "cam": 100.0,
+   "mat_cam": 0.0,
+   "d": 1.02,
+   "tt": "FOLLOW",
+   "ho": 0.08,
+   "stall": 0.2,
+   "qua_ben": "CO",
+   "sec": 1.2
+  }
+ },
+ "door_near_0.02|3.385:-0.8:-95": {
+  "moi": {
+   "cam": 100.0,
+   "mat_cam": 0.0,
+   "d": 0.99,
+   "tt": "FOLLOW",
+   "ho": 0.07,
+   "stall": 0.2,
+   "qua_ben": "CO",
+   "sec": 0.9
+  }
+ },
+ "door_near_0.02|3.385:-0.8:-90": {
+  "moi": {
+   "cam": 100.0,
+   "mat_cam": 0.0,
+   "d": 0.98,
+   "tt": "FOLLOW",
+   "ho": 0.08,
+   "stall": 0.2,
+   "qua_ben": "CO",
+   "sec": 0.9
+  }
+ },
+ "door_near_0.02|3.385:-0.8:-85": {
+  "moi": {
+   "cam": 100.0,
+   "mat_cam": 0.0,
+   "d": 1.0,
+   "tt": "FOLLOW",
+   "ho": 0.09,
+   "stall": 0.2,
+   "qua_ben": "CO",
+   "sec": 0.9
+  }
+ },
+ "door_near_0.02|3.405:-0.62:-95": {
+  "moi": {
+   "cam": 100.0,
+   "mat_cam": 0.0,
+   "d": 1.02,
+   "tt": "FOLLOW",
+   "ho": 0.08,
+   "stall": 0.2,
+   "qua_ben": "CO",
+   "sec": 1.0
+  }
+ },
+ "door_near_0.02|3.405:-0.62:-90": {
+  "moi": {
+   "cam": 100.0,
+   "mat_cam": 0.0,
+   "d": 1.01,
+   "tt": "ARRIVED",
+   "ho": 0.09,
+   "stall": 0.2,
+   "qua_ben": "CO",
+   "sec": 1.0
+  }
+ },
+ "door_near_0.02|3.405:-0.62:-85": {
+  "moi": {
+   "cam": 100.0,
+   "mat_cam": 0.0,
+   "d": 1.01,
+   "tt": "ARRIVED",
+   "ho": 0.09,
+   "stall": 0.2,
+   "qua_ben": "CO",
+   "sec": 1.0
+  }
+ },
+ "door_near_0.02|3.405:-0.8:-95": {
+  "moi": {
+   "cam": 100.0,
+   "mat_cam": 0.0,
+   "d": 0.99,
+   "tt": "FOLLOW",
+   "ho": 0.09,
+   "stall": 0.2,
+   "qua_ben": "CO",
+   "sec": 0.9
+  }
+ },
+ "door_near_0.02|3.405:-0.8:-90": {
+  "moi": {
+   "cam": 100.0,
+   "mat_cam": 0.0,
+   "d": 1.02,
+   "tt": "FOLLOW",
+   "ho": 0.08,
+   "stall": 0.2,
+   "qua_ben": "CO",
+   "sec": 1.0
+  }
+ },
+ "door_near_0.02|3.405:-0.8:-85": {
+  "moi": {
+   "cam": 100.0,
+   "mat_cam": 0.0,
+   "d": 1.02,
+   "tt": "FOLLOW",
+   "ho": 0.09,
+   "stall": 0.2,
+   "qua_ben": "CO",
+   "sec": 0.9
+  }
+ },
+ "door_near_0.02|3.425:-0.62:-95": {
+  "moi": {
+   "cam": 100.0,
+   "mat_cam": 0.0,
+   "d": 1.0,
+   "tt": "FOLLOW",
+   "ho": 0.08,
+   "stall": 0.2,
+   "qua_ben": "CO",
+   "sec": 1.1
+  }
+ },
+ "door_near_0.02|3.425:-0.62:-90": {
+  "moi": {
+   "cam": 100.0,
+   "mat_cam": 0.0,
+   "d": 0.98,
+   "tt": "FOLLOW",
+   "ho": 0.09,
+   "stall": 0.2,
+   "qua_ben": "CO",
+   "sec": 1.1
+  }
+ },
+ "door_near_0.02|3.425:-0.62:-85": {
+  "moi": {
+   "cam": 100.0,
+   "mat_cam": 0.0,
+   "d": 1.0,
+   "tt": "FOLLOW",
+   "ho": 0.09,
+   "stall": 0.2,
+   "qua_ben": "CO",
+   "sec": 1.0
+  }
+ },
+ "door_near_0.02|3.425:-0.8:-95": {
+  "moi": {
+   "cam": 100.0,
+   "mat_cam": 0.0,
+   "d": 0.98,
+   "tt": "FOLLOW",
+   "ho": 0.09,
+   "stall": 0.4,
+   "qua_ben": "CO",
+   "sec": 0.8
+  }
+ },
+ "door_near_0.02|3.425:-0.8:-90": {
+  "moi": {
+   "cam": 100.0,
+   "mat_cam": 0.0,
+   "d": 1.02,
+   "tt": "FOLLOW",
+   "ho": 0.08,
+   "stall": 0.5,
+   "qua_ben": "CO",
+   "sec": 1.2
+  }
+ },
+ "door_near_0.02|3.425:-0.8:-85": {
+  "moi": {
+   "cam": 100.0,
+   "mat_cam": 0.0,
+   "d": 0.99,
+   "tt": "FOLLOW",
+   "ho": 0.07,
+   "stall": 0.4,
+   "qua_ben": "CO",
+   "sec": 0.9
+  }
+ },
+ "door_near_0.02|3.445:-0.62:-95": {
+  "moi": {
+   "cam": 100.0,
+   "mat_cam": 0.0,
+   "d": 1.01,
+   "tt": "ARRIVED",
+   "ho": 0.09,
+   "stall": 0.2,
+   "qua_ben": "CO",
+   "sec": 1.1
+  }
+ },
+ "door_near_0.02|3.445:-0.62:-90": {
+  "moi": {
+   "cam": 100.0,
+   "mat_cam": 0.0,
+   "d": 1.0,
+   "tt": "ARRIVED",
+   "ho": 0.09,
+   "stall": 0.2,
+   "qua_ben": "CO",
+   "sec": 1.1
+  }
+ },
+ "door_near_0.02|3.445:-0.62:-85": {
+  "moi": {
+   "cam": 100.0,
+   "mat_cam": 0.0,
+   "d": 1.03,
+   "tt": "FOLLOW",
+   "ho": 0.08,
+   "stall": 0.2,
+   "qua_ben": "CO",
+   "sec": 1.2
+  }
+ },
+ "door_near_0.02|3.445:-0.8:-95": {
+  "moi": {
+   "cam": 100.0,
+   "mat_cam": 0.0,
+   "d": 1.02,
+   "tt": "ARRIVED",
+   "ho": 0.07,
+   "stall": 0.8,
+   "qua_ben": "CO",
+   "sec": 1.7
+  }
+ },
+ "door_near_0.02|3.445:-0.8:-90": {
+  "moi": {
+   "cam": 100.0,
+   "mat_cam": 0.0,
+   "d": 1.0,
+   "tt": "FOLLOW",
+   "ho": 0.05,
+   "stall": 1.4,
+   "qua_ben": "CO",
+   "sec": 1.0
+  }
+ },
+ "door_near_0.02|3.445:-0.8:-85": {
+  "moi": {
+   "cam": 100.0,
+   "mat_cam": 0.0,
+   "d": 0.98,
+   "tt": "FOLLOW",
+   "ho": 0.05,
+   "stall": 1.4,
+   "qua_ben": "CO",
+   "sec": 1.1
+  }
+ },
+ "door_grid_wt0|2.8:0.0:-105": {
+  "moi": {
+   "cam": 84.0,
+   "mat_cam": 4.6,
+   "d": 1.15,
+   "tt": "FOLLOW",
+   "ho": 0.09,
+   "stall": 0.0,
+   "qua_ben": "CO",
+   "sec": 1.1
+  }
+ },
+ "door_grid_wt0|2.8:0.0:-90": {
+  "moi": {
+   "cam": 85.0,
+   "mat_cam": 4.2,
+   "d": 1.14,
+   "tt": "FOLLOW",
+   "ho": 0.09,
+   "stall": 0.0,
+   "qua_ben": "CO",
+   "sec": 1.1
+  }
+ },
+ "door_grid_wt0|2.8:0.0:-75": {
+  "moi": {
+   "cam": 85.0,
+   "mat_cam": 4.1,
+   "d": 1.14,
+   "tt": "FOLLOW",
+   "ho": 0.08,
+   "stall": 0.0,
+   "qua_ben": "CO",
+   "sec": 1.1
+  }
+ },
+ "door_grid_wt0|3.1:0.0:-105": {
+  "moi": {
+   "cam": 91.0,
+   "mat_cam": 2.6,
+   "d": 1.14,
+   "tt": "FOLLOW",
+   "ho": 0.09,
+   "stall": 0.0,
+   "qua_ben": "CO",
+   "sec": 1.0
+  }
+ },
+ "door_grid_wt0|3.1:0.0:-90": {
+  "moi": {
+   "cam": 92.0,
+   "mat_cam": 2.1,
+   "d": 1.14,
+   "tt": "FOLLOW",
+   "ho": 0.09,
+   "stall": 0.0,
+   "qua_ben": "CO",
+   "sec": 1.1
+  }
+ },
+ "door_grid_wt0|3.1:0.0:-75": {
+  "moi": {
+   "cam": 94.0,
+   "mat_cam": 1.8,
+   "d": 1.13,
+   "tt": "FOLLOW",
+   "ho": 0.09,
+   "stall": 0.0,
+   "qua_ben": "CO",
+   "sec": 1.0
+  }
+ },
+ "door_grid_wt0|3.4:0.0:-105": {
+  "moi": {
+   "cam": 100.0,
+   "mat_cam": 0.0,
+   "d": 1.15,
+   "tt": "FOLLOW",
+   "ho": 0.08,
+   "stall": 0.0,
+   "qua_ben": "CO",
+   "sec": 0.8
+  }
+ },
+ "door_grid_wt0|3.4:0.0:-90": {
+  "moi": {
+   "cam": 100.0,
+   "mat_cam": 0.0,
+   "d": 1.15,
+   "tt": "FOLLOW",
+   "ho": 0.08,
+   "stall": 0.0,
+   "qua_ben": "CO",
+   "sec": 0.8
+  }
+ },
+ "door_grid_wt0|3.4:0.0:-75": {
+  "moi": {
+   "cam": 100.0,
+   "mat_cam": 0.0,
+   "d": 1.14,
+   "tt": "FOLLOW",
+   "ho": 0.09,
+   "stall": 0.0,
+   "qua_ben": "CO",
+   "sec": 0.9
+  }
+ },
+ "door_grid_wt0|3.7:0.0:-105": {
+  "moi": {
+   "cam": 94.0,
+   "mat_cam": 1.7,
+   "d": 1.15,
+   "tt": "FOLLOW",
+   "ho": 0.09,
+   "stall": 0.0,
+   "qua_ben": "CO",
+   "sec": 0.9
+  }
+ },
+ "door_grid_wt0|3.7:0.0:-90": {
+  "moi": {
+   "cam": 93.0,
+   "mat_cam": 2.0,
+   "d": 1.14,
+   "tt": "FOLLOW",
+   "ho": 0.09,
+   "stall": 0.0,
+   "qua_ben": "CO",
+   "sec": 1.1
+  }
+ },
+ "door_grid_wt0|3.7:0.0:-75": {
+  "moi": {
+   "cam": 92.0,
+   "mat_cam": 2.3,
+   "d": 1.14,
+   "tt": "FOLLOW",
+   "ho": 0.09,
+   "stall": 0.0,
+   "qua_ben": "CO",
+   "sec": 1.1
+  }
+ },
+ "door_grid_wt0|4.0:0.0:-105": {
+  "moi": {
+   "cam": 86.0,
+   "mat_cam": 4.0,
+   "d": 1.14,
+   "tt": "FOLLOW",
+   "ho": 0.09,
+   "stall": 0.0,
+   "qua_ben": "CO",
+   "sec": 1.2
+  }
+ },
+ "door_grid_wt0|4.0:0.0:-90": {
+  "moi": {
+   "cam": 84.0,
+   "mat_cam": 4.6,
+   "d": 1.14,
+   "tt": "FOLLOW",
+   "ho": 0.09,
+   "stall": 0.0,
+   "qua_ben": "CO",
+   "sec": 1.2
+  }
+ },
+ "door_grid_wt0|4.0:0.0:-75": {
+  "moi": {
+   "cam": 83.0,
+   "mat_cam": 4.7,
+   "d": 1.14,
+   "tt": "FOLLOW",
+   "ho": 0.09,
+   "stall": 0.0,
+   "qua_ben": "CO",
+   "sec": 1.2
+  }
+ },
+ "door_grid_wt0.12|2.8:0.0:-105": {
+  "moi": {
+   "cam": 82.0,
+   "mat_cam": 5.0,
+   "d": 1.06,
+   "tt": "FOLLOW",
+   "ho": 0.08,
+   "stall": 0.0,
+   "qua_ben": "CO",
+   "sec": 1.3
+  }
+ },
+ "door_grid_wt0.12|2.8:0.0:-90": {
+  "moi": {
+   "cam": 84.0,
+   "mat_cam": 4.6,
+   "d": 1.05,
+   "tt": "FOLLOW",
+   "ho": 0.08,
+   "stall": 0.0,
+   "qua_ben": "CO",
+   "sec": 1.2
+  }
+ },
+ "door_grid_wt0.12|2.8:0.0:-75": {
+  "moi": {
+   "cam": 85.0,
+   "mat_cam": 4.3,
+   "d": 1.06,
+   "tt": "ARRIVED",
+   "ho": 0.08,
+   "stall": 0.0,
+   "qua_ben": "CO",
+   "sec": 1.4
+  }
+ },
+ "door_grid_wt0.12|3.1:0.0:-105": {
+  "moi": {
+   "cam": 89.0,
+   "mat_cam": 3.1,
+   "d": 1.06,
+   "tt": "ARRIVED",
+   "ho": 0.08,
+   "stall": 0.0,
+   "qua_ben": "CO",
+   "sec": 1.1
+  }
+ },
+ "door_grid_wt0.12|3.1:0.0:-90": {
+  "moi": {
+   "cam": 92.0,
+   "mat_cam": 2.2,
+   "d": 1.04,
+   "tt": "FOLLOW",
+   "ho": 0.08,
+   "stall": 0.0,
+   "qua_ben": "CO",
+   "sec": 1.2
+  }
+ },
+ "door_grid_wt0.12|3.1:0.0:-75": {
+  "moi": {
+   "cam": 92.0,
+   "mat_cam": 2.3,
+   "d": 1.02,
+   "tt": "FOLLOW",
+   "ho": 0.07,
+   "stall": 0.2,
+   "qua_ben": "CO",
+   "sec": 1.3
+  }
+ },
+ "door_grid_wt0.12|3.4:0.0:-105": {
+  "moi": {
+   "cam": 100.0,
+   "mat_cam": 0.0,
+   "d": 1.07,
+   "tt": "FOLLOW",
+   "ho": 0.08,
+   "stall": 0.0,
+   "qua_ben": "CO",
+   "sec": 0.9
+  }
+ },
+ "door_grid_wt0.12|3.4:0.0:-90": {
+  "moi": {
+   "cam": 100.0,
+   "mat_cam": 0.0,
+   "d": 1.07,
+   "tt": "FOLLOW",
+   "ho": 0.08,
+   "stall": 0.0,
+   "qua_ben": "CO",
+   "sec": 1.0
+  }
+ },
+ "door_grid_wt0.12|3.4:0.0:-75": {
+  "moi": {
+   "cam": 100.0,
+   "mat_cam": 0.0,
+   "d": 1.07,
+   "tt": "FOLLOW",
+   "ho": 0.08,
+   "stall": 0.0,
+   "qua_ben": "CO",
+   "sec": 0.9
+  }
+ },
+ "door_grid_wt0.12|3.7:0.0:-105": {
+  "moi": {
+   "cam": 91.0,
+   "mat_cam": 2.5,
+   "d": 1.07,
+   "tt": "FOLLOW",
+   "ho": 0.08,
+   "stall": 0.0,
+   "qua_ben": "CO",
+   "sec": 1.2
+  }
+ },
+ "door_grid_wt0.12|3.7:0.0:-90": {
+  "moi": {
+   "cam": 90.0,
+   "mat_cam": 2.8,
+   "d": 1.12,
+   "tt": "FOLLOW",
+   "ho": 0.07,
+   "stall": 0.8,
+   "qua_ben": "CO",
+   "sec": 1.3
+  }
+ },
+ "door_grid_wt0.12|3.7:0.0:-75": {
+  "moi": {
+   "cam": 89.0,
+   "mat_cam": 3.2,
+   "d": 1.05,
+   "tt": "FOLLOW",
+   "ho": 0.08,
+   "stall": 0.0,
+   "qua_ben": "CO",
+   "sec": 1.1
+  }
+ },
+ "door_grid_wt0.12|4.0:0.0:-105": {
+  "moi": {
+   "cam": 84.0,
+   "mat_cam": 4.6,
+   "d": 1.04,
+   "tt": "FOLLOW",
+   "ho": 0.08,
+   "stall": 0.0,
+   "qua_ben": "CO",
+   "sec": 1.2
+  }
+ },
+ "door_grid_wt0.12|4.0:0.0:-90": {
+  "moi": {
+   "cam": 83.0,
+   "mat_cam": 4.8,
+   "d": 1.04,
+   "tt": "FOLLOW",
+   "ho": 0.08,
+   "stall": 0.0,
+   "qua_ben": "CO",
+   "sec": 1.3
+  }
+ },
+ "door_grid_wt0.12|4.0:0.0:-75": {
+  "moi": {
+   "cam": 82.0,
+   "mat_cam": 5.0,
+   "d": 1.04,
+   "tt": "FOLLOW",
+   "ho": 0.08,
+   "stall": 0.0,
+   "qua_ben": "CO",
+   "sec": 1.3
+  }
+ },
+ "stuck|3.300:-0.790:-105.0": {
+  "moi": {
+   "cam": 100.0,
+   "mat_cam": 0.0,
+   "d": 1.13,
+   "tt": "FOLLOW",
+   "ho": 0.04,
+   "stall": 0.8,
+   "qua_ben": "CO",
+   "sec": 1.1
+  }
+ },
+ "stuck|3.480:-0.840:-105.0": {
+  "moi": {
+   "cam": 100.0,
+   "mat_cam": 0.0,
+   "d": 1.13,
+   "tt": "FOLLOW",
+   "ho": 0.03,
+   "stall": 0.2,
+   "qua_ben": "CO",
+   "sec": 0.7
+  }
+ },
+ "stuck|3.290:-0.770:-100.0": {
+  "moi": {
+   "cam": 100.0,
+   "mat_cam": 0.0,
+   "d": 1.14,
+   "tt": "FOLLOW",
+   "ho": 0.04,
+   "stall": 0.8,
+   "qua_ben": "CO",
+   "sec": 1.2
+  }
+ },
+ "stuck|3.480:-0.840:-100.0": {
+  "moi": {
+   "cam": 100.0,
+   "mat_cam": 0.0,
+   "d": 1.03,
+   "tt": "FOLLOW",
+   "ho": 0.02,
+   "stall": 0.9,
+   "qua_ben": "CO",
+   "sec": 1.1
+  }
+ },
+ "stuck|3.300:-0.750:-95.0": {
+  "moi": {
+   "cam": 100.0,
+   "mat_cam": 0.0,
+   "d": 1.14,
+   "tt": "FOLLOW",
+   "ho": 0.04,
+   "stall": 0.8,
+   "qua_ben": "CO",
+   "sec": 1.2
+  }
+ },
+ "stuck|3.480:-0.840:-95.0": {
+  "moi": {
+   "cam": 100.0,
+   "mat_cam": 0.0,
+   "d": 1.14,
+   "tt": "FOLLOW",
+   "ho": 0.03,
+   "stall": 0.5,
+   "qua_ben": "CO",
+   "sec": 1.1
+  }
+ },
+ "stuck|3.340:-0.840:-85.0": {
+  "moi": {
+   "cam": 100.0,
+   "mat_cam": 0.0,
+   "d": 1.12,
+   "tt": "FOLLOW",
+   "ho": 0.04,
+   "stall": 0.2,
+   "qua_ben": "CO",
+   "sec": 0.8
+  }
+ },
+ "stuck|3.460:-0.790:-85.0": {
+  "moi": {
+   "cam": 100.0,
+   "mat_cam": 0.0,
+   "d": 1.13,
+   "tt": "FOLLOW",
+   "ho": 0.04,
+   "stall": 0.2,
+   "qua_ben": "CO",
+   "sec": 0.7
+  }
+ },
+ "stuck|3.330:-0.840:-80.0": {
+  "moi": {
+   "cam": 100.0,
+   "mat_cam": 0.0,
+   "d": 1.15,
+   "tt": "FOLLOW",
+   "ho": 0.03,
+   "stall": 0.4,
+   "qua_ben": "CO",
+   "sec": 1.6
+  }
+ },
+ "stuck|3.450:-0.800:-80.0": {
+  "moi": {
+   "cam": 100.0,
+   "mat_cam": 0.0,
+   "d": 1.11,
+   "tt": "FOLLOW",
+   "ho": 0.04,
+   "stall": 0.2,
+   "qua_ben": "CO",
+   "sec": 0.8
+  }
+ },
+ "stuck|3.340:-0.840:-75.0": {
+  "moi": {
+   "cam": 100.0,
+   "mat_cam": 0.0,
+   "d": 1.13,
+   "tt": "FOLLOW",
+   "ho": 0.04,
+   "stall": 0.2,
+   "qua_ben": "CO",
+   "sec": 0.7
+  }
+ },
+ "stuck|3.460:-0.810:-75.0": {
+  "moi": {
+   "cam": 100.0,
+   "mat_cam": 0.0,
+   "d": 1.13,
+   "tt": "FOLLOW",
+   "ho": 0.03,
+   "stall": 0.2,
+   "qua_ben": "CO",
+   "sec": 0.8
+  }
+ },
+ "chen|dung:2.2:5.0:-0.15": {
+  "moi": {
+   "cam": 65.0,
+   "mat_cam": 6.3,
+   "d": 1.15,
+   "tt": "ARRIVED",
+   "ho": 10.0,
+   "nham": 0.0,
+   "ho_ng2": 0.22,
+   "sec": 0.9
+  }
+ },
+ "chen|dung:2.2:5.0:0.0": {
+  "moi": {
+   "cam": 65.0,
+   "mat_cam": 6.3,
+   "d": 1.15,
+   "tt": "ARRIVED",
+   "ho": 10.0,
+   "nham": 0.0,
+   "ho_ng2": 0.23,
+   "sec": 0.9
+  }
+ },
+ "chen|dung:2.2:5.0:0.15": {
+  "moi": {
+   "cam": 63.0,
+   "mat_cam": 6.6,
+   "d": 1.15,
+   "tt": "ARRIVED",
+   "ho": 10.0,
+   "nham": 0.0,
+   "ho_ng2": 0.2,
+   "sec": 0.9
+  }
+ },
+ "chen|dung:2.2:8.0:-0.15": {
+  "moi": {
+   "cam": 65.0,
+   "mat_cam": 6.3,
+   "d": 1.14,
+   "tt": "ARRIVED",
+   "ho": 10.0,
+   "nham": 0.0,
+   "ho_ng2": 0.22,
+   "sec": 0.8
+  }
+ },
+ "chen|dung:2.2:8.0:0.0": {
+  "moi": {
+   "cam": 63.0,
+   "mat_cam": 6.2,
+   "d": 1.14,
+   "tt": "ARRIVED",
+   "ho": 10.0,
+   "nham": 0.0,
+   "ho_ng2": 0.19,
+   "sec": 0.8
+  }
+ },
+ "chen|dung:2.2:8.0:0.15": {
+  "moi": {
+   "cam": 64.0,
+   "mat_cam": 6.5,
+   "d": 1.14,
+   "tt": "ARRIVED",
+   "ho": 10.0,
+   "nham": 0.0,
+   "ho_ng2": 0.23,
+   "sec": 0.8
+  }
+ },
+ "chen|dung:2.45:5.0:-0.15": {
+  "moi": {
+   "cam": 64.0,
+   "mat_cam": 6.4,
+   "d": 1.14,
+   "tt": "ARRIVED",
+   "ho": 10.0,
+   "nham": 11.0,
+   "ho_ng2": 0.47,
+   "sec": 0.8
+  }
+ },
+ "chen|dung:2.45:5.0:0.0": {
+  "moi": {
+   "cam": 64.0,
+   "mat_cam": 6.4,
+   "d": 1.13,
+   "tt": "ARRIVED",
+   "ho": 10.0,
+   "nham": 0.0,
+   "ho_ng2": 0.41,
+   "sec": 0.8
+  }
+ },
+ "chen|dung:2.45:5.0:0.15": {
+  "moi": {
+   "cam": 64.0,
+   "mat_cam": 6.5,
+   "d": 1.16,
+   "tt": "ARRIVED",
+   "ho": 10.0,
+   "nham": 0.0,
+   "ho_ng2": 0.48,
+   "sec": 0.9
+  }
+ },
+ "chen|dung:2.45:8.0:-0.15": {
+  "moi": {
+   "cam": 65.0,
+   "mat_cam": 6.3,
+   "d": 1.14,
+   "tt": "ARRIVED",
+   "ho": 10.0,
+   "nham": 0.0,
+   "ho_ng2": 0.47,
+   "sec": 0.8
+  }
+ },
+ "chen|dung:2.45:8.0:0.0": {
+  "moi": {
+   "cam": 63.0,
+   "mat_cam": 6.2,
+   "d": 1.11,
+   "tt": "ARRIVED",
+   "ho": 10.0,
+   "nham": 3.0,
+   "ho_ng2": 0.43,
+   "sec": 0.8
+  }
+ },
+ "chen|dung:2.45:8.0:0.15": {
+  "moi": {
+   "cam": 64.0,
+   "mat_cam": 6.5,
+   "d": 1.14,
+   "tt": "ARRIVED",
+   "ho": 10.0,
+   "nham": 0.0,
+   "ho_ng2": 0.48,
+   "sec": 0.9
+  }
+ },
+ "chen|di:2.2:5.0:-0.15": {
+  "moi": {
+   "cam": 75.0,
+   "mat_cam": 4.5,
+   "d": 1.67,
+   "tt": "FOLLOW",
+   "ho": 10.0,
+   "nham": 0.0,
+   "ho_ng2": 0.09,
+   "sec": 1.4
+  }
+ },
+ "chen|di:2.2:5.0:0.0": {
+  "moi": {
+   "cam": 65.0,
+   "mat_cam": 6.3,
+   "d": 2.45,
+   "tt": "FOLLOW",
+   "ho": 10.0,
+   "nham": 0.0,
+   "ho_ng2": 0.09,
+   "sec": 1.4
+  }
+ },
+ "chen|di:2.2:5.0:0.15": {
+  "moi": {
+   "cam": 73.0,
+   "mat_cam": 4.8,
+   "d": 1.75,
+   "tt": "FOLLOW",
+   "ho": 10.0,
+   "nham": 0.0,
+   "ho_ng2": 0.08,
+   "sec": 1.4
+  }
+ },
+ "chen|di:2.2:8.0:-0.15": {
+  "moi": {
+   "cam": 64.0,
+   "mat_cam": 6.5,
+   "d": 2.87,
+   "tt": "FOLLOW",
+   "ho": 10.0,
+   "nham": 0.0,
+   "ho_ng2": -0.06,
+   "sec": 2.0
+  }
+ },
+ "chen|di:2.2:8.0:0.0": {
+  "moi": {
+   "cam": 63.0,
+   "mat_cam": 6.7,
+   "d": 2.96,
+   "tt": "FOLLOW",
+   "ho": 10.0,
+   "nham": 0.0,
+   "ho_ng2": -0.06,
+   "sec": 1.2
+  }
+ },
+ "chen|di:2.2:8.0:0.15": {
+  "moi": {
+   "cam": 64.0,
+   "mat_cam": 6.5,
+   "d": 2.85,
+   "tt": "FOLLOW",
+   "ho": 10.0,
+   "nham": 0.0,
+   "ho_ng2": -0.06,
+   "sec": 2.2
+  }
+ },
+ "chen|di:2.45:5.0:-0.15": {
+  "moi": {
+   "cam": 63.0,
+   "mat_cam": 6.6,
+   "d": 1.68,
+   "tt": "FOLLOW",
+   "ho": 10.0,
+   "nham": 0.0,
+   "ho_ng2": 0.08,
+   "sec": 1.4
+  }
+ },
+ "chen|di:2.45:5.0:0.0": {
+  "moi": {
+   "cam": 65.0,
+   "mat_cam": 6.3,
+   "d": 2.14,
+   "tt": "FOLLOW",
+   "ho": 10.0,
+   "nham": 0.0,
+   "ho_ng2": 0.11,
+   "sec": 1.3
+  }
+ },
+ "chen|di:2.45:5.0:0.15": {
+  "moi": {
+   "cam": 56.0,
+   "mat_cam": 7.8,
+   "d": 2.33,
+   "tt": "FOLLOW",
+   "ho": 10.0,
+   "nham": 0.0,
+   "ho_ng2": 0.06,
+   "sec": 1.3
+  }
+ },
+ "chen|di:2.45:8.0:-0.15": {
+  "moi": {
+   "cam": 65.0,
+   "mat_cam": 6.3,
+   "d": 2.73,
+   "tt": "FOLLOW",
+   "ho": 10.0,
+   "nham": 0.0,
+   "ho_ng2": 0.08,
+   "sec": 1.7
+  }
+ },
+ "chen|di:2.45:8.0:0.0": {
+  "moi": {
+   "cam": 61.0,
+   "mat_cam": 7.0,
+   "d": 2.85,
+   "tt": "FOLLOW",
+   "ho": 10.0,
+   "nham": 0.0,
+   "ho_ng2": 0.08,
+   "sec": 1.3
+  }
+ },
+ "chen|di:2.45:8.0:0.15": {
+  "moi": {
+   "cam": 64.0,
+   "mat_cam": 6.5,
+   "d": 2.82,
+   "tt": "FOLLOW",
+   "ho": 10.0,
+   "nham": 0.0,
+   "ho_ng2": 0.08,
+   "sec": 1.7
+  }
+ },
+ "turn|vong_trai": {
+  "moi": {
+   "cam": 100.0,
+   "mat_cam": 0.0,
+   "d": 1.49,
+   "tt": "FOLLOW",
+   "ho": 10.0,
+   "sec": 0.8
+  }
+ },
+ "turn|vong_phai": {
+  "moi": {
+   "cam": 100.0,
+   "mat_cam": 0.0,
+   "d": 1.49,
+   "tt": "FOLLOW",
+   "ho": 10.0,
+   "sec": 0.8
+  }
+ },
+ "turn|vong_nhanh_trai": {
+  "moi": {
+   "cam": 99.0,
+   "mat_cam": 0.1,
+   "d": 4.07,
+   "tt": "FOLLOW",
+   "ho": 10.0,
+   "sec": 0.6
+  }
+ },
+ "turn|vong_nhanh_phai": {
+  "moi": {
+   "cam": 99.0,
+   "mat_cam": 0.1,
+   "d": 4.08,
+   "tt": "FOLLOW",
+   "ho": 10.0,
+   "sec": 0.7
+  }
+ },
+ "turn|vong_nguoi_trai": {
+  "moi": {
+   "cam": 100.0,
+   "mat_cam": 0.0,
+   "d": 4.7,
+   "tt": "FOLLOW",
+   "ho": 10.0,
+   "sec": 0.5
+  }
+ },
+ "turn|vong_nguoi_phai": {
+  "moi": {
+   "cam": 100.0,
+   "mat_cam": 0.0,
+   "d": 4.7,
+   "tt": "FOLLOW",
+   "ho": 10.0,
+   "sec": 0.5
+  }
+ },
+ "lowbox|L5:px2.4:0:0:0": {
+  "moi": {
+   "cam": 99.0,
+   "mat_cam": 0.3,
+   "d": 1.13,
+   "tt": "ARRIVED",
+   "ho": 0.15,
+   "ben": "PHAI",
+   "sec": 1.9
+  }
+ },
+ "lowbox|L5:px2.4:0:0.35:5": {
+  "moi": {
+   "cam": 87.0,
+   "mat_cam": 2.9,
+   "d": 1.13,
+   "tt": "ARRIVED",
+   "ho": 0.15,
+   "ben": "PHAI",
+   "sec": 2.1
+  }
+ },
+ "lowbox|L5:px3.2:0:0:0": {
+  "moi": {
+   "cam": 100.0,
+   "mat_cam": 0.0,
+   "d": 1.15,
+   "tt": "ARRIVED",
+   "ho": 0.17,
+   "ben": "PHAI",
+   "sec": 2.2
+  }
+ },
+ "lowbox|L5:px3.2:0:0.35:5": {
+  "moi": {
+   "cam": 90.0,
+   "mat_cam": 2.2,
+   "d": 1.15,
+   "tt": "ARRIVED",
+   "ho": 0.16,
+   "ben": "PHAI",
+   "sec": 2.4
+  }
+ },
+ "lowbox|L8:px2.4:0:0:0": {
+  "moi": {
+   "cam": 99.0,
+   "mat_cam": 0.3,
+   "d": 1.13,
+   "tt": "ARRIVED",
+   "ho": 0.15,
+   "ben": "PHAI",
+   "sec": 1.9
+  }
+ },
+ "lowbox|L8:px2.4:0:0.35:5": {
+  "moi": {
+   "cam": 87.0,
+   "mat_cam": 2.9,
+   "d": 1.13,
+   "tt": "ARRIVED",
+   "ho": 0.15,
+   "ben": "PHAI",
+   "sec": 2.1
+  }
+ },
+ "lowbox|L8:px3.2:0:0:0": {
+  "moi": {
+   "cam": 100.0,
+   "mat_cam": 0.0,
+   "d": 1.15,
+   "tt": "ARRIVED",
+   "ho": 0.17,
+   "ben": "PHAI",
+   "sec": 2.4
+  }
+ },
+ "lowbox|L8:px3.2:0:0.35:5": {
+  "moi": {
+   "cam": 90.0,
+   "mat_cam": 2.2,
+   "d": 1.15,
+   "tt": "ARRIVED",
+   "ho": 0.16,
+   "ben": "PHAI",
+   "sec": 2.5
+  }
+ },
+ "lowbox|R5:px2.4:0:0:0": {
+  "moi": {
+   "cam": 97.0,
+   "mat_cam": 0.7,
+   "d": 1.15,
+   "tt": "ARRIVED",
+   "ho": 0.15,
+   "ben": "TRAI",
+   "sec": 1.7
+  }
+ },
+ "lowbox|R5:px2.4:0:-0.35:-5": {
+  "moi": {
+   "cam": 88.0,
+   "mat_cam": 2.8,
+   "d": 1.11,
+   "tt": "ARRIVED",
+   "ho": 0.14,
+   "ben": "TRAI",
+   "sec": 2.1
+  }
+ },
+ "lowbox|R5:px3.2:0:0:0": {
+  "moi": {
+   "cam": 100.0,
+   "mat_cam": 0.0,
+   "d": 1.15,
+   "tt": "ARRIVED",
+   "ho": 0.17,
+   "ben": "TRAI",
+   "sec": 2.3
+  }
+ },
+ "lowbox|R5:px3.2:0:-0.35:-5": {
+  "moi": {
+   "cam": 90.0,
+   "mat_cam": 2.4,
+   "d": 1.14,
+   "tt": "ARRIVED",
+   "ho": 0.15,
+   "ben": "TRAI",
+   "sec": 2.6
+  }
+ },
+ "lowbox|don:px2.6:py0.3": {
+  "moi": {
+   "cam": 100.0,
+   "mat_cam": 0.0,
+   "d": 1.15,
+   "tt": "ARRIVED",
+   "ho": 0.15,
+   "ben": "TRAI",
+   "sec": 1.7
+  }
+ },
+ "hard|U_trap:px2.6": {
+  "moi": {
+   "cam": 70.0,
+   "mat_cam": 6.1,
+   "d": 1.1,
+   "tt": "ARRIVED",
+   "ho": 0.08,
+   "ben": "TRAI",
+   "sec": 4.0
+  }
+ },
+ "hard|U_trap:px3.2": {
+  "moi": {
+   "cam": 82.0,
+   "mat_cam": 4.2,
+   "d": 1.11,
+   "tt": "ARRIVED",
+   "ho": 0.14,
+   "ben": "PHAI",
+   "sec": 3.7
+  }
+ },
+ "hard|ghe_dai:px2.2": {
+  "moi": {
+   "cam": 100.0,
+   "mat_cam": 0.0,
+   "d": 1.34,
+   "tt": "ARRIVED",
+   "ho": 0.29,
+   "ben": "khong toi",
+   "sec": 2.4
+  }
+ },
+ "hard|ghe_dai:px2.6": {
+  "moi": {
+   "cam": 79.0,
+   "mat_cam": 4.9,
+   "d": 1.07,
+   "tt": "ARRIVED",
+   "ho": 0.14,
+   "ben": "PHAI",
+   "sec": 2.8
+  }
+ },
+ "hard|ghe_dai:px3.0": {
+  "moi": {
+   "cam": 82.0,
+   "mat_cam": 4.1,
+   "d": 1.08,
+   "tt": "ARRIVED",
+   "ho": 0.14,
+   "ben": "PHAI",
+   "sec": 3.2
+  }
+ },
+ "hard|lon_xon:px3.4": {
+  "moi": {
+   "cam": 97.0,
+   "mat_cam": 0.7,
+   "d": 1.15,
+   "tt": "ARRIVED",
+   "ho": 0.15,
+   "ben": "PHAI",
+   "sec": 2.8
+  }
+ },
+ "hard|lon_xon:px3.4:py-0.5": {
+  "moi": {
+   "cam": 100.0,
+   "mat_cam": 0.0,
+   "d": 1.15,
+   "tt": "ARRIVED",
+   "ho": 0.17,
+   "ben": "PHAI",
+   "sec": 2.6
+  }
+ },
+ "hard|L5:khe_thang": {
+  "moi": {
+   "cam": 86.0,
+   "mat_cam": 3.2,
+   "d": 1.14,
+   "tt": "ARRIVED",
+   "ho": 0.14,
+   "ben": "PHAI",
+   "sec": 2.3
+  }
+ },
+ "hard|L8:khe_thang": {
+  "moi": {
+   "cam": 85.0,
+   "mat_cam": 3.2,
+   "d": 1.15,
+   "tt": "ARRIVED",
+   "ho": 0.15,
+   "ben": "PHAI",
+   "sec": 3.0
+  }
+ },
+ "hard|di_qua_thung": {
+  "moi": {
+   "cam": 100.0,
+   "mat_cam": 0.0,
+   "d": 1.15,
+   "tt": "ARRIVED",
+   "ho": 0.15,
+   "ben": "PHAI",
+   "sec": 2.3
+  }
+ },
+ "hard|di_vong_thung": {
+  "moi": {
+   "cam": 93.0,
+   "mat_cam": 2.2,
+   "d": 1.15,
+   "tt": "ARRIVED",
+   "ho": 0.06,
+   "ben": "PHAI",
+   "sec": 2.8
+  }
+ },
+ "hard|ngua12_sai3": {
+  "moi": {
+   "cam": 87.0,
+   "mat_cam": 3.0,
+   "d": 1.15,
+   "tt": "ARRIVED",
+   "ho": 0.13,
+   "ben": "PHAI",
+   "sec": 1.8
+  }
+ },
+ "hard|ngua12_sai-3": {
+  "moi": {
+   "cam": 97.0,
+   "mat_cam": 0.7,
+   "d": 1.11,
+   "tt": "ARRIVED",
+   "ho": 0.14,
+   "ben": "PHAI",
+   "sec": 1.9
+  }
+ },
+ "hard|nguoi_cao1.9": {
+  "moi": {
+   "cam": 100.0,
+   "mat_cam": 0.0,
+   "d": 1.48,
+   "tt": "ARRIVED",
+   "ho": 0.12,
+   "ben": "khong toi",
+   "sec": 2.3
+  }
+ },
+ "hard|nguoi_thap1.5": {
+  "moi": {
+   "cam": 100.0,
+   "mat_cam": 0.0,
+   "d": 1.12,
+   "tt": "ARRIVED",
+   "ho": 0.14,
+   "ben": "PHAI",
+   "sec": 1.7
+  }
+ },
+ "hard|nguoi_cao1.9_hoc": {
+  "moi": {
+   "cam": 100.0,
+   "mat_cam": 0.0,
+   "d": 1.13,
+   "tt": "ARRIVED",
+   "ho": 0.14,
+   "ben": "PHAI",
+   "sec": 2.0
+  }
+ },
+ "hard|ngua12_sai3_hoc": {
+  "moi": {
+   "cam": 100.0,
+   "mat_cam": 0.1,
+   "d": 1.06,
+   "tt": "ARRIVED",
+   "ho": 0.1,
+   "ben": "PHAI",
+   "sec": 1.9
+  }
+ },
+ "pitch|thang:ngua18_sai-18": {
+  "moi": {
+   "cam": 100.0,
+   "mat_cam": 0.0,
+   "d": 1.5,
+   "tt": "FOLLOW",
+   "ho": 10.0,
+   "sec": 1.2
+  }
+ },
+ "pitch|re_trai:ngua18_sai-18": {
+  "moi": {
+   "cam": 100.0,
+   "mat_cam": 0.0,
+   "d": 1.33,
+   "tt": "FOLLOW",
+   "ho": 10.0,
+   "sec": 1.6
+  }
+ },
+ "pitch|vong_trai:ngua18_sai-18": {
+  "moi": {
+   "cam": 100.0,
+   "mat_cam": 0.0,
+   "d": 1.63,
+   "tt": "FOLLOW",
+   "ho": 10.0,
+   "sec": 0.8
+  }
+ },
+ "pitch|thang:ngua18_sai-12": {
+  "moi": {
+   "cam": 100.0,
+   "mat_cam": 0.0,
+   "d": 1.5,
+   "tt": "FOLLOW",
+   "ho": 10.0,
+   "sec": 1.2
+  }
+ },
+ "pitch|thang:cui12_sai12": {
+  "moi": {
+   "cam": 40.0,
+   "mat_cam": 0.3,
+   "d": 1.26,
+   "tt": "FOLLOW",
+   "ho": 10.0,
+   "sec": 1.2
+  }
+ },
+ "pitch|vat_thap_hoc:ngua18_sai-18": {
+  "moi": {
+   "cam": 96.0,
+   "mat_cam": 1.0,
+   "d": 1.08,
+   "tt": "FOLLOW",
+   "ho": 0.1,
+   "ben": "PHAI",
+   "sec": 1.9
+  }
+ },
+ "rssi|an_sau_vach:RSSI=0": {
+  "moi": {
+   "cam": 6.0,
+   "mat_cam": 63.8,
+   "d": 3.95,
+   "tt": "IDLE",
+   "ho": 0.38,
+   "sec": 2.0
+  }
+ },
+ "rssi|sau_tu:RSSI=0": {
+  "moi": {
+   "cam": 3.0,
+   "mat_cam": 46.1,
+   "d": 1.23,
+   "tt": "IDLE",
+   "ho": 0.32,
+   "sec": 1.6
+  }
+ },
+ "rssi|an_sau_vach:RSSI=1": {
+  "moi": {
+   "cam": 78.0,
+   "mat_cam": 15.0,
+   "d": 1.14,
+   "tt": "FOLLOW",
+   "ho": 0.12,
+   "sec": 4.7
+  }
+ },
+ "rssi|sau_tu:RSSI=1": {
+  "moi": {
+   "cam": 72.0,
+   "mat_cam": 13.4,
+   "d": 0.95,
+   "tt": "FOLLOW",
+   "ho": 0.15,
+   "sec": 2.2
+  }
+ },
+ "cua_bep|tuong_trai:re_trai:nz0.01": {
+  "moi": {
+   "cam": 16.0,
+   "mat_cam": 48.7,
+   "d": 3.27,
+   "tt": "IDLE",
+   "ho": 0.15,
+   "qua_vach": "KHONG",
+   "sec": 4.7
+  }
+ },
+ "cua_bep|tuong_trai:thang:nz0.01": {
+  "moi": {
+   "cam": 64.0,
+   "mat_cam": 0.3,
+   "d": 0.7,
+   "tt": "ARRIVED",
+   "ho": 0.08,
+   "qua_vach": "CO",
+   "sec": 5.5
+  }
+ },
+ "cua_bep|tuong_trai:re_trai:nz0.02": {
+  "moi": {
+   "cam": 64.0,
+   "mat_cam": 5.2,
+   "d": 0.71,
+   "tt": "ARRIVED",
+   "ho": 0.07,
+   "qua_vach": "CO",
+   "sec": 9.3
+  }
+ },
+ "cua_bep|tuong_trai:thang:nz0.02": {
+  "moi": {
+   "cam": 65.0,
+   "mat_cam": 0.3,
+   "d": 0.7,
+   "tt": "ARRIVED",
+   "ho": 0.08,
+   "qua_vach": "CO",
+   "sec": 5.8
+  }
+ },
+ "cua_bep|tuong_trai:yen:-0.40:0.20:150": {
+  "moi": {
+   "cam": 70.0,
+   "mat_cam": 3.5,
+   "d": 1.02,
+   "tt": "FOLLOW",
+   "ho": 0.07,
+   "qua_vach": "CO",
+   "sec": 4.2
+  }
+ },
+ "cua_bep|tuong_trai:yen:-0.80:0.45:120": {
+  "moi": {
+   "cam": 84.0,
+   "mat_cam": 1.6,
+   "d": 0.92,
+   "tt": "ARRIVED",
+   "ho": 0.07,
+   "qua_vach": "CO",
+   "sec": 2.7
+  }
+ },
+ "cua_bep|tuong_trai:yen:-1.20:0.30:90": {
+  "moi": {
+   "cam": 94.0,
+   "mat_cam": 0.3,
+   "d": 0.98,
+   "tt": "ARRIVED",
+   "ho": 0.08,
+   "qua_vach": "CO",
+   "sec": 2.1
+  }
+ },
+ "cua_bep|tuong_trai:yen:-1.35:0.45:75": {
+  "moi": {
+   "cam": 81.0,
+   "mat_cam": 0.3,
+   "d": 1.02,
+   "tt": "ARRIVED",
+   "ho": 0.07,
+   "qua_vach": "CO",
+   "sec": 3.2
+  }
+ },
+ "cua_bep|tuong_trai:yen:-0.95:0.70:105": {
+  "moi": {
+   "cam": 83.0,
+   "mat_cam": 2.3,
+   "d": 1.04,
+   "tt": "ARRIVED",
+   "ho": 0.07,
+   "qua_vach": "CO",
+   "sec": 2.3
+  }
+ },
+ "cua_bep|trong:re_trai:nz0.01": {
+  "moi": {
+   "cam": 62.0,
+   "mat_cam": 2.5,
+   "d": 0.69,
+   "tt": "ARRIVED",
+   "ho": 0.08,
+   "qua_vach": "CO",
+   "sec": 8.8
+  }
+ },
+ "cua_bep|trong:thang:nz0.01": {
+  "moi": {
+   "cam": 65.0,
+   "mat_cam": 0.3,
+   "d": 0.68,
+   "tt": "ARRIVED",
+   "ho": 0.08,
+   "qua_vach": "CO",
+   "sec": 6.5
+  }
+ },
+ "cua_bep|trong:re_trai:nz0.02": {
+  "moi": {
+   "cam": 68.0,
+   "mat_cam": 2.5,
+   "d": 0.73,
+   "tt": "ARRIVED",
+   "ho": 0.06,
+   "qua_vach": "CO",
+   "sec": 10.7
+  }
+ },
+ "cua_bep|trong:thang:nz0.02": {
+  "moi": {
+   "cam": 66.0,
+   "mat_cam": 0.3,
+   "d": 0.68,
+   "tt": "ARRIVED",
+   "ho": 0.07,
+   "qua_vach": "CO",
+   "sec": 7.5
+  }
+ },
+ "cua_bep|trong:yen:-0.40:0.20:150": {
+  "moi": {
+   "cam": 96.0,
+   "mat_cam": 0.2,
+   "d": 0.99,
+   "tt": "ARRIVED",
+   "ho": 0.07,
+   "qua_vach": "CO",
+   "sec": 4.8
+  }
+ },
+ "cua_bep|trong:yen:-0.80:0.45:120": {
+  "moi": {
+   "cam": 97.0,
+   "mat_cam": 0.2,
+   "d": 1.05,
+   "tt": "ARRIVED",
+   "ho": 0.08,
+   "qua_vach": "CO",
+   "sec": 3.1
+  }
+ },
+ "cua_bep|trong:yen:-1.20:0.30:90": {
+  "moi": {
+   "cam": 97.0,
+   "mat_cam": 0.2,
+   "d": 0.98,
+   "tt": "ARRIVED",
+   "ho": 0.08,
+   "qua_vach": "CO",
+   "sec": 3.1
+  }
+ },
+ "cua_bep|trong:yen:-1.35:0.45:75": {
+  "moi": {
+   "cam": 98.0,
+   "mat_cam": 0.1,
+   "d": 1.05,
+   "tt": "ARRIVED",
+   "ho": 0.07,
+   "qua_vach": "CO",
+   "sec": 3.0
+  }
+ },
+ "cua_bep|trong:yen:-0.95:0.70:105": {
+  "moi": {
+   "cam": 96.0,
+   "mat_cam": 0.3,
+   "d": 0.66,
+   "tt": "ARRIVED",
+   "ho": 0.06,
+   "qua_vach": "CO",
+   "sec": 3.6
+  }
+ },
+ "cua_bep|trong:re_phai": {
+  "moi": {
+   "cam": 62.0,
+   "mat_cam": 7.3,
+   "d": 0.69,
+   "tt": "ARRIVED",
+   "ho": 0.08,
+   "qua_vach": "CO",
+   "sec": 11.2
+  }
+ },
+ "vong_chan|chan_trai": {
+  "moi": {
+   "cam": 82.0,
+   "mat_cam": 7.7,
+   "d": 1.14,
+   "tt": "ARRIVED",
+   "ho": 0.16,
+   "nham": 0.0,
+   "ho_ng2": 0.32,
+   "ben": "PHAI",
+   "sec": 8.6
+  }
+ },
+ "vong_chan|chan_phai": {
+  "moi": {
+   "cam": 83.0,
+   "mat_cam": 7.5,
+   "d": 1.13,
+   "tt": "ARRIVED",
+   "ho": 0.12,
+   "nham": 0.0,
+   "ho_ng2": 0.49,
+   "ben": "TRAI",
+   "sec": 8.9
+  }
+ },
+ "vong_chan|chan_trai_muon": {
+  "moi": {
+   "cam": 68.0,
+   "mat_cam": 10.1,
+   "d": 1.14,
+   "tt": "ARRIVED",
+   "ho": 0.11,
+   "nham": 0.0,
+   "ho_ng2": 0.28,
+   "ben": "TRAI",
+   "sec": 9.1
+  }
+ },
+ "vong_chan|chan_trai_khong_tuong": {
+  "moi": {
+   "cam": 80.0,
+   "mat_cam": 3.0,
+   "d": 2.37,
+   "tt": "AVOID",
+   "ho": 0.21,
+   "nham": 0.0,
+   "ho_ng2": 0.05,
+   "ben": "TRAI",
+   "sec": 9.3
+  }
+ },
+ "vong_chan|khuat_sau_trai": {
+  "moi": {
+   "cam": 92.0,
+   "mat_cam": 3.5,
+   "d": 1.11,
+   "tt": "ARRIVED",
+   "ho": 0.14,
+   "ben": "PHAI",
+   "sec": 7.1
+  }
+ }
+}

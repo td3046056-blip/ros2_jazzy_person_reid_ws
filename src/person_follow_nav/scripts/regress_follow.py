@@ -68,18 +68,18 @@ for nz in (0.01, 0.02):
         for y in (-0.62, -0.80):
             for yaw in (-95, -90, -85):
                 J(f"door_near_{nz}", f"{x}:{y}:{yaw}", "cua_ben_yen", CAM_HALF=31, LIDAR_NOISE=nz, WALL_T=0.12,
-                  SIDE_DOOR="3.0:0.81:-0.9", START=f"{x}:{y}:{yaw}")
+                  SIDE_DOOR="3.0:0.81:-0.9", START=f"{x}:{y}:{yaw}", START_TRAIL=0.8)
 
 for wt in (0, 0.12):
     for x in (2.8, 3.1, 3.4, 3.7, 4.0):
         for yaw in (-105, -90, -75):
             J(f"door_grid_wt{wt}", f"{x}:0.0:{yaw}", "cua_ben_yen", CAM_HALF=31, WALL_T=wt,
-              SIDE_DOOR="3.0:0.81:-0.9", START=f"{x}:0.0:{yaw}")
+              SIDE_DOOR="3.0:0.81:-0.9", START=f"{x}:0.0:{yaw}", START_TRAIL=0.8)
 
 for st in ("3.300:-0.790:-105.0", "3.480:-0.840:-105.0", "3.290:-0.770:-100.0", "3.480:-0.840:-100.0",
            "3.300:-0.750:-95.0", "3.480:-0.840:-95.0", "3.340:-0.840:-85.0", "3.460:-0.790:-85.0",
            "3.330:-0.840:-80.0", "3.450:-0.800:-80.0", "3.340:-0.840:-75.0", "3.460:-0.810:-75.0"):
-    J("stuck", st, "cua_ben_yen", CAM_HALF=31, SIDE_DOOR="3.0:0.81:-0.9", START=st)
+    J("stuck", st, "cua_ben_yen", CAM_HALF=31, SIDE_DOOR="3.0:0.81:-0.9", START=st, START_TRAIL=0.8)
 
 for tgt in ("dung", "di"):
     for x in (2.2, 2.45):
@@ -162,7 +162,7 @@ for wl, wn in ((K_LEFT, "tuong_trai"), ("", "trong")):
     # nguoi DUNG YEN trong bep, xe xuat phat o nhieu tu the truoc cua (lech truc / lech goc) — thu rieng dong tac chui
     for st in ("-0.40:0.20:150", "-0.80:0.45:120", "-1.20:0.30:90", "-1.35:0.45:75", "-0.95:0.70:105"):
         J("cua_bep", f"{wn}:yen:{st}", "sau_vat_thap", CAM_HALF=55, TALLWALL=KITCHEN + wl, PASS_LINE=K_PASS,
-          LIDAR_NOISE=0.01, PX=-1.60, PY=2.90, START=st)
+          LIDAR_NOISE=0.01, PX=-1.60, PY=2.90, START=st, START_TRAIL=0.8)
     if not wl:
         # khong co tuong trai: nguoi di tu phia TRAI vong vao cua (doi xung voi bag)
         J("cua_bep", f"{wn}:re_phai", "duong_di", CAM_HALF=55, TALLWALL=KITCHEN, PASS_LINE=K_PASS,
@@ -182,6 +182,145 @@ for lab, kw in (
     box = kw.pop("LOWBOX", VC_BOX)
     J("vong_chan", lab, "vong_chan", CAM_HALF=55, LOWBOX=box, T_END=45, **kw)
 
+# 03/11 — Cua 0.80 m tuong day 10 cm, TU LANH (cao, che ca camera) dat sat sau tuong ben TRAI cua; nguoi qua cua roi
+# RE TRAI ngay truoc mat tu lanh (xe that 15/10: xe vua qua cua thi xoay / tien lui mai du xung quanh trong). Doi chung:
+# GHE (4 chan, thap) thay cho tu lanh, khong co gi, tu lanh ben PHAI + nguoi re phai, nguoi di thang.
+TL_DOOR = dict(DOOR="3.2:0.80", WALL_T=0.10, PASS_LINE="3.3:-3:3.3:3")
+TL_FRIDGE_L = "3.63:0.83:0.65:0.75:0:1.8"
+TL_FRIDGE_R = "3.63:-0.83:0.65:0.75:0:1.8"
+TL_CHAIR_L = ";".join(f"{x}:{y}:0.03:0.03:0:0.45" for x in (3.34, 3.76) for y in (0.49, 0.91))
+TL_WP_L = "1.6:0;3.3:0;4.25:0.05;4.35:1.3;4.35:1.9"
+TL_WP_R = "1.6:0;3.3:0;4.25:-0.05;4.35:-1.3;4.35:-1.9"
+for lab, ob, wp in (("tu_lanh_trai:re_trai", TL_FRIDGE_L, TL_WP_L), ("ghe_trai:re_trai", TL_CHAIR_L, TL_WP_L),
+                    ("trong:re_trai", "", TL_WP_L), ("tu_lanh_phai:re_phai", TL_FRIDGE_R, TL_WP_R),
+                    ("tu_lanh_trai:thang", TL_FRIDGE_L, "1.6:0;3.3:0;5.4:0")):
+    for v in (0.17, 0.22):
+        J("tu_lanh", f"{lab}:v{v}", "duong_di", CAM_HALF=55, OBOX=ob, WP=wp, WPV=v, WPT=55, **TL_DOOR)
+
+# 03/11 — Nguoi dung sau THUNG XOP 50x35 cm cao 35 cm dat NGHIENG (xe that 15/10: luc ne duoc, luc lai thang toi mep
+# thung). Camera cao 0.70 m nhin qua thung. Them ca co ghe ben canh thung.
+for ang in (0, 25, -30, 60):
+    for st in ("0:0:0", "0:0.35:5", "0:-0.30:-5"):
+        J("thung_xop", f"goc{ang}:{st}", "sau_vat_thap", CAM_HALF=55, OBOX=f"1.6:0.0:0.50:0.35:{ang}:0.30",
+          PX=2.3, PY=0.05, START=st)
+XOP_GHE = "1.6:0.0:0.50:0.35:25:0.30;" + ";".join(f"{x}:{y}:0.03:0.03:0:0.45" for x in (1.45, 1.87)
+                                                for y in (0.55, 0.97))
+for st in ("0:0:0", "0:0.4:0"):
+    J("thung_xop", f"goc25+ghe:{st}", "sau_vat_thap", CAM_HALF=55, OBOX=XOP_GHE, PX=2.3, PY=0.05, START=st)
+J("thung_xop", "goc25:nguoi_di_toi", "duong_di", CAM_HALF=55, OBOX="1.6:0.0:0.50:0.35:25:0.30",
+  WP="1.2:-0.9;2.3:-0.9;2.3:0.05", WPV=0.25, WPT=35)
+
+# 03/11 — GOC KET: thung xop nghieng phia truoc-trai + vat dai ben phai (sofa) + vat THAP phia SAU nam trong vung mu
+# lidar (xe that 15/10: xoay trai roi lui, dung vat phia sau). Tieu chi chinh: KHONG CHAM (ke ca phia sau).
+GK = "2.35:0.10:0.50:0.35:35:0.30;2.05:-0.85:2.3:0.45:0:0.9;0.55:-0.10:0.40:0.45:0:0.30"
+for st in ("1.30:-0.15:10", "1.45:-0.20:25", "1.25:-0.25:-10"):
+    for lab, (px, py) in (("nguoi_trai", (3.1, 1.1)), ("nguoi_truoc", (3.3, 0.6)), ("nguoi_trai_xa", (2.4, 1.7))):
+        # xe vua tien vao goc 0.15 m (phia sau xa hon la vat thap trong vung mu — xe KHONG duoc lui vao do)
+        J("goc_ket", f"{lab}:{st}", "sau_vat_thap", CAM_HALF=55, OBOX=GK, PX=px, PY=py, START=st, START_TRAIL=0.15)
+# nguoi dan xe vao goc roi vong sang trai (xe tu di vao; vat thap nam BEN PHAI duong vao — xe thay no luc di ngang,
+# luc da vao goc thi no o sau-phai, trong vung mu)
+GK2 = "2.35:0.10:0.50:0.35:35:0.30;2.05:-0.85:2.3:0.45:0:0.9;0.75:-0.42:0.40:0.40:0:0.30"
+J("goc_ket", "dan_vao_goc", "duong_di", CAM_HALF=55, OBOX=GK2, START="-0.3:0.15:0",
+  WP="0.9:0.15;1.9:-0.25;1.9:-0.25;2.0:0.75;3.0:1.15", WPV=0.22, WPT=60)
+J("goc_ket", "dan_vao_goc_cham", "duong_di", CAM_HALF=55, OBOX=GK2, START="-0.3:0.15:0",
+  WP="0.9:0.15;1.9:-0.25;1.9:-0.25;1.9:-0.25;2.0:0.75;3.0:1.15", WPV=0.15, WPT=70)
+
+
+def _clutter(seed, kmin=5, kmax=9, clear=0.45, sep=0.55, v=0.25):
+    """Canh LON XON ngau nhien (03/11): kmin..kmax-1 vat hinh chu nhat xoay ngau nhien (thap / cao) trong phong rong
+    4.8 m; nguoi di qua theo duong co do thoang >= clear (xe 0.60 m can 0.36) roi dung. Tra ve dict env hoac None."""
+    import numpy as np
+    from scipy import ndimage
+    rng = np.random.default_rng(1000 + seed + (0 if kmin == 5 else 50000))
+    res, x0, x1, y0, y1 = 0.05, -1.0, 7.0, -2.4, 2.4
+    nx, ny = int((x1 - x0) / res), int((y1 - y0) / res)
+    for _try in range(60):
+        k = int(rng.integers(kmin, kmax))
+        boxes = []
+        tries = 0
+        while len(boxes) < k and tries < 2000:
+            tries += 1
+            cx, cy = rng.uniform(1.4, 5.2), rng.uniform(-1.9, 1.9)
+            if any(np.hypot(cx - b[0], cy - b[1]) < sep for b in boxes):
+                continue
+            L, W = rng.uniform(0.30, 0.80), rng.uniform(0.25, 0.55)
+            h = rng.uniform(0.30, 0.50) if rng.random() < 0.7 else rng.uniform(1.0, 1.8)
+            boxes.append((cx, cy, L, W, rng.uniform(0.0, 180.0), h))
+        occ = np.zeros((ny, nx), bool)
+        X, Y = np.meshgrid(x0 + (np.arange(nx) + 0.5) * res, y0 + (np.arange(ny) + 0.5) * res)
+        for (cx, cy, L, W, a, _h) in boxes:
+            c, s = np.cos(np.radians(a)), np.sin(np.radians(a))
+            lx, ly = c * (X - cx) + s * (Y - cy), -s * (X - cx) + c * (Y - cy)
+            occ |= (np.abs(lx) <= L / 2) & (np.abs(ly) <= W / 2)
+        occ[0, :] = occ[-1, :] = True                      # tuong y = +-2.4
+        clr = ndimage.distance_transform_edt(~occ) * res
+        free = clr >= clear
+        sx, sy = int((1.5 - x0) / res), int((0.0 - y0) / res)
+        gy_ = float(rng.uniform(-1.2, 1.2))
+        gx, gy = int((6.2 - x0) / res), int((gy_ - y0) / res)
+        if not (free[sy, sx] and free[gy, gx]):
+            continue
+        # Dijkstra 8 huong tren o thoang (gia uu tien do thoang lon: nguoi di giua khe)
+        import heapq
+        D = np.full((ny, nx), np.inf)
+        P = -np.ones((ny, nx, 2), int)
+        D[sy, sx] = 0.0
+        hp = [(0.0, sy, sx)]
+        while hp:
+            du, uy, ux = heapq.heappop(hp)
+            if du > D[uy, ux]:
+                continue
+            if (uy, ux) == (gy, gx):
+                break
+            for dy, dx in ((0, 1), (1, 0), (0, -1), (-1, 0), (1, 1), (1, -1), (-1, 1), (-1, -1)):
+                vy, vx = uy + dy, ux + dx
+                if 0 <= vy < ny and 0 <= vx < nx and free[vy, vx]:
+                    nd = du + np.hypot(dy, dx) * (1.0 + 0.6 / max(clr[vy, vx], 0.3))
+                    if nd < D[vy, vx]:
+                        D[vy, vx] = nd
+                        P[vy, vx] = (uy, ux)
+                        heapq.heappush(hp, (nd, vy, vx))
+        if not np.isfinite(D[gy, gx]):
+            continue
+        path = [(gy, gx)]
+        while path[-1] != (sy, sx):
+            path.append(tuple(P[path[-1]]))
+        path = path[::-1]
+        pts = [(x0 + (p[1] + 0.5) * res, y0 + (p[0] + 0.5) * res) for p in path[::8]] + \
+              [(x0 + (gx + 0.5) * res, y0 + (gy + 0.5) * res)]
+        length = sum(np.hypot(b[0] - a[0], b[1] - a[1]) for a, b in zip(pts, pts[1:]))
+        return dict(OBOX=";".join(f"{b[0]:.2f}:{b[1]:.2f}:{b[2]:.2f}:{b[3]:.2f}:{b[4]:.0f}:{b[5]:.2f}" for b in boxes),
+                    TALLWALL="-1.0:2.4:8.0:2.4;-1.0:-2.4:8.0:-2.4",
+                    WP=";".join(f"{x:.2f}:{y:.2f}" for x, y in pts), WPV=v, WPT=round(length / v + 30.0))
+    return None
+
+
+for seed in range(1, 25):
+    _env = _clutter(seed)
+    if _env:
+        J("lon_xon", f"seed{seed}", "duong_di", CAM_HALF=55, **_env)
+# KHO hon: 10-13 vat, sat nhau hon, duong nguoi di chi du cho xe (do thoang 0.40 m: du 4 cm moi ben), nguoi di 0.3 m/s
+for seed in range(1, 21):
+    _env = _clutter(seed, kmin=10, kmax=14, clear=0.40, sep=0.45, v=0.30)
+    if _env:
+        J("lon_xon_kho", f"seed{seed}", "duong_di", CAM_HALF=55, **_env)
+
+# 03/11 — TOC DO: nguoi di thang nhanh / cham, dung dot ngot, re, co vat ben duong; xe CHO NANG (dap ung cham hon:
+# ROBOT_TAU 0.35 s, chi dat 85 % toc do lenh). Do: khoang cach trung binh / lon nhat luc nguoi dang di, khong cham.
+for v in (0.15, 0.25, 0.35, 0.45):
+    J("toc_do", f"thang:v{v}", "duong_di", CAM_HALF=55, WP="1.6:0;14.0:0", WPV=v, WPT=round(min(40.0, 9.5 / v)))
+    J("toc_do", f"thang:v{v}:nang", "duong_di", CAM_HALF=55, WP="1.6:0;14.0:0", WPV=v, WPT=round(min(40.0, 9.5 / v)),
+      ROBOT_TAU=0.35, ROBOT_GAIN=0.85)
+for v in (0.3, 0.45):
+    J("toc_do", f"dung_dot_ngot:v{v}", "duong_di", CAM_HALF=55, WP="1.6:0;6.5:0", WPV=v, WPT=round(4.9 / v + 12))
+    J("toc_do", f"dung_dot_ngot:v{v}:nang", "duong_di", CAM_HALF=55, WP="1.6:0;6.5:0", WPV=v, WPT=round(4.9 / v + 12),
+      ROBOT_TAU=0.35, ROBOT_GAIN=0.85)
+    J("toc_do", f"re_trai:v{v}", "duong_di", CAM_HALF=55, WP="1.6:0;5.0:0;6.5:1.5;6.5:5.0", WPV=v,
+      WPT=round(8.3 / v + 10))
+    # thung thap sat ben duong nguoi di: xe phai cham lai khi di ngang
+    J("toc_do", f"vat_ben_duong:v{v}", "duong_di", CAM_HALF=55, WP="1.6:0;9.0:0", WPV=v, WPT=round(7.4 / v + 8),
+      OBOX="4.5:-0.75:0.6:0.4:0:0.30;6.5:0.80:0.5:0.4:20:0.30")
+
 # ── Doc ket qua tu dong chi so cua sim_follow.py ─────────────────────────
 NUM = r"(-?[0-9.]+|nan|inf)"
 PATS = [(r"camera=\s*" + NUM + "%", "cam", float), (r"mat_cam_dai_nhat=\s*" + NUM + "s", "mat_cam", float),
@@ -189,7 +328,10 @@ PATS = [(r"camera=\s*" + NUM + "%", "cam", float), (r"mat_cam_dai_nhat=\s*" + NU
         (r"ho_nho_nhat_voi_tuong=\s*" + NUM, "ho", float), (r"dung im trong cua lau nhat=\s*" + NUM, "stall", float),
         (r"qua cua ben: (\S+)", "qua_ben", str), (r"qua cua: (\S+)", "qua", str),
         (r"uoc_gan_ng2_hon=\s*" + NUM, "nham", float), (r"luc_ng2_dung_yen=\s*" + NUM, "ho_ng2", float),
-        (r"ngang vat ben (TRAI|PHAI|khong toi)", "ben", str), (r"qua vach: (\S+)", "qua_vach", str)]
+        (r"ngang vat ben (TRAI|PHAI|khong toi)", "ben", str), (r"qua vach: (\S+)", "qua_vach", str),
+        (r"lui_tong=\s*" + NUM, "lui", float), (r"doi_tien_lui=\s*" + NUM, "sw", float),
+        (r"dung_im_xa_lau_nhat=\s*" + NUM, "ket", float), (r"kc_tb=\s*" + NUM, "dtb", float),
+        (r"kc_max=\s*" + NUM, "dmax", float)]
 
 
 def parse(out):
@@ -228,6 +370,29 @@ def passed(group, label, x):
         return x.get("qua_ben") == "CO" and x.get("ho", 0.0) > 0.0
     if group == "cua_bep":
         return x.get("qua_vach") == "CO" and x.get("ho", 0.0) > 0.0
+    if group == "tu_lanh":
+        # qua cua, toi gan nguoi, khong cham, khong tien-lui / dung im lau (xe that 15/10)
+        return (x.get("qua_vach") == "CO" and x.get("ho", 0.0) > 0.0 and x.get("d", 9.0) <= 1.7
+                and x.get("sw", 99) <= 6 and x.get("ket", 99.0) <= 8.0)
+    if group == "thung_xop":
+        return (x.get("tt") in ("ARRIVED", "FOLLOW") and 0.8 <= x.get("d", 9.0) <= 1.45 and x.get("ho", 0.0) > 0.0
+                and x.get("lui", 9.0) <= 0.5)
+    if group in ("goc_ket", "lon_xon", "lon_xon_kho"):
+        return x.get("ho", 0.0) > 0.0 and x.get("d", 9.0) <= 1.7
+    if group == "toc_do":
+        # Khong cham; nguoi dung lai thi xe toi gan (<= 1.8 m); nguoi dang di ma xe DU SUC theo (toc do nguoi <= 90 %
+        # toc do toi da xe dat duoc: 0.40 m/s, cho nang 85 %) thi khong tut lai qua 2.6 m. Nguoi nhanh hon suc xe va
+        # khong dung (thang:v0.45) thi chi xem.
+        if x.get("ho", 0.0) <= 0.0:
+            return False
+        v = float(re.search(r"v([0-9.]+)", label).group(1))
+        v_lim = 0.9 * 0.40 * (0.85 if label.endswith(":nang") else 1.0)
+        if label.startswith("thang:") and v > v_lim:
+            return None
+        ok = x.get("d", 9.0) <= 1.8
+        if v <= v_lim:
+            ok = ok and x.get("dmax", 9.0) <= 2.6
+        return ok
     if group in ("lowbox", "hard", "vong_chan") or (group == "rssi" and label.endswith("RSSI=1")):
         return x.get("tt") in ("ARRIVED", "FOLLOW") and 0.8 <= x.get("d", 9.0) <= 1.4 and x.get("ho", 0.0) > 0.0
     if group == "pitch":
@@ -248,7 +413,7 @@ def cell(x):
         return "LOI CHAY".ljust(42)
     side = (x.get("ben") or x.get("qua_ben") or x.get("qua") or "")[:1]
     return (f"{x.get('cam', 0):3.0f}% {x.get('mat_cam', 0):4.1f}s d{x.get('d', 0):4.2f} {str(x.get('tt'))[:7]:7s} "
-            f"h{x.get('ho', 0):5.2f} {side}")
+            f"h{x.get('ho', 0):5.2f} {side} L{x.get('lui', 0):3.1f}/{x.get('sw', 0):.0f}")
 
 
 def main() -> int:
@@ -297,7 +462,7 @@ def main() -> int:
                 total[n][0] += int(ok)
                 total[n][1] += 1
             marks.append(("DAT " if ok else "LOI ") if ok is not None else "    ")
-        print(f"  {lab[:24]:24s} | " + " | ".join(m + cell(v.get(n))[:38] for m, n in zip(marks, names)))
+        print(f"  {lab[:24]:24s} | " + " | ".join(m + cell(v.get(n))[:46] for m, n in zip(marks, names)))
     print("\nTONG (cac kich ban co tieu chi): " + ", ".join(f"{n}: {t[0]}/{t[1]} DAT" for n, t in total.items()))
     if a.json:
         json.dump({f"{g}|{lab}": v for (g, lab), v in res.items()}, open(a.json, "w"), indent=1)

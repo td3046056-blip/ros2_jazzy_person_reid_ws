@@ -63,6 +63,8 @@ DUNG LUC XE DANG TRONG KHUNG CUA — do la con so quyet dinh xe co ca vao khung 
     RSSI=1                            /rssi/bearing gia (hop le sau khi xe xoay >= 250 do, sai so ~15 do)
     PASS_LINE="x1:y1:x2:y2"           vach (vd. ngang o cua): in "qua vach: CO" neu xe ket thuc CUNG PHIA vach voi nguoi
     PL_SET="ten=gia_tri,..."          ghi de tham so planner (thu nghiem tinh chinh, khong doi follow_nav.yaml)
+    TR_SET="ten=gia_tri,..."          ghi de tham so tracker (vd. so ban cu voi camera_height_m=0.70)
+    OBOX="cx:cy:dai:rong:goc[:cao];..."  vat chu nhat XOAY (thung xop nghieng, tu lanh cao 1.8 che ca camera)
     SEED=n                            doi mam so ngau nhien (nhieu lidar / camera / RSSI gia) — kich ban hon loan thi
                                       chay nhieu mam roi moi so (cua ben hong: mot mam lech khong noi len dieu gi)
     PX=2.4 PY=0                       cho nguoi dung cua kich ban sau_vat_thap
@@ -113,6 +115,9 @@ def wrap(a):
 def make_nodes():
     tr = TT.TargetTrackerNode()
     tr._p.update(CFG["target_tracker_node"]["ros__parameters"])
+    for kv in [x for x in os.environ.get("TR_SET", "").split(",") if x.strip()]:   # TR_SET="ten=gia_tri,..."
+        k, v = kv.split("=", 1)
+        tr._p[k.strip()] = yaml.safe_load(v)
     tr._read_params()
     tr.filter = G.AlphaBeta2D(alpha=tr.ab_alpha, beta=tr.ab_beta, max_speed=tr.max_person_speed)
     pl = FP.FollowPlannerNode()
@@ -170,12 +175,34 @@ for _b in [b for b in os.environ.get("LOWBOX", "").split(";") if b.strip()]:
     _v = [float(v) for v in _b.split(":")]
     _x0, _y0, _x1, _y1 = min(_v[0], _v[2]), min(_v[1], _v[3]), max(_v[0], _v[2]), max(_v[1], _v[3])
     LOW_BOXES.append((_x0, _y0, _x1, _y1, _v[4] if len(_v) > 4 else 0.30))
-CAM_H = float(os.environ.get("CAM_HEIGHT", "0.34"))
+# OBOX="cx:cy:dai:rong:goc_do[:cao];..." — vat hinh chu nhat XOAY goc_do (vd. thung xop dat nghieng, tu lanh).
+# Cao >= camera thi che ca camera (tu lanh, tu); thap hon thi nhu LOWBOX (camera nhin qua, che phan duoi nguoi).
+OBOXES = []
+for _b in [b for b in os.environ.get("OBOX", "").split(";") if b.strip()]:
+    _v = [float(v) for v in _b.split(":")]
+    OBOXES.append((_v[0], _v[1], _v[2], _v[3], math.radians(_v[4]), _v[5] if len(_v) > 5 else 0.30))
+
+
+def _obox_segs(cx, cy, L, W, a):
+    c, s = math.cos(a), math.sin(a)
+    pts = [(cx + c * ex - s * ey, cy + s * ex + c * ey)
+           for (ex, ey) in ((L / 2, W / 2), (L / 2, -W / 2), (-L / 2, -W / 2), (-L / 2, W / 2))]
+    return [(pts[i][0], pts[i][1], pts[(i + 1) % 4][0], pts[(i + 1) % 4][1]) for i in range(4)]
+
+
+# Do cao camera mac dinh = camera_height_m cua tracker (config) — camera that da nang len 0.70 m (03/11)
+CAM_H = float(os.environ.get("CAM_HEIGHT",
+                             str(CFG["target_tracker_node"]["ros__parameters"].get("camera_height_m", 0.34))))
 _cam_walls = list(WALLS)
 for (_x0, _y0, _x1, _y1, _h) in LOW_BOXES:
     _segs = [(_x0, _y0, _x1, _y0), (_x1, _y0, _x1, _y1), (_x1, _y1, _x0, _y1), (_x0, _y1, _x0, _y0)]
     WALLS.extend(_segs)
     if _h >= CAM_H:                     # vat cao hon camera thi camera cung bi che
+        _cam_walls.extend(_segs)
+for (_cx, _cy, _L, _W, _a, _h) in OBOXES:
+    _segs = _obox_segs(_cx, _cy, _L, _W, _a)
+    WALLS.extend(_segs)
+    if _h >= CAM_H:
         _cam_walls.extend(_segs)
 WALLS_A = np.array(WALLS)
 CAM_WALLS_A = np.array(_cam_walls) if _cam_walls else np.zeros((0, 4))
@@ -271,6 +298,30 @@ def cam_bbox(cx, cy, px, py, d):
         # mep tren cua vat che phan duoi nguoi: goc cao lon nhat tren mat tren vat (o hai mep doc tia)
         e_occ = max(math.atan2(hb - CAM_H, t_in), math.atan2(hb - CAM_H, t_out))
         e_bot = max(e_bot, min(e_occ, e_top - 0.02))
+    for (bxc, byc, L, W, a, hb) in OBOXES:
+        if hb >= CAM_H:
+            continue                      # vat cao: da che han camera (CAM_WALLS_A)
+        # doi tia sang khung cua vat roi lam nhu hinh chu nhat thang
+        c, s = math.cos(a), math.sin(a)
+        ox_, oy_ = c * (cx - bxc) + s * (cy - byc), -s * (cx - bxc) + c * (cy - byc)
+        dx_, dy_ = c * ux + s * uy, -s * ux + c * uy
+        ts = []
+        for (a_, lo, hi, o) in ((dx_, -L / 2, L / 2, ox_), (dy_, -W / 2, W / 2, oy_)):
+            if abs(a_) < 1e-9:
+                if not (lo <= o <= hi):
+                    ts = None
+                    break
+                ts.append((-math.inf, math.inf))
+            else:
+                t1, t2 = (lo - o) / a_, (hi - o) / a_
+                ts.append((min(t1, t2), max(t1, t2)))
+        if ts is None:
+            continue
+        t_in, t_out = max(ts[0][0], ts[1][0], 0.0), min(ts[0][1], ts[1][1], d)
+        if t_in >= t_out:
+            continue
+        e_occ = max(math.atan2(hb - CAM_H, t_in), math.atan2(hb - CAM_H, t_out))
+        e_bot = max(e_bot, min(e_occ, e_top - 0.02))
     def row(e):
         return c0 - f * (e - p_true)
     r_top, r_bot = row(e_top), row(e_bot)
@@ -294,6 +345,10 @@ class Person:
                 (x - c * swing + s * 0.11, y - s * swing - c * 0.11, 0.06)]
 
 
+_TAU = float(os.environ.get("ROBOT_TAU", "0.10"))
+_GAIN = float(os.environ.get("ROBOT_GAIN", "1.0"))
+
+
 def run(name, path, T, report_every=0.5, verbose=True, intruder=None):
     tr, pl = make_nodes()
     person = Person(path)
@@ -308,6 +363,31 @@ def run(name, path, T, report_every=0.5, verbose=True, intruder=None):
     def cmd_cb(msg):
         rob["cv"], rob["cw"] = msg.linear.x, msg.angular.z
     pl.pub_cmd.publish = cmd_cb
+    # START_TRAIL=m: xe DA CHAY toi tu the xuat phat tu phia sau m met (vd. kich ban dat xe san truoc cua: ngoai doi
+    # xe toi do bang cach chay tien) — planner biet doan vua di qua la trong (luat lui 03/11). Khong dat = xe vua bat
+    # may, phia sau chua biet.
+    _trail = float(os.environ.get("START_TRAIL", "0"))
+    if _trail > 0.0:
+        # di lui ve qua khu: moi 4 cm mot tu the odom, moi 10 cm mot vong quet lidar (tuong / vat da THAY luc toi day)
+        n_ = int(_trail / 0.04)
+        t_save = CLK.t
+        for j_, k_ in enumerate(range(n_, -1, -1)):
+            dd_ = 0.04 * k_
+            CLK.t = t_save - 0.2 * k_        # ~0.2 m/s: moi vong quet duoc luu vao lich su "da thay trong" cua planner
+            xx_, yy_ = rob["x"] - dd_ * math.cos(rob["yaw"]), rob["y"] - dd_ * math.sin(rob["yaw"])
+            od_ = types.SimpleNamespace(pose=types.SimpleNamespace(pose=types.SimpleNamespace(
+                position=types.SimpleNamespace(x=xx_, y=yy_, z=0.0),
+                orientation=types.SimpleNamespace(x=0.0, y=0.0, z=math.sin(rob["yaw"] / 2), w=math.cos(rob["yaw"] / 2)))))
+            pl._odom_cb(od_)
+            if k_ % 3 == 0 and k_ > 0:
+                lx_, ly_ = xx_ + 0.10 * math.cos(rob["yaw"]), yy_ + 0.10 * math.sin(rob["yaw"])
+                rr_ = raycast(lx_, ly_, rob["yaw"] + np.radians(np.arange(360.0) - 90.0), [])
+                rr_ = rr_ + RNG.normal(0, float(os.environ.get("LIDAR_NOISE", "0.01")), rr_.shape)
+                rr_[270:290] = 0.128
+                rr_[rr_ > 10.0] = np.inf
+                pl._scan_cb(types.SimpleNamespace(ranges=rr_.tolist(), angle_min=0.0, angle_increment=math.radians(1.0),
+                                                  range_min=0.10, range_max=10.0))
+        CLK.t = t_save
     last = {}
     def tgt_cb(msg):
         last["t"] = json.loads(msg.data)
@@ -329,15 +409,19 @@ def run(name, path, T, report_every=0.5, verbose=True, intruder=None):
     t0 = CLK.t
     rows = []
     hit = dict(clear=10.0, t=0.0, x=0.0, y=0.0, yaw=0.0)
+    # 03/11: lui bao nhieu, doi chieu tien/lui bao nhieu lan, dung im lau nhat khi nguoi con xa
+    mot = dict(back=0.0, sw=0, last_sgn=0, run=0.0, stuck=0.0, fd=CFG["follow_planner_node"]["ros__parameters"].get(
+        "follow_distance_m", 1.0))
     gate = dict(clear=10.0, yaw_err=0.0, n=0, run=0.0, stall=0.0)
     n = int(T / dt)
     for k in range(n):
         CLK.t = t0 + k * dt
         t = k * dt
-        # dong hoc xe: bam lenh voi tre bac nhat 0.1 s
-        a = dt / 0.10
-        rob["v"] += a * (rob["cv"] - rob["v"])
-        rob["w"] += a * (rob["cw"] - rob["w"])
+        # dong hoc xe: bam lenh voi tre bac nhat ROBOT_TAU (mac dinh 0.1 s); ROBOT_GAIN < 1 = xe CHO NANG chi dat
+        # mot phan toc do lenh (PWM ho, khong vong kin toc do) — 03/11
+        a = dt / _TAU
+        rob["v"] += a * (_GAIN * rob["cv"] - rob["v"])
+        rob["w"] += a * (_GAIN * rob["cw"] - rob["w"])
         rob["x"] += rob["v"] * math.cos(rob["yaw"]) * dt
         rob["y"] += rob["v"] * math.sin(rob["yaw"]) * dt
         rob["yaw"] = wrap(rob["yaw"] + rob["w"] * dt)
@@ -362,6 +446,15 @@ def run(name, path, T, report_every=0.5, verbose=True, intruder=None):
                             "corr": 0.6, "margin": 0.2})
             pl._rssi_cb(_Str(json.dumps(msg)))
         if k % 10 == 0:      # do khoang ho voi tuong o 60 Hz
+            mot["back"] += max(0.0, -rob["v"]) * 10 * dt
+            sg = 1 if rob["cv"] > 0.01 else (-1 if rob["cv"] < -0.01 else 0)
+            if sg != 0:
+                if mot["last_sgn"] != 0 and sg != mot["last_sgn"]:
+                    mot["sw"] += 1
+                mot["last_sgn"] = sg
+            far = rel_d > mot["fd"] + 0.5
+            mot["run"] = mot["run"] + 10 * dt if (far and abs(rob["v"]) < 0.02 and abs(rob["w"]) < 0.05) else 0.0
+            mot["stuck"] = max(mot["stuck"], mot["run"])
             wc = wall_clearance(rob["x"], rob["y"], rob["yaw"], pl.front_len, pl.rear_len, pl.half_width)
             if ipos is not None:
                 lg = np.array([[c[0], c[1]] for c in other.legs(t)])
@@ -454,7 +547,7 @@ def run(name, path, T, report_every=0.5, verbose=True, intruder=None):
             rows.append(dict(t=t, rx=rob["x"], ry=rob["y"], yaw=math.degrees(rob["yaw"]), d=rel_d,
                              b=math.degrees(rel_b), eb=eb, src=tj.get("source"), st=status.get("state"),
                              note=status.get("note"),
-                             v=rob["cv"], w=rob["cw"], spd=tj.get("speed"), px=px, py=py,
+                             v=rob["cv"], w=rob["cw"], spd=tj.get("speed"), px=px, py=py, psp=psp,
                              ex=tj.get("odom_x"), ey=tj.get("odom_y"),
                              ix=None if ipos is None else ipos[0], iy=None if ipos is None else ipos[1],
                              rgap=None if ipos is None else math.hypot(ipos[0] - rob["x"], ipos[1] - rob["y"])))
@@ -472,6 +565,7 @@ def run(name, path, T, report_every=0.5, verbose=True, intruder=None):
                   f"{str(r['src']):13s} {str(r['st']):9s} | {r['v']:5.2f} {r['w']:5.2f}  {r['spd']}{extra}"
                   f" | {str(r['note'])[:44]}")
     hit["gate"] = gate
+    hit["mot"] = mot
     return rows, hit
 
 
@@ -704,6 +798,11 @@ def metrics(name, rows, hit):
           f"doi_chieu_w={flips:3d} d_cuoi={d[-1]:4.2f} yaw_cuoi={yaw[-1]:6.1f} goc_cuoi={b[-1]:6.1f} "
           f"SEARCH={'co' if 'SEARCH' in st else 'khong'} tt_cuoi={st[-1]}")
     tag = "CHAM TUONG" if hit["clear"] <= 0.0 else ("sat mep" if hit["clear"] < 0.03 else "khong cham")
+    mo = hit.get("mot", {})
+    walk = [r["d"] for r in rows if r["t"] > 5.0 and r.get("psp", 0.0) > 0.05]
+    print(f"{'':15s} lui_tong={mo.get('back', 0.0):5.2f} m doi_tien_lui={mo.get('sw', 0):3d} "
+          f"dung_im_xa_lau_nhat={mo.get('stuck', 0.0):4.1f}s kc_tb={np.mean(walk) if walk else 0.0:4.2f} "
+          f"kc_max={max(walk) if walk else 0.0:4.2f} (luc nguoi dang di)")
     print(f"{'':15s} ho_nho_nhat_voi_tuong={hit['clear']:5.2f} m ({tag}) luc t={hit['t']:4.1f}s "
           f"tai ({hit['x']:.2f},{hit['y']:.2f}) yaw={hit['yaw']:6.1f}")
     g_ = hit["gate"]

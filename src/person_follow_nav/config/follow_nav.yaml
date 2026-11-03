@@ -93,7 +93,7 @@ target_tracker_node:
     #  - khoang cach tu DINH DAU khi LiDAR khong thay chan; dau ra ngoai mep tren / chan bi che thi so do
     #    chi la can tren -> lay so nho nhat.
     # Chieu cao nguoi va sai lech goc ngua tu hoc luc camera+lidar khop va thay ca chan.
-    camera_height_m: 0.34               # [CAN XAC NHAN] sua khi nang camera len ~0.70 m
+    camera_height_m: 0.70               # 03/11 nguoi dung nang camera, do 0.70 m tu san toi ong kinh (truoc 0.34)
     person_height_m: 1.65               # gia tri dau (thap -> uoc gan hon that -> xe dung som, an toan hon)
     feet_elev_tol_deg: 4.0              # (+6 do cho toi khi hoc xong sai lech goc ngua)
     learn_camera_geometry: true
@@ -184,6 +184,18 @@ follow_planner_node:
 
     # ── Gioi han dong hoc — toc do THAT (driver da hieu chinh max_linear 0.49) ─
     v_max: 0.22
+    # TOC DO THICH UNG (03/11): dang FOLLOW o cho THOANG (camera thay nguoi, duong toi dich va toi nguoi khong bi
+    # chan, nguoi lech < 26 do, phia truoc trong >= adaptive_open_clear_m) thi toc do = toc do nguoi (huong ra xa)
+    # + follow_speed_gain * (khoang cach - khoang cach mong muon), toi da v_max_open va toc do con phanh kip truoc
+    # vat gan nhat phia truoc (decel_lin, chua 0.30 m). Khoang cach mong muon = follow_distance + follow_headway_s *
+    # toc do nguoi (toi da +0.4 m). Gan vat / qua cua / di vong / mat camera: v_max nhu cu. false = nhu truoc 03/11.
+    # [CAN XAC NHAN] khi CHO HANG NANG: do lai quang phanh / gia toc, ha v_max_open / decel_lin neu can (13.49).
+    adaptive_speed: true
+    v_max_open: 0.40                    # <= max_linear driver (0.49 o max_percent 60)
+    follow_speed_gain: 0.8              # 1/s: xa hon mong muon 0.25 m -> them 0.2 m/s
+    follow_headway_s: 0.6               # nguoi di 0.4 m/s -> giu xa them 0.24 m
+    adaptive_open_clear_m: 1.0
+    decel_lin: 0.60                     # m/s^2 — chi dung khi dang chay nhanh hon v_max
     v_min: -0.06
     # 29/09: 0.80 -> 1.00, accel_ang 1.60 -> 2.40 — nguoi dung thay xe xoay theo nguoi hoi cham.
     # Nguoi di 0.6-1 m/s cach 1 m can ~0.7-1 rad/s. Driver lam duoc 2.46 rad/s (muc 3 CLAUDE.md).
@@ -240,7 +252,18 @@ follow_planner_node:
     # Duong thang khong lot -> tim khe kieu khung cua rong tu 0.72 m (= be ngang xe +
     # 2*margin_hard) den muc nay, ngam vao truc vuong goc cua khe de canh xe roi chui qua.
     # Xe khong the di cheo qua khe hep (xem CLAUDE.md muc 9). 0 = tat.
-    gap_waypoint_max_width_m: 1.20
+    # 03/11: 1.20 -> 0.95. Khe rong hon du thoang ~12 cm moi ben, ban do + DWA tu qua; dong tac chui khe o khe
+    # 1.0-1.2 m giua do dac (canh truc, lui ve truc, bo 0.12 m/s) lam xe lui / dung vo ich (bag 15/10).
+    gap_waypoint_max_width_m: 0.95
+    # 03/11: tim khe = cap tia lidar ke nhau nhu 14/10 TRUOC, khong thay thi MAT CAT HEP tren DUONG DI ban do toi
+    # nguoi (thay duoc cua ca khi xe da o mieng cua — cap tia thi khong: hai thanh cua o hai ben than xe). Mo phong
+    # (tu lanh / ghe sau tuong + nguoi re vao cua bep, 6 mam): noi tiep 84/90, chi tren duong 72, chi cap tia 79.
+    # false = chi cap tia (nhu 14/10).
+    gap_on_path: true
+    # Cap tia khong thay khe thi nho khe da thay: crossing = chi luc dang chui (03/11); legacy = nhu 14/10 (2 s, tu
+    # lam moi); off. gap_at_mouth: luat 14/10 "o mieng cua tin khe hon ban do". Chi doi khi can so voi ban 14/10.
+    gap_recall_mode: crossing
+    gap_at_mouth: false
     # Canh truc khe TRUOC khi chui. Duoi xe dai 0.33 m nen di cheo la goc sau quet ra
     # ngoai khung cua: lech 20 do o cua 0.81 m la cham. Khi xe lech truc duoi gap_axis_tol_m
     # thi coi nhu da vao truc; neu luc do mui xe con lech qua gap_align_deg va con cach mat
@@ -258,6 +281,22 @@ follow_planner_node:
     # Quang duong lui toi da khi phai canh lai truc khe. Lidar KHONG nhin thay gi thang
     # phia sau (cung sau nam trong blind_sectors_deg) nen chi lui dung doan vua di qua.
     gap_back_max_m: 0.40
+    # 03/11: han muc lui HOAN DAN (m/s khi khong lui) — truoc day nghi 1 s la cap lai du 0.40 m, xe lui - tien -
+    # lui o goc ket tong cong ca met vao vung mu phia sau (bag 15/10: 6 lan lui trong 37 s). Mo phong 177 kich ban
+    # (cua, goc ket, lon xon): 0.025 -> 166 dat, 0.05 -> 168, 0.10 -> 167.
+    back_refill_mps: 0.05
+    # Chi LUI vao cho DA BIET LA TRONG: than xe tung o do (30 s) hoac lidar da nhin xuyen qua (20 s). Lidar mu
+    # thang phia sau duoi xe (blind_sectors_deg) — xe that 15/10 xoay trai roi lui, dung vat phia sau.
+    reverse_known_free: true
+    # BO NHO VAT CAN (khung odom, o 5 cm): giu diem da thay toi da ngan nay giay khi vong quet hien tai KHONG thay
+    # cho do (vung mu sau duoi, tia song song mat tuong khong ve, bi che); tia hien tai di xuyen qua -> xoa ngay;
+    # bo cho nguoi dang bam vua dung. Dung cho DWA (trong 2 m), ban do, tim khe, kiem tra lui/xoay. 0 = tat.
+    obstacle_memory_sec: 12.0
+    obstacle_memory_radius_m: 3.0
+    # Noi hai tia KE NHAU cach nhau duoi muc nay khi lap ban do / tim khe (tuong nhin cheo tia thua): xe 0.60 m khong
+    # qua duoc khe < 0.72 m nen noi lai la dung — khong noi thi ban do ve duong xuyen tuong o mieng cua.
+    fill_gap_max_m: 0.65
+    fill_in_dwa: true                   # diem noi tia (< 1.2 m) dua ca vao kiem tra va cham DWA
     # Khoang ho DO DUOC toi thieu giua footprint va vat, CHI trong dong tac chui khe (ngoai do
     # van la margin_hard). Thap hon margin_hard vi xe lay so NHO NHAT trong ~15 tia chieu vao
     # thanh cua: nhieu lidar 1-2 cm keo so do thap hon that 2-3 cm. De 0.06 thi o cua 0.81 m
