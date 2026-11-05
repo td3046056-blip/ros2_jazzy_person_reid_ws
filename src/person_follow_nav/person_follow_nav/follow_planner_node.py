@@ -50,6 +50,7 @@ from collections import deque
 from typing import Any, Dict, Optional, Tuple
 
 import heapq
+from time import perf_counter as _perf   # do thoi gian THAT cho gioi han CPU (mo phong thay module time)
 
 import numpy as np
 import rclpy
@@ -122,6 +123,7 @@ class FollowPlannerNode(Node):
         self.gap_mem: Optional[Dict[str, float]] = None   # khe da chon gan nhat (odom) — dung lai o mieng cua
         self.last_target_odom: Optional[Tuple[float, float]] = None   # cho thay nguoi lan cuoi
         self.search_goto = False            # SEARCH dang o pha lai toi cho do
+        self.search_goto_lim = 0.0          # han thoi gian pha di toi (keo dai theo do dai duong ban do, 05/11)
         self.nav_rotating = False           # bo bam duong ban do dang xoay tai cho ve huong duong
         self.nav_side = 0                   # ben vong da cam ket (+1 trai / -1 phai)
         self.nav_side_t = 0.0
@@ -130,6 +132,10 @@ class FollowPlannerNode(Node):
         self.goal_bad_since = 0.0           # luc bat dau thay dich cham le an toan
         self.nav_fight_t = 0.0              # luc DWA bat dau queo nguoc huong duong ban do
         self.nav_follow_t = 0.0             # lan goi _nav_follow gan nhat
+        self.esc: Optional[Dict[str, Any]] = None   # ke hoach THOAT KET dang chay (05/11)
+        self.esc_try_t = 0.0                # lan cuoi thu lap ke hoach thoat ket (gioi han CPU)
+        self.prog_hist: deque = deque(maxlen=400)   # (t, x, y) — phat hien xe dung mot cho qua lau
+        self.stuck_reset_t = 0.0            # lan cuoi xe DUOC PHEP dung (toi noi / ban do bao dung cho)
         self.robot_x = 0.0
         self.robot_y = 0.0
         self.scan_pts = np.zeros((0, 2))
@@ -386,6 +392,14 @@ class FollowPlannerNode(Node):
             "nav_replan_sec": 0.2,
             "nav_turn_first_deg": 75.0,    # duong lech hon -> xoay tai cho roi moi di (xem _nav_follow)
             "nav_fov_keep_deg": 50.0,      # luc di vong chi phat khi nguoi sap ra khoi khung hinh
+            # THOAT KET bang chuoi dong tac (05/11): xe vao tui hep / goc ma duong ban do quay nguoc ra, xoay tai cho khong
+            # duoc -> tim chuoi xoay 15 do / tien cung 12 cm / lui cung 8 cm (chi vao cho da biet la trong) toi tu the
+            # thang hang voi duong ban do. Cung chay khi xe dung trong o vuong 25 cm qua escape_stuck_sec ma nguoi con
+            # xa. false = nhu ban 03/11.
+            "escape_enabled": True,
+            "escape_stuck_sec": 6.0,
+            "escape_max_expansions": 1500,
+            "escape_max_sec": 0.25,         # tran thoi gian MOI lan tim (mini PC cham ~3 lan; xe dang dung yen)
             # RSSI trong SEARCH (07/10): khi mat nguoi va 2 node RSSI dang chay (beacon_ok), xe XOAY DO
             # tai cho de /rssi/bearing (rssi_bearing_node) ra huong beacon, quay camera ve do cho
             # camera/ReID nhan lai, chua thay thi di ve huong do rssi_go_dist_m roi do lai. Khong co
@@ -545,6 +559,10 @@ class FollowPlannerNode(Node):
         self.nav_replan = float(g("nav_replan_sec"))
         self.nav_turn_first = math.radians(float(g("nav_turn_first_deg")))
         self.nav_fov_keep = math.radians(float(g("nav_fov_keep_deg")))
+        self.escape_on = bool(g("escape_enabled"))
+        self.escape_stuck = float(g("escape_stuck_sec"))
+        self.escape_max_exp = max(100, int(g("escape_max_expansions")))
+        self.escape_max_sec = max(0.02, float(g("escape_max_sec")))
         self.nav_cache: Optional[Dict[str, Any]] = None
         self.nav_gap_cache: Optional[Dict[str, Any]] = None
         self.rssi_search = bool(g("rssi_search_enabled"))
@@ -1089,6 +1107,8 @@ class FollowPlannerNode(Node):
         # -> TypeError -> node CHET. Xoa luon pha tim.
         self.search_goto = False
         self.search_phase = None
+        self.esc = None
+        self.stuck_reset_t = time.time()
         res.success = True
         res.message = "Bam nguoi: BAT"
         self.get_logger().info(res.message)
@@ -1096,6 +1116,7 @@ class FollowPlannerNode(Node):
 
     def _disable_cb(self, req: Trigger.Request, res: Trigger.Response) -> Trigger.Response:
         self.enabled = False
+        self.esc = None
         self._hard_stop()
         res.success = True
         res.message = "Bam nguoi: TAT"
@@ -1104,6 +1125,7 @@ class FollowPlannerNode(Node):
 
     def _stop_cb(self, req: Trigger.Request, res: Trigger.Response) -> Trigger.Response:
         self.enabled = False
+        self.esc = None
         self._hard_stop()
         res.success = True
         res.message = "DUNG KHAN CAP"
@@ -1573,6 +1595,10 @@ class FollowPlannerNode(Node):
         if res is None:
             return None
         w, i, il, ir, tdx, tdy = res
+        if w < 2.0 * (self.half_width + self.gap_cross_margin) + 0.02:
+            # 05/11: mat cat HEP HON XE (vd. khe 0.4 m giua vat chinh va ghe — chi nguoi lot; duong ban do di qua do nho
+            # o "thoat ket" quanh xe) -> khong phai khe de chui. Truoc day tra ve khe 0.10-0.46 m, xe tien-lui mai.
+            return None
         Lp, Rp = P[il], P[ir]
         ux, uy = Lp[0] - Rp[0], Lp[1] - Rp[1]
         un = max(1e-6, math.hypot(ux, uy))
@@ -1879,7 +1905,16 @@ class FollowPlannerNode(Node):
         if d0 < self.nav_lethal:
             # Xe DA o sat vat hon nguong: cho di qua cac o quanh xe khong gan vat hon cho dang dung, de
             # duong di thoat ra duoc (khong thi moi o quanh xe deu cam -> khong co duong).
-            lethal &= ~((np.hypot(GX, GY) < 0.35) & (dobs >= d0 - 0.01))
+            relax = (np.hypot(GX, GY) < 0.35) & (dobs >= d0 - 0.01)
+            if Q.shape[0]:
+                # 05/11: chi cac o KHONG tien ve phia vat gan nhat (ra xa / di ngang). Truoc day xe dung o mieng khe
+                # 0.4 m (chan ghe ngay truoc mui) thi cac o TRONG khe cung "khong gan vat hon" -> duong ban do di xuyen
+                # khe chi nguoi lot, xe tien-lui mai o do (mo phong tui hep 05/11).
+                qn = Q[int(np.argmin(np.hypot(Q[:, 0], Q[:, 1])))]
+                qd = math.hypot(float(qn[0]), float(qn[1]))
+                if qd > 1e-3:
+                    relax &= (GX * float(qn[0]) + GY * float(qn[1])) / qd <= 0.03
+            lethal &= ~relax
         lethal[ri, ci] = False                    # xe dang dung o day — luon cho xuat phat
         if prefer_side != 0 and dist > 0.3:
             # Giu ben vong da chon: o ben KIA duong thang xe -> nguoi dat gap 3
@@ -1951,8 +1986,13 @@ class FollowPlannerNode(Node):
         path[0] = (0.0, 0.0)
         tgt_xy = path[-1]
         hold = math.hypot(*tgt_xy) < self.nav_hold_r
-        return {"path": path, "target": tgt_xy, "hold": hold, "cost": float(D[k]), "J": float(J[k]),
-                "person_d": float(dp[k])}
+        out = {"path": path, "target": tgt_xy, "hold": hold, "cost": float(D[k]), "J": float(J[k]),
+               "person_d": float(dp[k])}
+        if _sp_dijkstra is not None:
+            # 05/11: giu luoi + do thi de bo THOAT KET tinh "con bao xa toi dich" tu MOI o (Dijkstra nguoc tu dich)
+            out["grid"] = {"G": G, "k": k, "nxc": nxc, "nyc": nyc, "res": res, "x0": x0, "ey": ey,
+                           "pose": (self.robot_x, self.robot_y, self.robot_yaw)}
+        return out
 
     def _nav_lookahead(self, path, tx: float, ty: float) -> Tuple[float, float]:
         """Diem xa nhat tren duong (<= nav_lookahead_m) ma doan thang tu xe toi do khong cham vat."""
@@ -2085,6 +2125,14 @@ class FollowPlannerNode(Node):
                 return 0.0, float(np.clip(2.2 * la, -self.w_max * 0.9, self.w_max * 0.9))
             return None
 
+        def esc(why: str) -> Optional[Tuple[float, float, str, float]]:
+            # 05/11: xoay tai cho khong duoc -> TIM chuoi dong tac thoat ket (truoc khi lui mot doan "mu")
+            if self._esc_start(nav, why):
+                o = self._esc_step(dt)
+                if o is not None:
+                    return o[0], o[1], o[2], 0.0
+            return None
+
         thr = math.radians(25.0) if self.nav_rotating else self.nav_turn_first
         if abs(la) > math.radians(110.0):
             # Duong bat dau bang doan LUI: xe da vao sat vat, hoac nguoi thu hai buoc toi sat mui xe. Con
@@ -2096,7 +2144,12 @@ class FollowPlannerNode(Node):
                 self.nav_behind_t = now_
             if fov_target is not None and now_ - self.nav_behind_t < 2.0:
                 return 0.0, 0.0, "ban do: duong di nam phia sau — dung cho", 0.0
-            out = rot() or back()
+            out = rot()
+            if out is None:
+                o4 = esc("duong ban do nam phia sau")
+                if o4 is not None:
+                    return o4
+                out = back()
             if out is not None:
                 self.nav_rotating = out[0] == 0.0
                 return out[0], out[1], ("ban do: lui ra" if out[0] < 0 else "ban do: xoay ve huong duong di"), 0.0
@@ -2128,12 +2181,388 @@ class FollowPlannerNode(Node):
         if out is not None:
             self.nav_rotating = True
             return out[0], out[1], "ban do: xoay ve huong duong di", 0.0
+        o4 = esc("ban do ket, khong xoay duoc")
+        if o4 is not None:
+            return o4
         out = back()
         if out is not None:
             return out[0], out[1], "ban do: ket — lui ra cho de xoay", 0.0
         if res is not None:
             return res[0], res[1], "di vong theo ban do (%s, %.1fm duong)" % (side, nav["cost"]), res[2]
         return None
+
+    # ─────────────────────────────────────────────────────────────────────
+    # THOAT KET bang CHUOI DONG TAC (05/11)
+    # ─────────────────────────────────────────────────────────────────────
+    # Xe da vao cho chat (tui giua vat chinh va ke / ghe, goc) ma duong ban do quay NGUOC ra: xoay tai cho thi duoi
+    # (0.33 m sau truc) quet vao vat, DWA chi nhin 1.2 s ve phia truoc, cac luat xoay / lui le te lui-tien tai cho mai
+    # (bag 05/11 101558: 3 lan vao tui, 2 lan nguoi dung phai day tay ra). Bo nay TIM mot chuoi dong tac ngan nhu lai xe
+    # quay dau trong ngo hep: xoay tai cho 15 do / tien theo cung 12 cm / lui theo cung 8 cm (chi vao cho DA BIET LA
+    # TRONG), kiem tra footprint chu nhat that o tung tu the, toi tu the THANG HANG voi duong ban do va phia truoc thong.
+    # Moi nhip khi chay van kiem tra lai bang _arc_clearance (vong quet moi nhat) — sai la dung, tim lai.
+    _ESC_ROT = math.radians(15.0)
+
+    def _esc_prims(self):
+        """Dong tac co ban: (loai, v, w, T, chi_phi). R = xoay tai cho 15 do; F = tien 0.12 m; B = lui 0.08 m."""
+        pr = getattr(self, "_esc_prim_list", None)
+        if pr is None:
+            pr = []
+            wr = 0.5
+            for sgn in (1.0, -1.0):
+                pr.append(("R", 0.0, sgn * wr, self._ESC_ROT / wr, 0.06))
+            vf = self.gap_cross_speed
+            for k in (0.0, 2.0, -2.0, 4.0, -4.0):
+                pr.append(("F", vf, vf * k, 0.12 / vf, 0.12))
+            vb = max(-self.gap_cross_speed, self.v_min)
+            for k in (0.0, 2.0, -2.0, 4.0, -4.0):
+                pr.append(("B", vb, vb * k, 0.08 / abs(vb), 0.20))      # lui dat gap ~2.5 lan tien (lidar mu sau)
+            self._esc_prim_list = pr
+        return pr
+
+    def _esc_template(self):
+        """Diem mau footprint: vien moi 2 cm + trong long moi 6 cm (bat ca vat lot vao giua than xe)."""
+        tp = getattr(self, "_esc_tpl", None)
+        if tp is None:
+            F, R, H = self.front_len, self.rear_len, self.half_width
+            xs = np.arange(-R, F + 1e-9, 0.02)
+            ys = np.arange(-H, H + 1e-9, 0.02)
+            per = np.vstack([np.stack([xs, np.full_like(xs, H)], 1), np.stack([xs, np.full_like(xs, -H)], 1),
+                             np.stack([np.full_like(ys, F), ys], 1), np.stack([np.full_like(ys, -R), ys], 1)])
+            IX, IY = np.meshgrid(np.arange(-R + 0.05, F - 0.02, 0.06), np.arange(-H + 0.05, H - 0.02, 0.06))
+            T = np.vstack([per, np.stack([IX.ravel(), IY.ravel()], 1)])
+            rear = T[:, 0] <= -R + 0.081              # phan duoi: lui thi phai vao cho da biet la trong
+            tp = (T, rear, per.shape[0])
+            self._esc_tpl = tp
+        return tp
+
+    def _esc_fields(self, half: float = 1.5) -> Optional[Dict[str, Any]]:
+        """Truong khoang cach toi vat (luoi 1 cm) + luoi 'da biet la trong' (4 cm) quanh xe, khung base hien tai."""
+        if _edt is None:
+            return None
+        res, pad = 0.01, 0.40
+        L = half + pad
+        parts = [a for a in (self.obstacles_full, self.mem_occl, self.obstacles) if a is not None and a.shape[0]]
+        P = np.vstack(parts) if parts else np.zeros((0, 2))
+        n = int(math.ceil(2.0 * L / res))
+        occ = np.zeros((n, n), dtype=bool)
+        if P.shape[0]:
+            ci = np.floor((P[:, 0] + L) / res).astype(np.int64)
+            ri = np.floor((P[:, 1] + L) / res).astype(np.int64)
+            ok = (ci >= 0) & (ci < n) & (ri >= 0) & (ri < n)
+            occ[ri[ok], ci[ok]] = True
+        dist = (_edt(~occ) * res).astype(np.float32) if occ.any() else np.full((n, n), 9.0, dtype=np.float32)
+        kres = 0.04
+        nk = int(math.ceil(2.0 * half / kres))
+        kc = -half + (np.arange(nk) + 0.5) * kres
+        KX, KY = np.meshgrid(kc, kc)
+        if self.rev_known_free:
+            c, s_ = math.cos(self.robot_yaw), math.sin(self.robot_yaw)
+            Q = np.stack([self.robot_x + c * KX.ravel() - s_ * KY.ravel(),
+                          self.robot_y + s_ * KX.ravel() + c * KY.ravel()], axis=1)
+            kf = self._known_free(Q).reshape(nk, nk)
+            # an toan hon: o "da biet trong" chi khi ca 4 o ke cung trong (tam o 4 cm, diem mau co the lech 2.8 cm)
+            ke = kf.copy()
+            ke[1:, :] &= kf[:-1, :]
+            ke[:-1, :] &= kf[1:, :]
+            ke[:, 1:] &= kf[:, :-1]
+            ke[:, :-1] &= kf[:, 1:]
+            kf = ke
+        else:
+            kf = np.ones((nk, nk), dtype=bool)
+        return {"L": L, "res": res, "n": n, "dist": dist, "half": half, "kres": kres, "nk": nk, "kf": kf}
+
+    def _esc_clear(self, f: Dict[str, Any], X: np.ndarray, Y: np.ndarray, TH: np.ndarray):
+        """Do thoang (xap xi luoi 1 cm) cua footprint o cac tu the (X, Y, TH) — khung base luc lap ke hoach."""
+        T, _rear, _np = self._esc_template()
+        c, s_ = np.cos(TH)[:, None], np.sin(TH)[:, None]
+        PX = X[:, None] + c * T[None, :, 0] - s_ * T[None, :, 1]
+        PY = Y[:, None] + s_ * T[None, :, 0] + c * T[None, :, 1]
+        n, L, res = f["n"], f["L"], f["res"]
+        ci = np.floor((PX + L) / res).astype(np.int64)
+        ri = np.floor((PY + L) / res).astype(np.int64)
+        out = (ci < 0) | (ci >= n) | (ri < 0) | (ri >= n)
+        d = f["dist"][np.clip(ri, 0, n - 1), np.clip(ci, 0, n - 1)]
+        d = np.where(out, 0.0, d)                       # ra ngoai cua so = khong cho di (khong biet gi o do)
+        return d.min(axis=1), PX, PY
+
+    def _esc_kfree(self, f: Dict[str, Any], PX: np.ndarray, PY: np.ndarray) -> np.ndarray:
+        kres, nk, half = f["kres"], f["nk"], f["half"]
+        ci = np.floor((PX + half) / kres).astype(np.int64)
+        ri = np.floor((PY + half) / kres).astype(np.int64)
+        out = (ci < 0) | (ci >= nk) | (ri < 0) | (ri >= nk)
+        v = f["kf"][np.clip(ri, 0, nk - 1), np.clip(ci, 0, nk - 1)] & ~out
+        m_ = 0.01
+        ins = (PX < self.front_len - m_) & (PX > -self.rear_len + m_) & (np.abs(PY) < self.half_width - m_)
+        return v | ins
+
+    def _esc_blind(self, PX: np.ndarray, PY: np.ndarray) -> np.ndarray:
+        """Diem nam trong cung MU cua lidar nhin tu tu the luc lap ke hoach (sau duoi xe)."""
+        m = np.zeros(PX.shape, dtype=bool)
+        if not self.blind_sectors:
+            return m
+        a = (np.arctan2(PY - self.lidar_y, PX - self.lidar_x) - self.lidar_yaw_offset_rad) * self.lidar_angle_sign
+        deg = np.degrees(a) % 360.0
+        for lo, hi in self.blind_sectors:
+            m |= (deg >= lo) & (deg <= hi)
+        return m
+
+    def _esc_hfield(self, grid: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+        """Tu MOI o luoi: con bao xa toi dich (Dijkstra nguoc tu o dich cua ban do) + huong di xuong doc (theo
+        duong ngan nhat 6 o ~0.36 m). O cam (tam xe qua sat vat) lay theo o tu do gan nhat + phat."""
+        Dg, pred = _sp_dijkstra(grid["G"], directed=False, indices=grid["k"], return_predecessors=True)
+        nyc, nxc = grid["nyc"], grid["nxc"]
+        H = np.asarray(Dg, dtype=np.float64).reshape(nyc, nxc)
+        fin = np.isfinite(H)
+        if not fin.any():
+            return None
+        idx = np.arange(nyc * nxc)
+        cur = idx.copy()
+        for _ in range(6):
+            nx_ = pred[cur]
+            cur = np.where(nx_ >= 0, nx_, cur)
+        cy, cx = np.divmod(idx, nxc)
+        ly, lx = np.divmod(cur, nxc)
+        DIR = np.arctan2((ly - cy).astype(np.float64), (lx - cx).astype(np.float64)).reshape(nyc, nxc)
+        if not fin.all() and _edt is not None:
+            dd, inds = _edt(~fin, return_indices=True)
+            Hf = H[inds[0], inds[1]] + dd * grid["res"] * 2.0 + 0.10
+            Df = DIR[inds[0], inds[1]]
+            Hf[fin] = H[fin]
+            Df[fin] = DIR[fin]
+            H, DIR = Hf, Df
+        return {"H": H, "DIR": DIR, "g": grid}
+
+    def _esc_hlook(self, hf: Dict[str, Any], X: np.ndarray, Y: np.ndarray, TH: np.ndarray):
+        """(con bao xa toi dich, lech mui so voi huong xuong doc) cho tu the (X, Y, TH) khung base hien tai."""
+        g = hf["g"]
+        px, py, pyaw = g["pose"]
+        c, s_ = math.cos(self.robot_yaw), math.sin(self.robot_yaw)
+        OX = self.robot_x + c * X - s_ * Y
+        OY = self.robot_y + s_ * X + c * Y
+        dx, dy = OX - px, OY - py
+        cp, sp = math.cos(pyaw), math.sin(pyaw)
+        BX, BY = cp * dx + sp * dy, -sp * dx + cp * dy
+        ci = np.clip(np.round((BX - g["x0"]) / g["res"] - 0.5).astype(np.int64), 0, g["nxc"] - 1)
+        ri = np.clip(np.round((BY + g["ey"]) / g["res"] - 0.5).astype(np.int64), 0, g["nyc"] - 1)
+        err = np.abs(wrap_pi_arr(TH + (self.robot_yaw - pyaw) - hf["DIR"][ri, ci]))
+        return hf["H"][ri, ci], err
+
+    def _esc_search(self, f: Dict[str, Any], hf: Dict[str, Any], max_exp: int):
+        """A* tren (x, y, huong) voi cac dong tac co ban. Tra ve danh sach dong tac [(loai, v, w, T)] da gop, [] neu
+        tu the hien tai da dat, None neu khong tim thay."""
+        prims = self._esc_prims()
+        T_tpl, rear, n_per = self._esc_template()
+        thr = self.margin_hard + 0.012                  # luoi 1 cm sai toi ~1 cm: chat hon mot chut
+        floor_ = 0.02 + 0.012
+        a_tol = math.radians(25.0)
+        # mau thoi gian cua tung dong tac
+        samp = []
+        for (kind, v, w, T, cst) in prims:
+            ns = 3 if kind != "F" else 4
+            samp.append((np.arange(1, ns + 1) / ns) * T)
+
+        def child_poses(x, y, th):
+            Xs, Ys, THs, owner = [], [], [], []
+            for j, (kind, v, w, T, cst) in enumerate(prims):
+                t = samp[j]
+                if abs(w) < 1e-9:
+                    X = x + v * t * math.cos(th)
+                    Y = y + v * t * math.sin(th)
+                    TH = np.full(t.shape, th)
+                else:
+                    TH = th + w * t
+                    X = x + (v / w) * (np.sin(TH) - math.sin(th))
+                    Y = y - (v / w) * (np.cos(TH) - math.cos(th))
+                Xs.append(X)
+                Ys.append(Y)
+                THs.append(TH)
+                owner.append(np.full(t.shape, j))
+            return np.concatenate(Xs), np.concatenate(Ys), np.concatenate(THs), np.concatenate(owner)
+
+        def h_of(Hv, err, H0):
+            return 0.06 * (err / self._ESC_ROT) + 0.5 * np.maximum(0.0, Hv - H0)
+
+        def is_goal(x, y, th, cn, H0):
+            if cn < thr:
+                return False
+            Hv, err = self._esc_hlook(hf, np.array([x]), np.array([y]), np.array([th]))
+            if not np.isfinite(Hv[0]) or Hv[0] > H0 + 0.10 or err[0] > a_tol:
+                return False
+            dd = np.array([0.10, 0.20, 0.30])
+            cl, _px, _py = self._esc_clear(f, x + dd * math.cos(th), y + dd * math.sin(th), np.full(3, th))
+            return bool(cl.min() >= thr)
+
+        c_s, _px, _py = self._esc_clear(f, np.zeros(1), np.zeros(1), np.zeros(1))
+        c0 = float(c_s[0])
+        H0a, e0a = self._esc_hlook(hf, np.zeros(1), np.zeros(1), np.zeros(1))
+        H0 = float(H0a[0])
+        if not np.isfinite(H0):
+            return None
+        if is_goal(0.0, 0.0, 0.0, c0, H0):
+            return []
+        # node: (x, y, th, g, parent, prim, huong tinh tien +1/-1/0, do thoang)
+        nodes = [(0.0, 0.0, 0.0, 0.0, -1, -1, 0, c0)]
+        heap = [(float(h_of(np.array([H0]), e0a, H0)[0]), 0)]
+        closed: Dict[Tuple[int, int, int], float] = {}
+        k_th = math.radians(7.5)
+        goal_i = -1
+        t_budget = _perf() + self.escape_max_sec
+        for _it in range(max_exp):
+            if not heap:
+                break
+            if (_it & 31) == 31 and _perf() > t_budget:
+                break                                   # het tran thoi gian (CPU) — lan sau tim lai tu tu the moi
+            _fs, ni = heapq.heappop(heap)
+            x, y, th, gc, _par, _pi, dr, cn = nodes[ni]
+            key = (int(round(x / 0.025)), int(round(y / 0.025)), int(round(th / k_th)) % 48)
+            if key in closed and closed[key] <= gc + 1e-9:
+                continue
+            closed[key] = gc
+            if ni != 0 and is_goal(x, y, th, cn, H0):
+                goal_i = ni
+                break
+            if len(nodes) > 40 * max_exp:
+                break
+            X, Y, TH, own = child_poses(x, y, th)
+            cl, PX, PY = self._esc_clear(f, X, Y, TH)
+            # vien footprint roi vao cung MU (nhin tu tu the luc lap ke hoach) ngoai than xe luc dau: phai da biet trong
+            per = slice(0, n_per)
+            bl = self._esc_blind(PX[:, per], PY[:, per])
+            okb = ~bl | self._esc_kfree(f, PX[:, per], PY[:, per])
+            blind_ok = okb.all(axis=1)
+            keep, lasts = [], []
+            for j, (kind, v, w, T, cst) in enumerate(prims):
+                sel = own == j
+                mn = float(cl[sel].min())
+                if not (mn >= thr or (cn < thr and mn >= max(floor_, cn - 0.005))):
+                    continue
+                if not bool(blind_ok[sel].all()):
+                    continue
+                if kind == "B":
+                    rx_, ry_ = PX[sel][:, rear], PY[sel][:, rear]
+                    if not bool(self._esc_kfree(f, rx_, ry_).all()):
+                        continue
+                keep.append(j)
+                lasts.append(int(np.where(sel)[0][-1]))
+            if not keep:
+                continue
+            li = np.array(lasts)
+            Hv, err = self._esc_hlook(hf, X[li], Y[li], TH[li])
+            hh = h_of(Hv, err, H0)
+            for q, j in enumerate(keep):
+                if not np.isfinite(Hv[q]):
+                    continue
+                kind, v, w, T, cst = prims[j]
+                last = lasts[q]
+                nd = 1 if kind == "F" else (-1 if kind == "B" else dr)
+                g2 = gc + cst + (0.10 if (kind != "R" and dr != 0 and nd != dr) else 0.0)
+                g2 += 0.5 * max(0.0, float(Hv[q]) - H0)          # di vao sau hon trong ngo cut thi dat
+                nodes.append((float(X[last]), float(Y[last]), float(TH[last]), g2, ni, j, nd, float(cl[last])))
+                heapq.heappush(heap, (g2 + 1.5 * float(hh[q]), len(nodes) - 1))
+        self.esc_exp = _it + 1 if max_exp > 0 else 0          # so buoc tim (de log / chinh gioi han CPU)
+        if goal_i < 0:
+            return None
+        seq = []
+        i = goal_i
+        while i > 0:
+            seq.append(nodes[i][5])
+            i = nodes[i][4]
+        seq.reverse()
+        out = []
+        for j in seq:
+            kind, v, w, T, _c = prims[j]
+            if out and out[-1][0] == kind and abs(out[-1][1] - v) < 1e-9 and abs(out[-1][2] - w) < 1e-9:
+                out[-1] = (kind, v, w, out[-1][3] + T)
+            else:
+                out.append((kind, v, w, T))
+        return out
+
+    def _esc_start(self, nav: Optional[Dict[str, Any]], why: str) -> bool:
+        """Lap ke hoach thoat ket. True = co ke hoach (bat dau chay o nhip nay)."""
+        now = time.time()
+        if (not self.escape_on or nav is None or nav.get("hold") or _sp_dijkstra is None or _edt is None
+                or now - self.esc_try_t < 1.0):
+            return False
+        self.esc_try_t = now
+        grid = nav.get("grid")
+        if grid is None:
+            return False
+        hf = self._esc_hfield(grid)
+        if hf is None:
+            return False
+        f = self._esc_fields()
+        if f is None:
+            return False
+        plan = self._esc_search(f, hf, self.escape_max_exp)
+        if not plan:
+            return False
+        self.esc = {"prims": plan, "i": 0, "p0": (self.robot_x, self.robot_y, self.robot_yaw), "t0": now,
+                    "acc": 0.0, "last": (self.robot_x, self.robot_y, self.robot_yaw), "t_plan": now, "why": why}
+        self.get_logger().info("Thoat ket (%s, %d buoc tim): %s" % (why, getattr(self, "esc_exp", 0), " ".join(
+            "%s%+.0f%s" % (k, math.degrees(w * T) if k == "R" else 100.0 * v * T, "do" if k == "R" else "cm")
+            for (k, v, w, T) in plan)))
+        return True
+
+    def _esc_step(self, dt: float) -> Optional[Tuple[float, float, str]]:
+        """Chay tiep ke hoach thoat ket: (v, w, ghi chu) hoac None (xong / bo vi khong con an toan)."""
+        e = self.esc
+        if e is None:
+            return None
+        now = time.time()
+        lx_, ly_, la_ = e["last"]
+        e["acc"] += (abs(wrap_pi(self.robot_yaw - la_)) if e["prims"][min(e["i"], len(e["prims"]) - 1)][0] == "R"
+                     else math.hypot(self.robot_x - lx_, self.robot_y - ly_))
+        e["last"] = (self.robot_x, self.robot_y, self.robot_yaw)
+        while e["i"] < len(e["prims"]):
+            kind, v, w, T = e["prims"][e["i"]]
+            need = abs(w) * T if kind == "R" else abs(v) * T
+            if e["acc"] >= 0.95 * need:
+                e["i"] += 1
+                e["acc"] = 0.0
+                e["t0"] = now
+                continue
+            if now - e["t0"] > 2.5 * T + 2.0 or now - e["t_plan"] > 30.0:
+                self.esc = None            # khong nhuc nhich duoc (truot banh / bi giu) -> bo
+                return None
+            T_rem = max(self.horizon_dt, T * (1.0 - e["acc"] / max(need, 1e-6)))
+            # + 0.2 s: tron khi giam toc o cuoi dong tac (0.12 m/s -> ~2 cm)
+            steps = max(1, int(math.ceil((T_rem + 0.2) / self.horizon_dt)))
+            mn, _en = self._arc_clearance(v, w, steps)
+            c0 = self._clear_now()
+            ok = mn > self.margin_hard or (c0 <= self.margin_hard and mn >= c0 - 0.005 and mn > 0.015)
+            if ok and v < 0.0:
+                ok = self._reverse_ok(v, w, T_rem)
+            if not ok:
+                self.esc = None
+                return None
+            name = {"R": "xoay %s" % ("trai" if w > 0 else "phai"), "F": "tien", "B": "lui"}[kind]
+            note = "thoat ket — %s (%d/%d)" % (name, e["i"] + 1, len(e["prims"]))
+            if kind == "R":
+                return 0.0, w, note
+            # giu DUNG do cong khi tang toc (v tang dan theo accel_lin): xe chay dung cung da kiem tra
+            vn = float(np.clip(v, self.cur_v - self.accel_lin * dt, self.cur_v + self.accel_lin * dt))
+            if vn * v <= 0.0:
+                return 0.0, 0.0, note
+            return vn, w * vn / v, note
+        self.esc = None
+        return None
+
+    def _stuck(self, now: float, goal_r: float, nav: Optional[Dict[str, Any]]) -> bool:
+        """Xe dung trong o vuong 25 cm suot escape_stuck_sec giay trong khi le ra phai di (nguoi con xa, ban do khong
+        bao dung cho, khong dang chui qua khe)."""
+        h = self.prog_hist
+        h.append((now, self.robot_x, self.robot_y))
+        while h and now - h[0][0] > self.escape_stuck + 1.0:
+            h.popleft()
+        if (goal_r <= 0.35 or self.state == S_ARRIVED or (nav is not None and nav["hold"])
+                or now - self.gap_cross_time < 1.0):
+            self.stuck_reset_t = now
+            return False
+        if now - self.stuck_reset_t < self.escape_stuck or now - h[0][0] < self.escape_stuck:
+            return False
+        xs = [p[1] for p in h if now - p[0] <= self.escape_stuck]
+        ys = [p[2] for p in h if now - p[0] <= self.escape_stuck]
+        return (max(xs) - min(xs)) < 0.25 and (max(ys) - min(ys)) < 0.25
 
     def _odom_of(self, bx: float, by: float) -> Tuple[float, float]:
         c, s_ = math.cos(self.robot_yaw), math.sin(self.robot_yaw)
@@ -2145,14 +2574,26 @@ class FollowPlannerNode(Node):
         return c * dx - s_ * dy, s_ * dx + c * dy
 
     def _gap_pair(self, goal_b: float, goal_r: float, dist: float, tx: float, ty: float,
-                  nav: Optional[Dict[str, Any]]) -> Optional[Dict[str, float]]:
+                  nav: Optional[Dict[str, Any]], now: Optional[float] = None) -> Optional[Dict[str, float]]:
         """Khe theo cach 14/10: cap tia lidar ke nhau (_gap_target), phai gan duong ban do (neu co) — tru khi da o
         mieng cua (gap_at_mouth)."""
+        saved = (self.gap_mem, self.gap_seen_t, self.gap_axis_prev)
         gap = self._gap_target(goal_b, max(goal_r, dist), (tx, ty))
         at_mouth = (self.gap_at_mouth and gap is not None
                     and gap["along"] < self.front_len + self.margin_soft + 0.35 and gap["lat"] < 0.25)
-        if gap is not None and not at_mouth and not self._path_near(nav, gap["mx"], gap["my"]):
-            gap = None
+        if gap is not None and not at_mouth and not self._gap_path_ok(nav, gap):
+            # 05/11: duong "dung cach nguoi 1 m" thuong NGAN (nguoi o gan -> dung truoc cua) — xet them duong toi TAN cho
+            # nguoi (duong tim khe): khe nam tren duong do va dung chieu thi van nhan. Truoc day khe bi loai o day lai
+            # duoc _gap_recall goi lai ngay sau (xem duoi) nen thuc te van dung — mo phong lon xon kho / cua bep can no.
+            gp = (self._nav_gap_path(now, tx, ty)
+                  if (now is not None and nav is not None and self.gap_on_path and self.nav_enabled) else None)
+            if gp is None or not self._gap_path_ok(gp, gap):
+                gap = None
+                # Khe BI LOAI (khong nam tren duong nao / duong di qua no NGUOC chieu chui) thi KHONG duoc nho. Truoc day
+                # _gap_target da kip ghi gap_mem + gap_seen_t -> ngay sau do _gap_recall(hold_sec=1.0) goi lai dung khe vua
+                # bi loai: xe "vao truc giua khe" mot khe khong nam tren duong, dung im 50 s (bag 05/11 101558 luc
+                # 222-271 s, lenh (0, 0) suot).
+                self.gap_mem, self.gap_seen_t, self.gap_axis_prev = saved
         return gap
 
     @staticmethod
@@ -2160,6 +2601,41 @@ class FollowPlannerNode(Node):
         if plan is None:
             return True
         return any(math.hypot(px - mx, py - my) < r for (px, py) in plan["path"])
+
+    def _gap_path_ok(self, plan: Optional[Dict[str, Any]], g: Dict[str, float], need_near: bool = True) -> bool:
+        """Khe co nam tren duong ban do VA duong di qua no CUNG chieu chui (psi) khong. Khong co ban do = khong loc.
+        need_near=False: chi loai khi duong DI QUA khe NGUOC chieu (khe xa duong thi khong biet -> nhan) — dung trong
+        SEARCH, vi tri nguoi du doan co the troi (nguoi re vao cua ben hong, du doan di thang).
+
+        05/11: xe dung trong TUI HEP (giua vat chinh va ke), ban do bao di NGUOC ra mieng tui roi vong ben kia; cap tia
+        mieng tui (vat chinh <-> ke) nam ngay tren duong do nen _path_near van nhan, nhung chieu chui tinh theo phia
+        NGUOI (sau vat chinh) chi VAO sau trong tui -> dong tac chui khe keo xe vao ngo cut. Duong di qua khe nguoc
+        chieu hon ~110 do thi bo khe (de ban do / thoat ket lo)."""
+        if plan is None:
+            return True
+        mx, my = g["mx"], g["my"]
+        path = plan["path"]
+        if not path:
+            return True
+        if g["along"] < 0.05 and abs(g["psi"]) < math.radians(45.0):
+            # Xe dang trong / vua qua mat khe, mui gan thang truc: dang chui — giu toi khi duoi ra, TRU KHI duong ban do
+            # ngay tu cho xe da quay NGUOC lai (khe la ngo cut: nguoi lach qua khe hep chi nguoi lot, chan ghe luc nguoi
+            # dung giua khe bi xoa cung vung quanh nguoi -> "khe" 0.8 m; 05/11 mo phong tui hep: xe tien-lui 68 lan).
+            far = [p for p in path if math.hypot(p[0], p[1]) >= 0.30]
+            if not far:
+                return True
+            return abs(wrap_pi(math.atan2(far[0][1], far[0][0]) - g["psi"])) < math.radians(100.0)
+        d = [math.hypot(px - mx, py - my) for (px, py) in path]
+        d = [math.hypot(px - mx, py - my) for (px, py) in path]
+        i = int(np.argmin(d))
+        if d[i] >= 0.35:
+            return not need_near
+        j0, j1 = max(0, i - 2), min(len(path) - 1, i + 2)
+        tx_, ty_ = path[j1][0] - path[j0][0], path[j1][1] - path[j0][1]
+        tn = math.hypot(tx_, ty_)
+        if tn < 1e-6:
+            return True
+        return (tx_ * math.cos(g["psi"]) + ty_ * math.sin(g["psi"])) / tn > -0.35
 
     def _arc_ok(self, v: float, w: float) -> bool:
         mn, en = self._arc_clearance(v, w)
@@ -2199,6 +2675,13 @@ class FollowPlannerNode(Node):
         if along > self.gap_engage_range:
             # Khe con xa: de tang chon khe + DWA lai nhu binh thuong. Vao dong tac nay
             # tu xa thi xe bo chi phi giu khung hinh va chay cham suot doan duong dai.
+            return None
+        if along < 0.25 and abs(psi) > math.radians(60.0):
+            # 05/11: "khe" NGAY CHO XE DUNG ma mui xe lech truc hon 60 do — khong phai dang chui cua (cua 0.81 m thi xe
+            # nam trong mat cua lech qua ~40 do la cham khung). Do la xe dung trong loi di hep (tui giua vat chinh va
+            # ke), duong ban do quay nguoc lai: mat cat ngay than xe bi coi la "cua" truc 130-165 do -> xoay vuong mat cua
+            # khong duoc, lui ve truc (nguong 3 cm cua luc chui!) ve phia ke, cho... lap mai (bag 05/11 101558 339-400 s:
+            # ho con 4 cm). De ban do + thoat ket quay dau xe.
             return None
 
         c0 = self._clear_now()
@@ -2321,6 +2804,11 @@ class FollowPlannerNode(Node):
             # chu khong cat dot ngot — cat dot ngot lam xe dung-di-dung lien tuc.
             v_des = 0.0 if abs(err) > turn_thr else v_des * math.cos(err)
         for v_try in (v_des, 0.5 * v_des, 0.0):
+            if v_try == 0.0 and w_des == 0.0:
+                # 05/11: lenh RONG (0, 0) khong phai lenh: mui da huong dung diem ngam ma tien khong duoc -> truoc day
+                # tra (0, 0) "vao truc giua khe" moi nhip, xe dung im mai (bag 05/11 101558 luc 226-271 s). Roi xuong
+                # nhanh duoi (xa: nhuong ban do / DWA; gan: lui-xoay canh lai).
+                continue
             if self._arc_ok(v_try, w_des):
                 return v_try, w_des, note
         if along > stand + 0.05 and not backing:
@@ -2737,9 +3225,20 @@ class FollowPlannerNode(Node):
                     self._set_state(S_SEARCH)
                     self.search_start = now
                     self.search_goto = use_goto
+                    self.search_goto_lim = self.search_goto_max
                     self.occl_turning = False
                     self.avoid_side = 0
                     self.search_dir = 1.0 if self.last_seen_bearing >= 0 else -1.0
+            if self.state == S_SEARCH and self.search_goto and self.esc is not None:
+                # 05/11: dang thoat ket (bat dau trong pha di toi) -> lam tiep cho xong
+                out_e = self._esc_step(dt)
+                if out_e is not None:
+                    # dang thoat ket la dang tien trien: gia han pha di toi (toi da 30 s) — het han ngay khi vua quay dau
+                    # xong thi xe dung lai quet tai cho, khong di vong toi cho thay nguoi (mo phong tui hep vat cao)
+                    self.search_goto_lim = max(self.search_goto_lim, min(30.0, (now - self.search_start) + 3.0))
+                    v, w = self._emit(out_e[0], out_e[1], dt)
+                    self._report(status, v, w, "mat nguoi — " + out_e[2], now)
+                    return
             if self.state == S_SEARCH and self.search_goto:
                 # Pha 1: lai toi cach cho thay nguoi lan cuoi mot follow_distance. Dung
                 # sat hon thi canh tuong/goc ban thuong trong tam duoi xe -> khong xoay quet duoc.
@@ -2750,13 +3249,20 @@ class FollowPlannerNode(Node):
                 # Tuong chan giua xe va cho thay nguoi lan cuoi (cua ben hong): chui qua
                 # cua, dung dung lai quet tai cho — quet o ben nay tuong thi khong bao gio
                 # thay lai nguoi.
-                if (now - self.search_start) < self.search_goto_max:
+                if (now - self.search_start) < self.search_goto_lim:
                     cor = self.half_width + self.margin_hard
                     blk, _bd = segment_blocked(self.obstacles, bx, by, cor)
                     if blk:
+                        saved_g = (self.gap_mem, self.gap_seen_t, self.gap_axis_prev)
                         g2 = self._gap_target(gb, math.hypot(bx, by), (bx, by))
-                        if g2 is None and self.gap_on_path and self.nav_enabled:
-                            g2 = self._gap_on_path(self._nav_gap_path(now, bx, by), (bx, by))
+                        gp2 = self._nav_gap_path(now, bx, by) if (self.gap_on_path and self.nav_enabled) else None
+                        if g2 is not None and gp2 is not None and not self._gap_path_ok(gp2, g2, need_near=False):
+                            # 05/11: duong toi cho thay cuoi di qua khe NGUOC chieu chui (xe trong tui, duong quay ra) thi
+                            # bo, khong nho. Khe XA duong van nhan: vi tri du doan co the troi (nguoi re vao cua ben hong)
+                            g2 = None
+                            self.gap_mem, self.gap_seen_t, self.gap_axis_prev = saved_g
+                        if g2 is None and gp2 is not None:
+                            g2 = self._gap_on_path(gp2, (bx, by))
                         if g2 is not None:
                             out2 = self._gap_maneuver(g2)
                             if out2 is not None:
@@ -2770,7 +3276,7 @@ class FollowPlannerNode(Node):
                 p_r = math.hypot(bx, by)
                 p_blk, _pbd = segment_blocked(self.obstacles, bx, by, self.half_width + self.margin_hard)
                 if (gr > self.dist_deadband or (p_blk and p_r > 0.6)) and \
-                        (now - self.search_start) < self.search_goto_max:
+                        (now - self.search_start) < self.search_goto_lim:
                     # Duong bi chan -> ban do luoi (07/10): chon dung ben vong, dich trong vat thi dung o
                     # cho tot nhat thay vi dung im truoc vat. Dat TRUOC luat "lech > 60 do thi xoay ve phia
                     # nguoi": dang vong qua vat ma mui lech khoi cho nguoi la chuyen phai co — xoay ve thi
@@ -2778,6 +3284,10 @@ class FollowPlannerNode(Node):
                     if self.nav_enabled and p_blk:
                         nav = self._nav_get(now, bx, by, False)
                         if nav is not None and not nav["hold"]:
+                            # 05/11: duong vong DAI (nguoi lach qua khe hep roi khuat sau vat cao, xe phai quay dau ra
+                            # khoi tui roi vong ben kia) thi 8 s khong du — cho them theo do dai duong, toi da 30 s
+                            self.search_goto_lim = max(self.search_goto_lim, min(
+                                30.0, (now - self.search_start) + 2.0 + nav["cost"] / max(0.1, self.v_max)))
                             out = self._nav_follow(nav, bx, by, dt, None)
                             if out is not None:
                                 v, w = self._emit(out[0], out[1], dt)
@@ -2810,6 +3320,7 @@ class FollowPlannerNode(Node):
                             return
                 # Toi noi, het gio, hoac bi chan -> pha 2: quay mat ve cho thay lan cuoi roi do / quet
                 self.search_goto = False
+                self.esc = None
                 self.occl_turning = False
                 self.search_start = now
                 self._search_next(now, "face")
@@ -2939,6 +3450,31 @@ class FollowPlannerNode(Node):
         else:
             self.nav_cache = None
 
+        # ── THOAT KET (05/11) ────────────────────────────────────────────
+        # Ke hoach dang chay thi lam tiep (truoc dong tac chui khe / xoay ve nguoi: no da tinh ca duong vong); toi noi /
+        # ban do bao dung cho / het bi chan thi bo. Xe dung trong o vuong 25 cm qua escape_stuck_sec ma nguoi con xa
+        # (khong phai luc ban do bao "dung o cho tot nhat") -> tu lap ke hoach (luoi an toan cho moi kieu ket khac).
+        if self.esc is not None:
+            if goal_r <= self.dist_deadband or (nav is not None and nav["hold"]):
+                self.esc = None
+            else:
+                out_e = self._esc_step(dt)
+                if out_e is not None:
+                    self.stuck_reset_t = now
+                    v, w = self._emit(out_e[0], out_e[1], dt)
+                    self._report(status, v, w, out_e[2], now, dist, bearing, source)
+                    return
+        elif self.escape_on and self._stuck(now, goal_r, nav):
+            nav_s = nav if nav is not None else (self._nav_get(now, tx, ty, spd > 0.25 or view_lost)
+                                                 if self.nav_enabled else None)
+            if self._esc_start(nav_s, "dung im %.0f s, nguoi cach %.1f m" % (self.escape_stuck, dist)):
+                out_e = self._esc_step(dt)
+                if out_e is not None:
+                    self.stuck_reset_t = now
+                    v, w = self._emit(out_e[0], out_e[1], dt)
+                    self._report(status, v, w, out_e[2], now, dist, bearing, source)
+                    return
+
         # ── CHUI KHE HEP (khung cua) ─────────────────────────────────────
         # Chi khi duong thang toi dich KHONG lot. Dat TRUOC nhanh "xoay ve huong nho
         # cuoi": nguoi re vao cua ben hong thi tuong che camera ngay, ma neu xe dung
@@ -2962,14 +3498,22 @@ class FollowPlannerNode(Node):
                 # khe 2 s, tu lam moi" cua 14/10 (gap_at_mouth / gap_recall_mode): giu dong tac chui khe ca khi khe khong
                 # nam tren duong di / da het khe (bag 15/10). Tuong nhin cheo o mieng cua gio co bo nho + noi tia nen ban
                 # do khong con ve duong xuyen tuong. Chi dung ban do de TIM khe, khong doi nhanh di theo ban do ben duoi.
-                gap = self._gap_pair(goal_b, goal_r, dist, tx, ty, nav)
+                gap = self._gap_pair(goal_b, goal_r, dist, tx, ty, nav, now)
+                gpath = None
                 if gap is None:
-                    gap = self._gap_on_path(self._nav_gap_path(now, tx, ty), (tx, ty))
+                    gpath = self._nav_gap_path(now, tx, ty)
+                    gap = self._gap_on_path(gpath, (tx, ty))
                 if gap is None:
                     # Nhip nay lo khong thay khe (o mieng cua, thanh cua luc thay luc khong) ma vua thay < 1 s truoc ->
                     # giu dong tac chui khe. Khong thi bo bam ban do chen vao giua: hai bo dieu khien lui-xoay nguoc
                     # chieu nhau, xe lech truc dan 0.07 -> 0.18 m (mo phong 03/11). Dang chui thi giu toi khi duoi ra.
                     gap = self._gap_recall((tx, ty), hold_sec=1.0)
+                    # 05/11: khe nho lai cung phai nam tren duong ban do TOI TAN CHO NGUOI (duong tim khe) va dung chieu (xe
+                    # da vao tui, duong quay nguoc ra mieng tui thi khong chui tiep vao trong). Khong dung duong "dung cach
+                    # nguoi 1 m": nguoi o gan thi duong do ngan, dung truoc cua -> loai oan cua that (mo phong cua bep).
+                    if gap is not None and not (self._gap_path_ok(gpath, gap)
+                                                or (nav is not None and self._gap_path_ok(nav, gap))):
+                        gap = None
             else:
                 gap = self._gap_pair(goal_b, goal_r, dist, tx, ty, nav)
             if gap is not None:

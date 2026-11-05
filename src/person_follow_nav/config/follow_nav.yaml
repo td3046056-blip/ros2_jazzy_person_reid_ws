@@ -339,6 +339,20 @@ follow_planner_node:
     # chi phi camera keo mui xe ve phia nguoi = ve phia vat dang chan.
     nav_fov_keep_deg: 50.0
 
+    # ── THOAT KET bang chuoi dong tac (05/11) ─────────────────────────────
+    # Xe da vao TUI HEP (giua vat chinh va ke / ghe, loi chi nguoi lot) hoac goc, ma duong ban do quay nguoc ra
+    # va xoay tai cho khong duoc (duoi 0.33 m quet vao vat): tim chuoi ngan xoay tai cho 15 do / tien theo cung
+    # 12 cm / lui theo cung 8 cm — lui CHI vao cho da biet la trong (than xe vua di qua / lidar vua thay trong),
+    # kiem tra footprint chu nhat that, ho >= margin_hard — toi tu the thang hang voi duong ban do, nhu lai xe
+    # quay dau trong ngo hep. Cung chay khi xe dung trong o vuong 25 cm qua escape_stuck_sec giay ma nguoi con
+    # xa (khong phai luc ban do bao "dung o cho tot nhat"). false = nhu ban 03/11.
+    escape_enabled: true
+    escape_stuck_sec: 6.0
+    # Gioi han CPU moi lan tim (xe dang dung yen nen cham mot nhip van an toan). Do 05/11 tren may nay: trung vi 7
+    # buoc / 2.5 ms, p90 ~400 buoc / ~90 ms, toi da ~900 buoc; dung truong khoang cach ~18 ms. Mini PC cham ~3 lan.
+    escape_max_expansions: 1500
+    escape_max_sec: 0.25
+
     # ── Tang chon khe (VFH) chay TRUOC DWA ────────────────────────────────
     # Quet cac huong -100..+100 do, thu di duoc bao xa. Thu lan luot tu xa ve gan.
     # Tang so dau -> nhin xa hon, ne som hon. Giam -> phan ung sat hon, o hep tot hon.

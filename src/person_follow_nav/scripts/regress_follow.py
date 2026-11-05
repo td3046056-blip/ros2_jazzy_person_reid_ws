@@ -17,6 +17,8 @@ Nhom kich ban:
   vong_chan  xe dang vong qua vat can chinh thi bi chan giua chung (nguoi thu hai / vat khuat) -> vong ben kia
   cua_bep    cua bep THAT 0.80 m tu bag 14/10 (canh cua mo ap ben phai, cho mo gia 0.95 m phia trong), co / khong
              tuong hanh lang trai; nguoi re vao cua, di thang vao cua, dung yen trong bep (5 tu the xuat phat)
+  tui_hep    (05/11) vat chinh + ke de ngang + ghe noi tiep: tui rong 0.85-1.1 m khep lai con khe 0.4-0.5 m chi nguoi
+             lot; nguoi lach qua khe, xe phai vong ben trai vat chinh (da vao tui thi tu quay dau ra, khong cham)
 
 CACH DUNG (trong src/person_follow_nav/scripts):
   python3 regress_follow.py                        # tat ca nhom, ban hien tai (~10 phut tren 32 nhan)
@@ -226,6 +228,50 @@ J("goc_ket", "dan_vao_goc_cham", "duong_di", CAM_HALF=55, OBOX=GK2, START="-0.3:
   WP="0.9:0.15;1.9:-0.25;1.9:-0.25;1.9:-0.25;2.0:0.75;3.0:1.15", WPV=0.15, WPT=70)
 
 
+def _pocket(w=0.85, gap=0.40, chair="chan", m_h=0.45, m_len=0.6, mirror=False, stop="xa"):
+    """TUI HEP (05/11, xe that 05/11 bag 101558): vat chinh M phia truoc; ben PHAI M la ke de ngang (tua tuong) va ghe
+    noi tiep ke nam lui ve sau M — loi giua M va ke rong `w` (xe vao duoc) roi khep lai con `gap` (chi nguoi lot) o
+    giua M va ghe. Ben TRAI M trong. Nguoi di vao tui, lach qua khe hep roi di tiep sau M. Xe phai vong ben trai M;
+    neu da lo vao tui thi phai tu quay dau ra (khong cham, khong lui vao cho chua biet).
+    Tra ve dict env (OBOX, TALLWALL, WP) — toa do: xe o goc, M o x 1.9..1.9+m_len, mat phai M o y = -0.15."""
+    s = -1.0 if mirror else 1.0
+    my0 = -0.15                                   # mat phai M
+    mx0, mx1 = 1.9, 1.9 + m_len
+    sy1 = my0 - w                                 # mat trai ke
+    sy0 = sy1 - 0.30
+    cy1 = my0 - gap                               # mat trai ghe
+    cx0, cx1 = mx1 - 0.05, mx1 + 0.35
+    obs = [f"{0.5 * (mx0 + mx1):.3f}:{s * 0.20:.3f}:{m_len:.2f}:0.70:0:{m_h:.2f}",
+           f"1.75:{s * 0.5 * (sy0 + sy1):.3f}:1.00:0.30:0:1.20"]
+    if chair == "chan":
+        obs += [f"{x:.3f}:{s * y:.3f}:0.03:0.03:0:0.45" for x in (cx0 + 0.02, cx1 - 0.02) for y in (cy1 - 0.02, cy1 - 0.38)]
+    else:
+        obs.append(f"{0.5 * (cx0 + cx1):.3f}:{s * (cy1 - 0.20):.3f}:0.40:0.40:0:0.45")
+    wall_y = sy0 - 0.05
+    walls = f"-1.5:{s * wall_y:.3f}:4.6:{s * wall_y:.3f};-1.5:{s * 2.0:.3f}:4.6:{s * 2.0:.3f};4.6:{s * wall_y:.3f}:4.6:{s * 2.0:.3f}"
+    cy = 0.5 * (my0 + sy1)                        # giua tui
+    end = (3.9, 1.2) if stop == "xa" else (3.2, my0 - 0.5 * gap - 0.05)
+    wp = [(1.2, cy), (1.9, cy), (mx1 - 0.02, my0 - 0.5 * gap), (3.1, my0 - 0.5 * gap - 0.05)]
+    if stop == "xa":
+        wp += [(3.6, 0.3), end]
+    return dict(OBOX=";".join(obs), TALLWALL=walls, WP=";".join(f"{x:.2f}:{s * y:.2f}" for x, y in wp)), cy * s
+
+
+for (lab, kw) in (("w0.85", {}), ("w0.95", dict(w=0.95)), ("w1.10", dict(w=1.10)), ("khe0.5", dict(gap=0.50)),
+                  ("ghe_khoi", dict(chair="khoi")), ("M_cao", dict(m_h=1.0)), ("M_ngan", dict(m_len=0.40)),
+                  ("doi_xung", dict(mirror=True)), ("dung_sau_khe", dict(stop="gan"))):
+    env, cy = _pocket(**kw)
+    for st_lab, st in (("thang_tui", f"0:{cy:.2f}:0"), ("xa_tui", f"-1.0:{cy:.2f}:0"), ("giua", "0:0.20:0"),
+                       ("ben_trai", f"0.3:{0.9 * (-1 if kw.get('mirror') else 1):.2f}:{-20 * (-1 if kw.get('mirror') else 1)}")):
+        for v in ((0.30,) if lab != "w0.85" else (0.25, 0.35)):
+            J("tui_hep", f"{lab}:{st_lab}:v{v}", "duong_di", CAM_HALF=55, START=st, WPV=v, WPT=round(6.5 / v + 45), **env)
+# nhieu lidar 2 cm + doi mam (canh hon loan)
+for sd in (2, 3):
+    env, cy = _pocket()
+    J("tui_hep", f"w0.85:thang_tui:nz2:seed{sd}", "duong_di", CAM_HALF=55, START=f"0:{cy:.2f}:0", WPV=0.30, WPT=70,
+      LIDAR_NOISE=0.02, SEED=sd, **env)
+
+
 def _clutter(seed, kmin=5, kmax=9, clear=0.45, sep=0.55, v=0.25):
     """Canh LON XON ngau nhien (03/11): kmin..kmax-1 vat hinh chu nhat xoay ngau nhien (thap / cao) trong phong rong
     4.8 m; nguoi di qua theo duong co do thoang >= clear (xe 0.60 m can 0.36) roi dung. Tra ve dict env hoac None."""
@@ -379,6 +425,11 @@ def passed(group, label, x):
                 and x.get("lui", 9.0) <= 0.5)
     if group in ("goc_ket", "lon_xon", "lon_xon_kho"):
         return x.get("ho", 0.0) > 0.0 and x.get("d", 9.0) <= 1.7
+    if group == "tui_hep":
+        # khong cham; ket thuc gan nguoi (vong ben trong / hoac dung cho tot nhat sau khe khi nguoi dung ngay sau khe);
+        # khong dung im lau khi nguoi con xa
+        return (x.get("ho", 0.0) > 0.0 and x.get("tt") in ("ARRIVED", "FOLLOW") and x.get("d", 9.0) <= 1.6
+                and x.get("ket", 99.0) <= 10.0)
     if group == "toc_do":
         # Khong cham; nguoi dung lai thi xe toi gan (<= 1.8 m); nguoi dang di ma xe DU SUC theo (toc do nguoi <= 90 %
         # toc do toi da xe dat duoc: 0.40 m/s, cho nang 85 %) thi khong tut lai qua 2.6 m. Nguoi nhanh hon suc xe va
@@ -425,7 +476,8 @@ def main() -> int:
     a = ap.parse_args()
     groups = [g for g in a.groups.split(",") if g]
     jobs = [j for j in JOBS if not groups or any(j["group"].startswith(g) for g in groups)]
-    vers = [("moi", None)]
+    # REGRESS_NEW_PKG=<thu muc package da chep> : chay "moi" tren BAN CHUP (sua code trong luc dang chay khong lam lan ket qua)
+    vers = [("moi", os.environ.get("REGRESS_NEW_PKG") or None)]
     tmp = None
     if a.base:
         top = subprocess.run(["git", "rev-parse", "--show-toplevel"], cwd=HERE, capture_output=True,
