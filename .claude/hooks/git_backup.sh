@@ -37,7 +37,11 @@ if [ -n "$(git status --porcelain)" ]; then
     fi
 fi
 
-if git remote get-url origin >/dev/null 2>&1; then
+# Nguoi dung tam KHONG cho day len GitHub (vd. ban sua chua chay thu tren xe): co file .git/NO_PUSH thi chi commit
+# cuc bo. Xoa file do (rm .git/NO_PUSH) khi nguoi dung dong y day.
+if [ -f .git/NO_PUSH ]; then
+    msgs+=("KHONG push (.git/NO_PUSH: $(head -c 100 .git/NO_PUSH | tr '\n' ' '))")
+elif git remote get-url origin >/dev/null 2>&1; then
     if git rev-parse --abbrev-ref '@{u}' >/dev/null 2>&1; then
         ahead=$(git rev-list --count '@{u}..HEAD' 2>/dev/null || echo 0)
     else
