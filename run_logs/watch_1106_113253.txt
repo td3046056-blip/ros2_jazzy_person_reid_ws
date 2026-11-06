@@ -1,0 +1,73 @@
+    giay STATE      lenh v/w      | nguon tracker  kc    goc  | kc-cam (tu)  cao  lech-ngua | camera trang thai  Hz  tre | rssi dBm/mau-s | canh bao | note
+     0.5 ?         v+0.00 w+0.00 | camera+lidar  1.86m  +20d | 1.78m (dau+chan) 1.81m -2.9d | TRACKING           4.0  58ms | chua thay board MAT-BEACON | odom:chua-co planner:chua-co | 
+>    1.0 IDLE      v+0.00 w+0.00 | camera+lidar  1.66m  +10d | 1.70m (dau+chan) 1.80m -2.9d | TRACKING           7.5  44ms | chua thay board MAT-BEACON | - | disabled
+     1.5 IDLE      v+0.00 w+0.00 | camera+lidar  1.77m   +7d | 1.65m (dau+chan) 1.80m -3.0d | TRACKING          11.5  58ms | chua thay board MAT-BEACON | - | disabled
+     2.0 IDLE      v+0.00 w+0.00 | camera+lidar  1.78m   -9d | 1.65m (dau+chan) 1.82m -3.1d | TRACKING          15.0  44ms | chua thay board MAT-BEACON | - | disabled
+     2.5 IDLE      v+0.00 w+0.00 | camera+lidar  1.67m   -9d | 1.76m (dau+chan) 1.82m -3.1d | TRACKING          15.0  58ms | chua thay board MAT-BEACON | - | disabled
+     3.0 IDLE      v+0.00 w+0.00 | camera+lidar  1.80m  -15d | 2.02m (dau+chan) 1.81m -2.9d | TRACKING          15.0  48ms | chua thay board MAT-BEACON | - | disabled
+     3.5 IDLE      v+0.00 w+0.00 | camera+lidar  1.90m  -16d | 1.97m (dau+chan) 1.80m -2.8d | TRACKING          15.0  64ms | chua thay board MAT-BEACON | - | disabled
+     4.0 IDLE      v+0.00 w+0.00 | camera+lidar  1.75m  -14d | 1.88m (dau+chan) 1.79m -2.6d | TRACKING          15.0  52ms | chua thay board MAT-BEACON | - | disabled
+     4.5 IDLE      v+0.00 w+0.00 | camera+lidar  1.80m  -14d | 1.83m (dau+chan) 1.78m -2.5d | TRACKING          15.0  60ms | chua thay board MAT-BEACON | - | disabled
+     5.0 IDLE      v+0.00 w+0.00 | camera+lidar  1.84m  -11d | 1.81m (dau+chan) 1.77m -2.5d | TRACKING          15.0  45ms | chua thay board MAT-BEACON | - | disabled
+     5.5 IDLE      v+0.00 w+0.00 | camera+lidar  1.83m   -9d | 1.92m (dau+chan) 1.76m -2.5d | TRACKING          15.0  58ms | chua thay board MAT-BEACON | - | disabled
+     6.0 IDLE      v+0.00 w+0.00 | camera+lidar  1.84m  -10d | 1.87m (dau+chan) 1.75m -2.5d | TRACKING          15.0  44ms | chua thay board MAT-BEACON | - | disabled
+     6.5 IDLE      v+0.00 w+0.00 | camera+lidar  1.84m  -10d | 1.81m (dau+chan) 1.76m -2.5d | TRACKING          15.0  61ms | chua thay board MAT-BEACON | - | disabled
+     7.0 IDLE      v+0.00 w+0.00 | camera+lidar  1.83m  -10d | 1.80m (dau+chan) 1.76m -2.5d | TRACKING          15.0  45ms | chua thay board MAT-BEACON | - | disabled
+     7.5 IDLE      v+0.00 w+0.00 | camera+lidar  1.82m  -10d | 1.82m (dau+chan) 1.76m -2.5d | TRACKING          15.0  59ms | chua thay board MAT-BEACON | - | disabled
+     8.0 IDLE      v+0.00 w+0.00 | camera+lidar  1.85m   -9d | 1.81m (dau+chan) 1.77m -2.5d | TRACKING          15.0  44ms | chua thay board MAT-BEACON | - | disabled
+     8.5 IDLE      v+0.00 w+0.00 | camera+lidar  1.82m   -8d | 1.97m (dau+chan) 1.77m -2.5d | TRACKING          15.0  60ms | chua thay board MAT-BEACON | - | disabled
+     9.0 IDLE      v+0.00 w+0.00 | camera+lidar  1.89m  +10d | 1.90m (dau+chan) 1.76m -2.4d | TRACKING          15.0  47ms | chua thay board MAT-BEACON | - | disabled
+     9.5 IDLE      v+0.00 w+0.00 | camera+lidar  1.85m  +12d | 1.80m (dau+chan) 1.75m -2.5d | TRACKING          15.0  59ms | chua thay board MAT-BEACON | - | disabled
+    10.0 IDLE      v+0.00 w+0.00 | camera+lidar  2.00m  +19d | 1.83m (dau+chan) 1.77m -2.7d | TRACKING          15.0  48ms | chua thay board MAT-BEACON | - | disabled
+    10.5 IDLE      v+0.00 w+0.00 | camera+lidar  1.99m  +18d | 1.94m (dau+chan) 1.78m -2.7d | TRACKING          15.0  59ms | chua thay board MAT-BEACON | - | disabled
+    11.0 IDLE      v+0.00 w+0.00 | camera+lidar  1.99m  +18d | 1.96m (dau+chan) 1.78m -2.7d | TRACKING          15.0  45ms | chua thay board MAT-BEACON | - | disabled
+    11.5 IDLE      v+0.00 w+0.00 | camera+lidar  1.90m   +7d | 1.88m (dau+chan) 1.78m -2.8d | TRACKING          15.0  58ms | chua thay board | - | disabled
+    12.0 IDLE      v+0.00 w+0.00 | camera+lidar  1.89m   +3d | 1.78m (dau+chan) 1.78m -2.9d | TRACKING          15.0  52ms | chua thay board | - | disabled
+    12.5 IDLE      v+0.00 w+0.00 | camera+lidar  1.72m   -3d | 1.79m (dau+chan) 1.78m -2.8d | TRACKING          15.0  58ms | A-63/4 B-69/3 C-66/3 | - | disabled
+    giay STATE      lenh v/w      | nguon tracker  kc    goc  | kc-cam (tu)  cao  lech-ngua | camera trang thai  Hz  tre | rssi dBm/mau-s | canh bao | note
+    13.0 IDLE      v+0.00 w+0.00 | camera+lidar  1.79m   -6d | 1.81m (dau+chan) 1.78m -2.6d | TRACKING          15.0  46ms | A-63/4 B-69/3 C-66/3 | - | disabled
+    13.5 IDLE      v+0.00 w+0.00 | camera+lidar  2.02m   -9d | 1.96m (dau+chan) 1.80m -2.6d | TRACKING          15.0  58ms | A-63/4 B-69/3 C-66/3 | - | disabled
+    14.0 IDLE      v+0.00 w+0.00 | camera+lidar  1.99m   -6d | 1.93m (dau+chan) 1.81m -2.5d | TRACKING          15.0  48ms | A-63/4 B-69/3 C-66/3 | - | disabled
+    14.5 IDLE      v+0.00 w+0.00 | camera+lidar  1.87m   +5d | 1.96m (dau+chan) 1.80m -2.5d | TRACKING          15.0  60ms | A-/0 B-/0 C-/0 | - | disabled
+    15.0 IDLE      v+0.00 w+0.00 | camera+lidar  1.95m   +6d | 1.91m (dau+chan) 1.80m -2.7d | TRACKING          14.5  41ms | A-/0 B-/0 C-/0 MAT-BEACON | - | disabled
+    15.5 IDLE      v+0.00 w+0.00 | camera+lidar  2.03m  +15d | 2.02m (dau+chan) 1.80m -2.7d | TRACKING          13.5  28ms | A-/0 B-/0 C-/0 MAT-BEACON | - | disabled
+    16.0 IDLE      v+0.00 w+0.00 | camera+lidar  2.11m  +16d | 2.13m (dau+chan) 1.80m -2.7d | TRACKING          13.0  80ms | A-/0 B-/0 C-/0 MAT-BEACON | - | disabled
+>   16.5 FOLLOW  * v+0.14 w+0.16 | camera+lidar  2.24m   +9d | 2.18m (dau+chan) 1.81m -2.7d | TRACKING          12.5  54ms | A-/0 B-/0 C-/0 MAT-BEACON | - | bam nguoi
+    17.0 FOLLOW  * v+0.22 w+0.00 | camera+lidar  2.01m   +1d | 2.12m (dau+chan) 1.80m -2.7d | TRACKING          12.5  48ms | A-/0 B-/0 C-/0 MAT-BEACON | - | bam nguoi
+    17.5 FOLLOW  * v+0.22 w-0.12 | camera+lidar  1.79m   -8d | 1.79m (dau+chan) 1.79m -2.7d | TRACKING          12.5  30ms | A-/0 B-/0 C-/0 MAT-BEACON | - | bam nguoi
+    18.0 FOLLOW  * v+0.22 w+0.00 | camera+lidar  1.74m   -5d | 1.65m (dau+chan) 1.80m -2.8d | TRACKING          12.5  86ms | A-/0 B-/0 C-/0 MAT-BEACON | - | bam nguoi
+    18.5 FOLLOW  * v+0.22 w-0.12 | camera+lidar  1.79m  -12d | 1.73m (dau+chan) 1.81m -3.0d | TRACKING          12.5  56ms | A-/0 B-/0 C-/0 MAT-BEACON | - | bam nguoi
+    19.0 FOLLOW  * v+0.22 w-0.12 | camera+lidar  1.73m  -12d | 1.75m (dau+chan) 1.82m -3.0d | TRACKING          12.5  42ms | A-/0 B-/0 C-/0 MAT-BEACON | - | bam nguoi
+>   19.5 AVOID   * v+0.22 w+0.12 | camera+lidar  1.92m  -12d | 1.88m (dau+chan) 1.82m -3.1d | TRACKING          12.5  28ms | A-/0 B-/0 C-/0 MAT-BEACON | - | di vong theo ban do (trai, 1.2m duong)
+    20.0 AVOID   * v+0.22 w+0.12 | camera+lidar  1.82m  -14d | 1.85m (dau+chan) 1.82m -3.0d | TRACKING          12.5  81ms | A-/0 B-/0 C-/0 MAT-BEACON | - | di vong theo ban do (trai, 1.1m duong)
+    20.5 AVOID   * v+0.22 w+0.00 | camera+lidar  1.77m  -24d | 1.76m (dau+chan) 1.82m -3.0d | TRACKING          12.5  57ms | A-/0 B-/0 C-/0 MAT-BEACON | - | di vong theo ban do (trai, 1.0m duong)
+    21.0 AVOID   * v+0.22 w+0.12 | camera+lidar  1.68m  -25d | 1.63m (dau+chan) 1.83m -3.0d | TRACKING          12.5  44ms | A-/0 B-/0 C-/0 MAT-BEACON | - | di vong theo ban do (trai, 1.0m duong)
+    21.5 AVOID   * v+0.22 w+0.00 | camera+lidar  1.61m  -30d | 1.55m (dau+chan) 1.83m -3.1d | TRACKING          12.5  30ms | A-/0 B-/0 C-/0 MAT-BEACON | - | di vong theo ban do (phai, 0.9m duong)
+    22.0 AVOID   * v+0.22 w+0.00 | camera+lidar  1.54m  -30d | 1.51m (dau+chan) 1.84m -3.1d | TRACKING          12.5  88ms | A-/0 B-/0 C-/0 MAT-BEACON | - | di vong theo ban do (trai, 0.9m duong)
+    22.5 AVOID   * v+0.22 w-0.12 | camera+lidar  1.32m  -40d | 1.45m (dau+chan) 1.83m -3.0d | TRACKING          12.5  58ms | A-/0 B-/0 C-/0 MAT-BEACON | - | di vong theo ban do (phai, 0.7m duong)
+    23.0 AVOID   * v+0.16 w-0.62 | camera+lidar  1.05m  -53d | 1.20m (dau+chan) 1.80m -2.9d | TRACKING          12.5  43ms | A-/0 B-/0 C-/0 MAT-BEACON | - | chui khe hep — vao truc giua khe (lech 0.71m)
+>   23.5 FOLLOW  * v+0.20 w-0.36 | camera+lidar  1.00m  -42d | 1.00m (chan   ) 1.79m -2.9d | TRACKING          12.5  34ms | A-/0 B-/0 C-/0 MAT-BEACON | - | canh huong tai cho
+    24.0 FOLLOW  * v+0.22 w+0.00 | camera+bbox   1.01m  -55d | 1.05m (chan   ) 1.79m -2.9d | TRACK_VERIFY_HOLD 12.5  88ms | A-/0 B-/0 C-/0 MAT-BEACON | - | chui khe hep — vao truc giua khe (lech 0.56m)
+>   24.5 ESTOP   * v+0.00 w+0.00 | predicted     1.12m  -53d | 1.05m (chan   ) 1.79m -2.9d | LOST              12.5  53ms | A-/0 B-/0 C-/0 MAT-BEACON | scan:cu-0.7s | mat du lieu /scan — dung xe
+    25.0 ESTOP   * v+0.00 w+0.00 | predicted     1.19m  -53d | 1.05m (chan   ) 1.79m -2.9d | LOST              12.5  39ms | A-/0 B-/0 C-/0 MAT-BEACON | scan:cu-1.2s | mat du lieu /scan — dung xe
+    giay STATE      lenh v/w      | nguon tracker  kc    goc  | kc-cam (tu)  cao  lech-ngua | camera trang thai  Hz  tre | rssi dBm/mau-s | canh bao | note
+    25.5 ESTOP   * v+0.00 w+0.00 | predicted     1.25m  -52d | 1.05m (chan   ) 1.79m -2.9d | LOST              12.5  33ms | A-/0 B-/0 C-/0 MAT-BEACON | scan:cu-1.7s | mat du lieu /scan — dung xe
+    26.0 ESTOP   * v+0.00 w+0.00 | predicted     1.28m  -52d | 1.05m (chan   ) 1.79m -2.9d | LOST              12.5  79ms | A-/0 B-/0 C-/0 MAT-BEACON | scan:cu-2.2s | mat du lieu /scan — dung xe
+    26.5 ESTOP   * v+0.00 w+0.00 | predicted     1.31m  -52d | 1.05m (chan   ) 1.79m -2.9d | LOST              12.5  52ms | A-/0 B-/0 C-/0 MAT-BEACON | scan:cu-2.7s | mat du lieu /scan — dung xe
+    27.0 ESTOP   * v+0.00 w+0.00 | predicted     1.32m  -52d | 1.05m (chan   ) 1.79m -2.9d | LOST              12.5  39ms | A-/0 B-/0 C-/0 MAT-BEACON | scan:cu-3.2s | mat du lieu /scan — dung xe
+    27.5 ESTOP   * v+0.00 w+0.00 | predicted     1.33m  -52d | 1.05m (chan   ) 1.79m -2.9d | LOST              12.5  25ms | A-/0 B-/0 C-/0 MAT-BEACON | scan:cu-3.7s | mat du lieu /scan — dung xe
+    28.0 ESTOP   * v+0.00 w+0.00 | predicted     1.33m  -52d | 1.05m (chan   ) 1.79m -2.9d | LOST              12.5  78ms | A-/0 B-/0 C-/0 MAT-BEACON | scan:cu-4.2s | mat du lieu /scan — dung xe
+    28.5 ESTOP   * v+0.00 w+0.00 | predicted     1.34m  -52d | 1.05m (chan   ) 1.79m -2.9d | LOST              12.5  52ms | A-/0 B-/0 C-/0 MAT-BEACON | scan:cu-4.7s | mat du lieu /scan — dung xe
+    29.0 ESTOP   * v+0.00 w+0.00 | predicted     1.34m  -52d | 1.05m (chan   ) 1.79m -2.9d | LOST              12.5  39ms | A-/0 B-/0 C-/0 MAT-BEACON | scan:cu-5.2s | mat du lieu /scan — dung xe
+    29.5 ESTOP   * v+0.00 w+0.00 | predicted     1.34m  -52d | 1.05m (chan   ) 1.79m -2.9d | LOST              12.5  25ms | A-/0 B-/0 C-/0 MAT-BEACON | scan:cu-5.7s | mat du lieu /scan — dung xe
+    30.0 ESTOP   * v+0.00 w+0.00 | none          -m -d | 1.05m (chan   ) 1.79m -2.9d | LOST              12.5  79ms | A-/0 B-/0 C-/0 MAT-BEACON | scan:cu-6.2s | mat du lieu /scan — dung xe
+    30.5 ESTOP   * v+0.00 w+0.00 | none          -m -d | 1.05m (chan   ) 1.79m -2.9d | LOST              12.5  52ms | A-/0 B-/0 C-/0 MAT-BEACON | scan:cu-6.7s | mat du lieu /scan — dung xe
+    31.0 ESTOP   * v+0.00 w+0.00 | none          -m -d | 1.05m (chan   ) 1.79m -2.9d | LOST              12.5  38ms | A-/0 B-/0 C-/0 MAT-BEACON | scan:cu-7.2s | mat du lieu /scan — dung xe
+    31.5 ESTOP   * v+0.00 w+0.00 | none          -m -d | 1.05m (chan   ) 1.79m -2.9d | LOST              12.5  26ms | A-/0 B-/0 C-/0 MAT-BEACON | scan:cu-7.7s | mat du lieu /scan — dung xe
+    32.0 ESTOP   * v+0.00 w+0.00 | none          -m -d | 1.05m (chan   ) 1.79m -2.9d | LOST              12.5  78ms | A-/0 B-/0 C-/0 MAT-BEACON | scan:cu-8.2s | mat du lieu /scan — dung xe
+    32.5 ESTOP   * v+0.00 w+0.00 | none          -m -d | 1.05m (chan   ) 1.79m -2.9d | LOST              12.5  52ms | A-/0 B-/0 C-/0 MAT-BEACON | scan:cu-8.7s | mat du lieu /scan — dung xe
+    33.0 ESTOP   * v+0.00 w+0.00 | none          -m -d | 1.05m (chan   ) 1.79m -2.9d | LOST              12.5  39ms | A-/0 B-/0 C-/0 MAT-BEACON | scan:cu-9.2s | mat du lieu /scan — dung xe
+    33.5 ESTOP   * v+0.00 w+0.00 | none          -m -d | 1.05m (chan   ) 1.79m -2.9d | LOST              12.5  26ms | A-/0 B-/0 C-/0 MAT-BEACON | scan:cu-9.7s | mat du lieu /scan — dung xe
+    34.0 ESTOP   * v+0.00 w+0.00 | none          -m -d | 1.05m (chan   ) 1.79m -2.9d | LOST              12.5  79ms | A-/0 B-/0 C-/0 MAT-BEACON | scan:cu-10.2s | mat du lieu /scan — dung xe
+    34.5 ESTOP   * v+0.00 w+0.00 | none          -m -d | 1.05m (chan   ) 1.79m -2.9d | LOST              11.0  26ms | A-/0 B-/0 C-/0 MAT-BEACON | scan:cu-10.7s cmd_vel:cu-0.3s | mat du lieu /scan — dung xe
+    35.0 ESTOP   * v+0.00 w+0.00 | none          -m -d | 1.05m (chan   ) 1.79m -2.9d | LOST               8.0  26ms | A-/0 B-/0 C-/0 MAT-BEACON | scan:cu-11.2s odom:cu-0.8s cmd_vel:cu-0.8s tracker:cu-0.8s planner:cu-0.8s | mat du lieu /scan — dung xe
