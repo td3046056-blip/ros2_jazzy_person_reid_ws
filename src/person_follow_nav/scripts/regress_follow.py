@@ -20,11 +20,16 @@ Nhom kich ban:
   tui_hep    (05/11) vat chinh + ke de ngang + ghe noi tiep: tui rong 0.85-1.1 m khep lai con khe 0.4-0.5 m chi nguoi
              lot; nguoi lach qua khe, xe phai vong ben trai vat chinh (da vao tui thi tu quay dau ra, khong cham)
 
+  bay_*      (06/11) CHO HEP: xe xuat phat trong bay, phai tu ra roi vong qua vat va bam tiep — bay_U (tui chu U sau
+             0.5-1.3 m), bay_hl (hanh lang cut 2 m), bay_L (vat truoc mui + vach ben, ho 8-25 cm), bay_V (goc cut chu V),
+             bay_khe (khe hep hon xe), bay_goc (goc tuong cao, nguoi trong phong). DAT: khong cham, cach nguoi 0.7-1.6 m
+
 CACH DUNG (trong src/person_follow_nav/scripts):
   python3 regress_follow.py                        # tat ca nhom, ban hien tai (~10 phut tren 32 nhan)
   python3 regress_follow.py --base 6d0aa54         # so voi ban cu (git archive vao thu muc tam)
   python3 regress_follow.py --groups lowbox,hard   # chi vai nhom
   python3 regress_follow.py --jobs 8 --json kq.json
+  python3 regress_follow.py --base ban-tot-nhat-0311,ban-tot-nhat-0611 --seeds 1,2,3   # (06/11) so 2 ban cu, 3 mam
 
 DAT nghia la: cua / cua_bep -> qua cua va khong cham tuong; vat thap / kho -> ket thuc ARRIVED/FOLLOW cach nguoi 0.8-1.4 m va
 khong cham; chen -> uoc luong khong gan nguoi thu hai hon > 10 % thoi gian va ho voi chan ho luc ho dung yen
@@ -367,6 +372,174 @@ for v in (0.3, 0.45):
     J("toc_do", f"vat_ben_duong:v{v}", "duong_di", CAM_HALF=55, WP="1.6:0;9.0:0", WPV=v, WPT=round(7.4 / v + 8),
       OBOX="4.5:-0.75:0.6:0.4:0:0.30;6.5:0.80:0.5:0.4:20:0.30")
 
+
+# 06/11 — CHO HEP (BAY): xe xuat phat BEN TRONG bay (START_TRAIL: xe da tu chay vao), nguoi o sau vat THAP cuoi bay (camera
+# nhin qua) roi di xa them / hoac dung trong phong -> xe phai tu ra khoi bay, vong qua vat va bam tiep. Kiem: khong cham,
+# ket thuc gan nguoi (0.7-1.6 m: duoi 0.7 m la xe AP SAT nguoi — loi "duoi xe vuong — nhich toi" truoc 06/11).
+#   bay_U    tui chu U: hai vach doc + day thap, rong 0.80-1.20 m, tam xe vao sau 0.5 / 0.8 / 1.3 m
+#   bay_hl   hanh lang cut: nhu tui U nhung sau 2.0 m, rong 0.75-0.95 m (khong xoay duoc, phai lui ra ~2 m)
+#   bay_L    chu L: vat thap truoc mui + vach ben canh (ho 8 / 15 / 25 cm), ben kia trong
+#   bay_V    goc cut chu V (60 / 90 / 120 do) chum lai truoc mui
+#   bay_khe  khe hep HON xe (0.45-0.70 m) trong vach thap / cao, mui xe o mieng khe; nguoi da lach qua khe
+#   bay_goc  goc tuong (hai vach CAO vuong goc), mui xe chui vao goc, nguoi dung trong phong ben canh (lech ~40-48 do)
+_BF, _BR, _BH = 0.14, 0.33, 0.30
+
+
+def _segs_of(env):
+    import math
+    S = []
+    for w in [x for x in env.get("TALLWALL", "").split(";") if x]:
+        a = [float(v) for v in w.split(":")]
+        S.append(((a[0], a[1]), (a[2], a[3])))
+    for b in [x for x in env.get("OBOX", "").split(";") if x]:
+        cx, cy, L, W, g = [float(v) for v in b.split(":")[:5]]
+        g = math.radians(g)
+        c, s_ = math.cos(g), math.sin(g)
+        P = [(cx + c * u - s_ * v, cy + s_ * u + c * v) for u, v in ((L / 2, W / 2), (-L / 2, W / 2), (-L / 2, -W / 2),
+                                                                   (L / 2, -W / 2))]
+        S += [(P[i], P[(i + 1) % 4]) for i in range(4)]
+    return S
+
+
+def _start_clear(env):
+    """Do thoang footprint luc xuat phat (bo kich ban xe dat san de len vat)."""
+    import math
+    x, y, yaw = [float(v) for v in env["START"].split(":")]
+    yaw = math.radians(yaw)
+    c, s_ = math.cos(yaw), math.sin(yaw)
+    best = 9.0
+    for (p, q) in _segs_of(env):
+        for i in range(61):
+            u = i / 60.0
+            px, py = p[0] + u * (q[0] - p[0]), p[1] + u * (q[1] - p[1])
+            lx, ly = c * (px - x) + s_ * (py - y), -s_ * (px - x) + c * (py - y)
+            if -_BR <= lx <= _BF and abs(ly) <= _BH:
+                return 0.0
+            best = min(best, math.hypot(max(lx - _BF, -_BR - lx, 0.0), max(abs(ly) - _BH, 0.0)))
+    return best
+
+
+def JB(group, label, **env):
+    env.setdefault("CAM_HALF", 55)
+    env = {k: str(v) for k, v in env.items()}
+    if _start_clear(env) >= 0.035:
+        J(group, label, "duong_di", **env)
+
+
+def _ob(cx, cy, L, W, a=0.0, h=0.45):
+    return f"{cx:.3f}:{cy:.3f}:{L:.3f}:{W:.3f}:{a:.1f}:{h:.2f}"
+
+
+def _wk(*pts):
+    return ";".join(f"{x:.2f}:{y:.2f}" for x, y in pts)
+
+
+def _bay_pocket(group, W, Lin, side, st, sfx, **kw):
+    xe = 1.0                                     # mat day (vat thap 0.45 m, camera nhin qua)
+    xo = xe - Lin
+    boxes = [_ob(xe + 0.2, 0.0, 0.40, W + 0.30)]
+    env = {}
+    if side == "cao":
+        env["TALLWALL"] = f"{xo:.2f}:{W / 2:.3f}:{xe + 0.4:.2f}:{W / 2:.3f};{xo:.2f}:{-W / 2:.3f}:{xe + 0.4:.2f}:{-W / 2:.3f}"
+    else:
+        boxes += [_ob(0.5 * (xo + xe + 0.4), sg * (W / 2 + 0.03), Lin + 0.4, 0.06) for sg in (1, -1)]
+    y0, yaw = {"thang": (0.0, 0.0), "lech": (0.03, 4.0)}[st]
+    JB(group, f"W{W:.2f}:sau{Lin:.1f}:{side}:{st}{sfx}", START=f"{xe - 0.15 - _BF:.3f}:{y0:.3f}:{yaw:.1f}",
+       START_TRAIL=round(Lin + 1.0, 2), OBOX=";".join(boxes), WP=_wk((2.1, 0.0), (4.3, 0.0), (4.3, 1.3)), WPV=0.30,
+       WPT=round(60 + 35 * Lin), **env, **kw)
+
+
+def _bay_L(side, c_side, c_front, yaw, tall, sfx, **kw):
+    s = 1.0 if side == "phai" else -1.0           # vach o ben PHAI (y am) neu side=phai
+    xw = _BF + c_front + 0.03                     # tam vat truoc mui (day 0.06)
+    yw = -s * (_BH + c_side)                      # mat vach ben
+    front = _ob(xw, 0.5 * (yw + s * 1.3), 0.06, abs(s * 1.3 - yw))
+    env = dict(OBOX=front)
+    if tall:
+        env["TALLWALL"] = f"-1.5:{yw:.3f}:{xw + 0.03:.3f}:{yw:.3f}"
+    else:
+        env["OBOX"] += ";" + _ob(0.5 * (-1.5 + xw + 0.03), yw - s * 0.03, xw + 0.03 + 1.5, 0.06)
+    JB("bay_L", f"vach_{side}:ben{c_side:.2f}:truoc{c_front:.2f}:yaw{yaw:+.0f}:{'cao' if tall else 'thap'}{sfx}",
+       START=f"0:0:{yaw:.1f}", START_TRAIL=1.2, WP=_wk((1.6, s * 0.1), (3.2, s * 0.1), (3.2, s * 1.0)), WPV=0.30, WPT=75,
+       **env, **kw)
+
+
+def _bay_V(alpha_deg, c, yoff, sfx, **kw):
+    import math
+    a = math.radians(alpha_deg)
+    bx = -_BF - (c + _BH * math.cos(a)) / math.sin(a)
+    Lw = 1.6
+    boxes = []
+    for sg in (1, -1):
+        dx, dy = -math.cos(a), sg * math.sin(a)
+        boxes.append(_ob(dx * Lw / 2 + math.sin(a) * 0.03, dy * Lw / 2 + sg * math.cos(a) * 0.03, Lw, 0.06,
+                         math.degrees(math.atan2(dy, dx))))
+    JB("bay_V", f"goc{2 * alpha_deg:.0f}:ho{c:.2f}:y{yoff:+.2f}{sfx}", START=f"{bx:.3f}:{yoff:.3f}:0", START_TRAIL=1.2,
+       OBOX=";".join(boxes), WP=_wk((1.1, 0.0), (2.6, 0.0), (2.6, 1.2)), WPV=0.30, WPT=75, **kw)
+
+
+def _bay_khe(g, yoff, yaw, tall, sfx, **kw):
+    xw = 0.45
+    segs = [(-1.6, -g / 2), (g / 2, 1.1)]
+    env = {}
+    if tall:
+        env["TALLWALL"] = ";".join(f"{xw:.2f}:{a:.3f}:{xw:.2f}:{b:.3f}" for a, b in segs)
+    else:
+        env["OBOX"] = ";".join(_ob(xw + 0.03, 0.5 * (a + b), 0.06, b - a) for a, b in segs)
+    JB("bay_khe", f"khe{g:.2f}:y{yoff:+.2f}:yaw{yaw:+.0f}:{'cao' if tall else 'thap'}{sfx}",
+       START=f"{xw - 0.03 - _BF - 0.05:.3f}:{yoff:.3f}:{yaw:.1f}", START_TRAIL=1.2,
+       WP=_wk((1.3, 0.0), (2.6, 0.0), (2.6, 0.8)), WPV=0.30, WPT=80, **env, **kw)
+
+
+def _bay_goc(side, c_front, c_side, yaw, sfx, **kw):
+    import math
+    s = 1.0 if side == "trai" else -1.0           # goc o phia truoc-TRAI neu side=trai
+    a = math.radians(yaw)
+    pts = [(math.cos(a) * u - math.sin(a) * v, math.sin(a) * u + math.cos(a) * v)
+           for u, v in ((_BF, _BH), (_BF, -_BH), (-_BR, _BH), (-_BR, -_BH))]
+    xf = max(p[0] for p in pts) + c_front
+    ys = (max(p[1] for p in pts) + c_side) if s > 0 else (min(p[1] for p in pts) - c_side)
+    ang = a - s * math.radians(40)
+    px, py = 2.0 * math.cos(ang), 2.0 * math.sin(ang)
+    px = min(px, xf - 0.5)
+    JB("bay_goc", f"goc_{side}:truoc{c_front:.2f}:ben{c_side:.2f}:yaw{yaw:+.0f}{sfx}", START=f"0:0:{yaw:.1f}",
+       START_TRAIL=1.2, TALLWALL=f"{xf:.3f}:{ys:.3f}:{xf:.3f}:{-s * 3.5:.3f};-3.0:{ys:.3f}:{xf:.3f}:{ys:.3f}",
+       WP=_wk((px, py), (px, py)), WPV=0.30, WPT=60, **kw)
+
+
+# mam 1 nhieu lidar 1 cm, mam 2 nhieu 2 cm (--seeds them mam khac thi giu nguyen nhieu theo nhan)
+for _sd, _nz in ((1, 0.01), (2, 0.02)):
+    _sx = "" if _sd == 1 else ":nz2"
+    _kw = dict(SEED=_sd, LIDAR_NOISE=_nz)
+    for _W in (0.80, 0.90, 1.00, 1.20):
+        for _Lin in (0.5, 0.8, 1.3):
+            for _side in ("cao", "thap"):
+                for _st in ("thang", "lech"):
+                    _bay_pocket("bay_U", _W, _Lin, _side, _st, _sx, **_kw)
+    for _W in (0.75, 0.85, 0.95):
+        for _st in ("thang", "lech"):
+            _bay_pocket("bay_hl", _W, 2.0, "cao", _st, _sx, **_kw)
+    for _side in ("phai", "trai"):
+        for _cs in (0.08, 0.15, 0.25):
+            for _cf in (0.10, 0.25):
+                for _yaw in (0, 10):
+                    for _tall in (True, False):
+                        _bay_L(_side, _cs, _cf, _yaw * (1 if _side == "phai" else -1), _tall, _sx, **_kw)
+    for _al in (30, 45, 60):
+        for _c in (0.06, 0.10):
+            for _yo in (0.0, 0.05):
+                _bay_V(_al, _c, _yo, _sx, **_kw)
+    for _g in (0.45, 0.60, 0.70):
+        for _yo in (0.0, 0.12):
+            for _yaw in (0, 15):
+                for _tall in (True, False):
+                    _bay_khe(_g, _yo, _yaw, _tall, _sx, **_kw)
+    for _side in ("trai", "phai"):
+        for _cf in (0.08, 0.15):
+            for _cs in (0.08, 0.15):
+                for _yaw in (45, 60):
+                    _bay_goc(_side, _cf, _cs, -_yaw if _side == "trai" else _yaw, _sx, **_kw)
+
 # ── Doc ket qua tu dong chi so cua sim_follow.py ─────────────────────────
 NUM = r"(-?[0-9.]+|nan|inf)"
 PATS = [(r"camera=\s*" + NUM + "%", "cam", float), (r"mat_cam_dai_nhat=\s*" + NUM + "s", "mat_cam", float),
@@ -425,6 +598,9 @@ def passed(group, label, x):
                 and x.get("lui", 9.0) <= 0.5)
     if group in ("goc_ket", "lon_xon", "lon_xon_kho"):
         return x.get("ho", 0.0) > 0.0 and x.get("d", 9.0) <= 1.7
+    if group.startswith("bay_"):
+        # khong cham; ket thuc gan nguoi nhung KHONG ap sat (< 0.7 m: mui xe con ~0.4 m toi chan nguoi)
+        return (x.get("ho", 0.0) > 0.0 and x.get("tt") in ("ARRIVED", "FOLLOW") and 0.7 <= x.get("d", 9.0) <= 1.6)
     if group == "tui_hep":
         # khong cham; ket thuc gan nguoi (vong ben trong / hoac dung cho tot nhat sau khe khi nguoi dung ngay sau khe);
         # khong dung im lau khi nguoi con xa
@@ -470,23 +646,37 @@ def cell(x):
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--groups", default="", help="vd. lowbox,hard (mac dinh: tat ca)")
-    ap.add_argument("--base", default="", help="git ref de so (vd. 6d0aa54); rong = chi chay ban hien tai")
+    ap.add_argument("--base", default="", help="git ref de so, nhieu ban cach nhau dau phay (vd. a38a944,2a6ecdc)")
+    ap.add_argument("--seeds", default="", help="vd. 1,2,3: chay moi kich ban voi tung mam (kich ban da dat SEED rieng "
+                                                "thi mam = SEED + 100*(mam-1)); rong = nhu cu (SEED trong moi truong)")
     ap.add_argument("--jobs", type=int, default=max(1, (os.cpu_count() or 2) - 1))
     ap.add_argument("--json", default="", help="ghi ket qua tho ra file")
     a = ap.parse_args()
     groups = [g for g in a.groups.split(",") if g]
     jobs = [j for j in JOBS if not groups or any(j["group"].startswith(g) for g in groups)]
+    seeds = [int(x) for x in a.seeds.split(",") if x.strip()]
+    if seeds:
+        jj = []
+        for sd in seeds:
+            for j in jobs:
+                e = dict(j["env"])
+                e["SEED"] = str(int(e["SEED"]) + 100 * (sd - 1)) if "SEED" in e else str(sd)
+                jj.append(dict(group=j["group"], label=j["label"] + (f"#s{sd}" if len(seeds) > 1 else ""),
+                               scen=j["scen"], env=e))
+        jobs = jj
     # REGRESS_NEW_PKG=<thu muc package da chep> : chay "moi" tren BAN CHUP (sua code trong luc dang chay khong lam lan ket qua)
     vers = [("moi", os.environ.get("REGRESS_NEW_PKG") or None)]
-    tmp = None
+    tmps = []
     if a.base:
         top = subprocess.run(["git", "rev-parse", "--show-toplevel"], cwd=HERE, capture_output=True,
                              text=True, check=True).stdout.strip()
-        tmp = tempfile.mkdtemp(prefix="regress_base_")
         rel = os.path.relpath(os.path.dirname(HERE), top)
-        arch = subprocess.run(["git", "archive", a.base, rel], cwd=top, capture_output=True, check=True).stdout
-        subprocess.run(["tar", "-x", "-C", tmp], input=arch, check=True)
-        vers.insert(0, (a.base, os.path.join(tmp, rel)))
+        for k, ref in enumerate([r for r in a.base.split(",") if r.strip()]):
+            tmp = tempfile.mkdtemp(prefix="regress_base_")
+            tmps.append(tmp)
+            arch = subprocess.run(["git", "archive", ref, rel], cwd=top, capture_output=True, check=True).stdout
+            subprocess.run(["tar", "-x", "-C", tmp], input=arch, check=True)
+            vers.insert(k, (ref, os.path.join(tmp, rel)))
     print(f"{len(jobs)} kich ban x {len(vers)} ban, {a.jobs} tien trinh song song ...", flush=True)
     res = {}
     try:
@@ -496,25 +686,32 @@ def main() -> int:
                 name, j = futs[f]
                 res.setdefault((j["group"], j["label"]), {})[name] = f.result()
     finally:
-        if tmp:
+        for tmp in tmps:
             shutil.rmtree(tmp, ignore_errors=True)
     names = [n for n, _ in vers]
     total = {n: [0, 0] for n in names}
+    by_group = {}
     cur = None
     for (g, lab), v in res.items():
-        gg = g if not g.startswith(("door", "stuck")) else g
-        if gg != cur:
-            cur = gg
-            print(f"\n=== {gg} ===")
+        if g != cur:
+            cur = g
+            print(f"\n=== {g} ===")
             print(f"  {'kich ban':24s} | " + " | ".join(f"{n:^42s}" for n in names))
         marks = []
         for n in names:
-            ok = passed(g, lab, v.get(n))
+            ok = passed(g, lab.split("#")[0], v.get(n))
             if ok is not None:
                 total[n][0] += int(ok)
                 total[n][1] += 1
+                bg = by_group.setdefault(g, {}).setdefault(n, [0, 0])
+                bg[0] += int(ok)
+                bg[1] += 1
             marks.append(("DAT " if ok else "LOI ") if ok is not None else "    ")
         print(f"  {lab[:24]:24s} | " + " | ".join(m + cell(v.get(n))[:46] for m, n in zip(marks, names)))
+    print("\nTONG THEO NHOM (cac kich ban co tieu chi):")
+    print(f"  {'nhom':12s} | " + " | ".join(f"{n:>12s}" for n in names))
+    for g, d in by_group.items():
+        print(f"  {g:12s} | " + " | ".join(f"{d.get(n, [0, 0])[0]:5d}/{d.get(n, [0, 0])[1]:<6d}" for n in names))
     print("\nTONG (cac kich ban co tieu chi): " + ", ".join(f"{n}: {t[0]}/{t[1]} DAT" for n, t in total.items()))
     if a.json:
         json.dump({f"{g}|{lab}": v for (g, lab), v in res.items()}, open(a.json, "w"), indent=1)

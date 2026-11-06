@@ -351,7 +351,23 @@ follow_planner_node:
     # Gioi han CPU moi lan tim (xe dang dung yen nen cham mot nhip van an toan). Do 05/11 tren may nay: trung vi 7
     # buoc / 2.5 ms, p90 ~400 buoc / ~90 ms, toi da ~900 buoc; dung truong khoang cach ~18 ms. Mini PC cham ~3 lan.
     escape_max_expansions: 1500
-    escape_max_sec: 0.25
+    # 06/11: tim CHIA NHIP — moi nhip dieu khien tim escape_slice_exp buoc roi nhuong (xe dung yen, van gui lenh deu;
+    # ~25-40 ms tren laptop, mini PC ~3 lan lau hon — chi cho lau hon, cung mot ke hoach). escape_max_sec: tran TONG thoi
+    # gian (hiem khi cham). Truoc 06/11: 0.25 s mot mach -> may ban thi tim duoc it buoc, bay sau khong ra ke hoach.
+    # Gioi han chinh la escape_max_expansions (bay sau: gap doi).
+    escape_max_sec: 3.0
+    escape_slice_exp: 150
+    # 06/11 — CHO HEP. Bay sau (tui chu U, hanh lang cut): nguoi con xa ma ban do thuong (nhin 1 m sau xe) bao dung cho
+    # -> lap lai voi luoi nhin escape_far_back_m sau xe; thoat ket khi do tim trong cua so rong bang do, lui duoc vao VET
+    # than xe da di qua trong escape_trail_sec (luat lui khac van 30 s).
+    escape_far_back_m: 2.6
+    escape_trail_sec: 90.0
+    # "Duoi xe vuong — nhich toi de xoay ve phia nguoi": khong nhich khi da cach nguoi duoi creep_min_dist_m, moi dot toi
+    # da creep_max_m (truoc 06/11 khong gioi han -> mo phong goc tuong: xe bo toi cach nguoi 0.43 m). Het cach ma nguoi
+    # lech hon face_escape_deg -> tim chuoi dong tac quay mat ve nguoi.
+    creep_min_dist_m: 0.80
+    creep_max_m: 0.45
+    face_escape_deg: 20.0
 
     # ── Tang chon khe (VFH) chay TRUOC DWA ────────────────────────────────
     # Quet cac huong -100..+100 do, thu di duoc bao xa. Thu lan luot tu xa ve gan.
@@ -370,6 +386,9 @@ follow_planner_node:
     # Mat nguoi -> truoc khi xoay quet, lai toi cho thay nguoi lan cuoi toi da bay
     # nhieu giay (nguoi re khuat sau goc tuong thi phai toi goc moi thay). 0 = tat.
     search_goto_max_sec: 8.0
+    # 06/11: pha di toi gia han theo duong ban do / luc thoat ket toi da chung nay giay (05/11: 30 s — khong du lui ra
+    # khoi hanh lang cut 2 m o 0.06 m/s roi vong qua vach)
+    search_goto_cap_sec: 75.0
     search_w: 0.35
     search_max_sec: 12.0
 
