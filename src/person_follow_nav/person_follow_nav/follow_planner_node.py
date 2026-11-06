@@ -146,6 +146,7 @@ class FollowPlannerNode(Node):
         self.retrace_t = 0.0
         self.esc_fail_t = 0.0               # lan cuoi tim thoat ket KHONG ra ke hoach
         self.esc_fail_ext = False
+        self.esc_retreat_t = 0.0            # tim khong ra luc dang sat vat -> lui ngan theo vet (06/11)
         self.robot_x = 0.0
         self.robot_y = 0.0
         self.scan_pts = np.zeros((0, 2))
@@ -2215,6 +2216,20 @@ class FollowPlannerNode(Node):
                     return o[0], o[1], o[2], 0.0
             return None
 
+        # 06/11: vua tim thoat ket KHONG ra ma xe dang sat vat (mui da chui vao mieng khe 0.70 m roi ban do doi sang
+        # "vong", goc ket) -> trong 2.5 s chi xoay ve huong duong (neu quet duoc) hoac LUI (cung han muc / kiem tra cho
+        # da biet trong nhu moi lan lui), khong de DWA tien lai: truoc day "lui 1 nhip - DWA tien 1 nhip" xen ke, xe chui
+        # lai vao mieng khe, lan tim sau van tu tu the kho (can 7000-22000 buoc, tran 1500) -> dung giang co mai (mo
+        # phong bay_khe 0.70 m tuong thap 0/3). Lui ra 10-15 cm thi lan tim sau thuong ra ngay.
+        if time.time() - self.esc_retreat_t < 2.5:
+            out = rot()
+            if out is None:
+                out = back()
+            if out is not None:
+                self.nav_rotating = out[0] == 0.0
+                return out[0], out[1], ("ban do: ket — lui ra cho de xoay" if out[0] < 0
+                                        else "ban do: xoay ve huong duong di"), 0.0
+            self.esc_retreat_t = 0.0
         thr = math.radians(25.0) if self.nav_rotating else self.nav_turn_first
         if abs(la) > math.radians(110.0):
             # Duong bat dau bang doan LUI: xe da vao sat vat, hoac nguoi thu hai buoc toi sat mui xe. Con
@@ -2250,13 +2265,24 @@ class FollowPlannerNode(Node):
         # la xoay ve phia duong thi goc mui quet vao vat, nen DWA chon queo nguoc lai — cu the xe chui dan vao
         # goc ket giua vat va huong nguoi (mo phong 07/10, nguoi di vong qua thung). Keo dai 0.8 s thi coi nhu
         # ket (thoang qua thi bo qua: nguoi thu hai buoc sat mui xe, xoay/lui ngay lam xe sat chan ho hon).
+        # 06/11: nguong 0.15 -> 0.08 rad/s: chi phi giu khung hinh keo DWA queo CHAM (0.10-0.12) ve phia nguoi = ve
+        # phia tuong, nguoc duong di doc tuong -> mui xe cham tuong, thoat ket, lai queo vao (mo phong bay_khe 0.60 m:
+        # 10 lan thoat ket lien tiep, bo sot vi 0.12 < 0.15).
         now_ = time.time()
-        if res is not None and abs(la) > math.radians(25.0) and res[1] * la < 0.0 and abs(res[1]) > 0.15:
+        if res is not None and abs(la) > math.radians(25.0) and res[1] * la < 0.0 and abs(res[1]) > 0.08:
             if self.nav_fight_t == 0.0:
                 self.nav_fight_t = now_
         else:
             self.nav_fight_t = 0.0
         fights = self.nav_fight_t > 0.0 and now_ - self.nav_fight_t >= 0.8
+        if fights and fov_target is not None:
+            # quay nguoc duong da 0.8 s ma DANG giu khung hinh: thu lai DWA KHONG chi phi khung hinh (UU TIEN DUONG) —
+            # di theo duong thi tam thoi mat camera (bo nho odom + tracker + SEARCH lo), con hon dam vao tuong mai
+            res2 = self._dwa(look, fov_target, dt, allow_reverse=False, fov_active=False, fov_keep=self.nav_fov_keep)
+            if res2 is not None and res2[0] > 0.02 and not (res2[1] * la < 0.0 and abs(res2[1]) > 0.08):
+                self.nav_stall_t = 0.0
+                return res2[0], res2[1], "di vong theo ban do (%s, %.1fm duong, uu tien duong)" % (side, nav["cost"]), \
+                    res2[2]
         if res is not None and res[0] > 0.02 and not fights:
             self.nav_stall_t = 0.0
             return res[0], res[1], "di vong theo ban do (%s, %.1fm duong)" % (side, nav["cost"]), res[2]
@@ -2617,8 +2643,11 @@ class FollowPlannerNode(Node):
         """Bat dau TIM ke hoach thoat ket (06/11: chia nhip — _esc_step tim tiep moi nhip, xe dung yen; co ke hoach thi
         chay luon). True = da bat dau tim."""
         now = time.time()
+        # >= 1 s tu luc BAT DAU lan tim truoc va >= 1 s tu luc lan tim truoc KET THUC khong ra ke hoach: tim chia nhip mat
+        # ~0.7 s, chi dem tu luc bat dau thi gan nhu khong con nhip nao cho cach lui / xoay cu (lui 2-3 cm cho co cho xoay
+        # — ban 05/11 tim mot nhip nen van co) -> xe dung im truoc khe 0.60 m mai (mo phong 06/11, bay_khe tuong cao)
         if (not self.escape_on or nav is None or nav.get("hold") or _sp_dijkstra is None or _edt is None
-                or now - self.esc_try_t < 1.0):
+                or now - self.esc_try_t < 1.0 or now - self.esc_fail_t < 1.0):
             return False
         if nav.get("ext") and self.esc_fail_ext and now - self.esc_fail_t < 3.0:
             return False        # 06/11 bay sau: vua tim khong ra -> de xe lui theo vet them mot doan roi moi tim lai
@@ -2654,7 +2683,7 @@ class FollowPlannerNode(Node):
         (lech <= 12 do), van cach nguoi 0.75 m tro len. Cung bo dong tac, cung kiem tra va cham / cho da biet la trong
         nhu thoat ket theo ban do."""
         now = time.time()
-        if not self.escape_on or _edt is None or now - self.esc_try_t < 1.0:
+        if not self.escape_on or _edt is None or now - self.esc_try_t < 1.0 or now - self.esc_fail_t < 1.0:
             return False
         self.esc_try_t = now
         f = self._esc_fields(trail_sec=self.esc_trail_sec)
@@ -2672,7 +2701,11 @@ class FollowPlannerNode(Node):
         if e is None:
             return None
         if e.get("phase") == "search":
-            # 06/11: dang TIM (chia nhip) — tim tiep mot lat, chua xong thi dung yen cho nhip sau
+            # 06/11: dang TIM (chia nhip) — tim tiep mot lat, chua xong thi dung yen cho nhip sau. Luc tim van tinh la DANG
+            # bam ban do: khong thi _nav_follow tuong "lau roi moi dung ban do" (> 0.5 s), dat lai bo dem — lai "dung cho
+            # 2 s" (duong phia sau, con thay nguoi) — va lan tim sau bat dau truoc khi kip lui / xoay
+            if e.get("mode") == "nav":
+                self.nav_follow_t = time.time()
             try:
                 next(e["gen"])
                 return 0.0, 0.0, "thoat ket — dang tim duong (%d buoc)" % getattr(self, "esc_exp", 0)
@@ -2682,6 +2715,8 @@ class FollowPlannerNode(Node):
                 self.esc = None
                 self.esc_fail_t = time.time()
                 self.esc_fail_ext = bool(e.get("ext"))
+                if e.get("mode") == "nav" and self._clear_now() < self.margin_hard + 0.02:
+                    self.esc_retreat_t = self.esc_fail_t       # xe dang sat vat: _nav_follow lui ngan truoc (xem do)
                 return None
             self._esc_begin(plan, e["why"], e["mode"])
             e = self.esc
