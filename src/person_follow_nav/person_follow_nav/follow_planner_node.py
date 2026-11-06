@@ -132,7 +132,6 @@ class FollowPlannerNode(Node):
         self.goal_bad_since = 0.0           # luc bat dau thay dich cham le an toan
         self.nav_fight_t = 0.0              # luc DWA bat dau queo nguoc huong duong ban do
         self.nav_follow_t = 0.0             # lan goi _nav_follow gan nhat
-        self.nav_stall_t = 0.0              # luc DWA bat dau KHONG tien duoc khi bam duong ban do (06/11)
         self.esc: Optional[Dict[str, Any]] = None   # ke hoach THOAT KET dang chay (05/11)
         self.esc_try_t = 0.0                # lan cuoi thu lap ke hoach thoat ket (gioi han CPU)
         self.prog_hist: deque = deque(maxlen=400)   # (t, x, y) — phat hien xe dung mot cho qua lau
@@ -2177,7 +2176,6 @@ class FollowPlannerNode(Node):
             self.nav_rotating = False
             self.nav_fight_t = 0.0
             self.nav_behind_t = 0.0
-            self.nav_stall_t = 0.0
         self.nav_follow_t = t_call
 
         ext = bool(nav.get("ext"))
@@ -2280,23 +2278,17 @@ class FollowPlannerNode(Node):
             # di theo duong thi tam thoi mat camera (bo nho odom + tracker + SEARCH lo), con hon dam vao tuong mai
             res2 = self._dwa(look, fov_target, dt, allow_reverse=False, fov_active=False, fov_keep=self.nav_fov_keep)
             if res2 is not None and res2[0] > 0.02 and not (res2[1] * la < 0.0 and abs(res2[1]) > 0.08):
-                self.nav_stall_t = 0.0
                 return res2[0], res2[1], "di vong theo ban do (%s, %.1fm duong, uu tien duong)" % (side, nav["cost"]), \
                     res2[2]
         if res is not None and res[0] > 0.02 and not fights:
-            self.nav_stall_t = 0.0
             return res[0], res[1], "di vong theo ban do (%s, %.1fm duong)" % (side, nav["cost"]), res[2]
         out = rot()
         if out is not None:
             self.nav_rotating = True
             return out[0], out[1], "ban do: xoay ve huong duong di", 0.0
-        # 06/11: DWA chi KHONG tien duoc mot hai nhip (di sat vat, lenh 0 / khong co lenh xen ke lenh tien cham) thi giu
-        # lenh DWA, chua lui / thoat ket: truoc day nhip nao DWA ra 0 la lui ngay -> tien +0.04 / lui -0.04 xen ke moi
-        # 0.2-0.4 s, xe rung tai cho mai (mo phong chu L sat vat thap 9 cm). Ket lien tuc 0.6 s moi coi la ket.
-        if self.nav_stall_t == 0.0:
-            self.nav_stall_t = now_
-        if now_ - self.nav_stall_t < 0.6 and res is not None:
-            return res[0], res[1], "di vong theo ban do (%s, %.1fm duong)" % (side, nav["cost"]), res[2]
+        # 06/11 da thu va BO: "DWA khong tien duoc thi cho 0.6 s roi moi thoat ket / lui" — ke hoach thoat ket vua xong
+        # ma DWA khong tien thi phai lap ke hoach moi NGAY (vd. lui cheo 8 cm cho thoang roi moi chay doc vat); cho thi DWA
+        # bo sat vat 7-8 cm chi 0.04 m/s, mat nguoi (hoi quy 3 mam, nhom chu L: co cho 207/240, bo cho 227/240).
         o4 = esc("ban do ket, khong xoay duoc")
         if o4 is not None:
             return o4
