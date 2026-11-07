@@ -1,0 +1,360 @@
+[INFO] [launch]: All log files can be found below /home/thach/.ros/log/2026-11-07-10-40-35-759573-thachLG-10369
+[INFO] [launch]: Default logging verbosity is set to INFO
+[INFO] [launch.user]: ==================================================================
+[INFO] [launch.user]:  BAM NGUOI + NE VAT CAN — BW-DR03
+[INFO] [launch.user]:    1) ros2 service call /person_reid/start_enroll  std_srvs/srv/Trigger {}
+[INFO] [launch.user]:    2) ros2 service call /person_reid/finish_enroll std_srvs/srv/Trigger {}
+[INFO] [launch.user]:    3) ros2 service call /follow/enable             std_srvs/srv/Trigger {}
+[INFO] [launch.user]:    DUNG: ros2 service call /follow/stop            std_srvs/srv/Trigger {}
+[INFO] [launch.user]:  Theo doi: ros2 topic echo /follow/planner_status
+[INFO] [launch.user]:  RSSI (start_rssi:=true): chi dung khi MAT NGUOI — xe xoay ~1 vong do huong beacon
+[INFO] [launch.user]: ==================================================================
+[INFO] [sc_mini-1]: process started with pid [10373]
+[INFO] [static_transform_publisher-2]: process started with pid [10374]
+[INFO] [decoded_serial_node-3]: process started with pid [10375]
+[INFO] [python3-4]: process started with pid [10376]
+[INFO] [rssi_scanner-5]: process started with pid [10377]
+[INFO] [rssi_bearing-6]: process started with pid [10378]
+[INFO] [target_tracker-7]: process started with pid [10379]
+[INFO] [follow_planner-8]: process started with pid [10380]
+[static_transform_publisher-2] [WARN] [1794022835.832865108] []: Old-style arguments are deprecated; see --help for new-style arguments
+[static_transform_publisher-2] [INFO] [1794022835.846168912] [base_to_laser]: Spinning until stopped - publishing transform
+[static_transform_publisher-2] translation: ('0.100000', '0.000000', '0.180000')
+[static_transform_publisher-2] rotation: ('0.000000', '0.000000', '0.000000', '1.000000')
+[static_transform_publisher-2] from 'base_link' to 'laser'
+[rssi_bearing-6] [INFO] [1794022836.198865182] [rssi_bearing_node]: rssi_bearing: mau ['A', 'B', 'C'], can xoay >= 250 do trong 14 s, corr >= 0.45 & margin >= 0.1 (hoac corr >= 0.35 & margin >= 0.25)
+[rssi_scanner-5] [INFO] [1794022836.264662322] [rssi_scanner_node]: rssi_scanner: doc 3 cong @ 115200 baud -> /rssi/raw
+[target_tracker-7] [INFO] [1794022836.277860456] [target_tracker_node]: target_tracker_node san sang | lidar_yaw_offset=-90.0 deg sign=1 | fuse_lidar_distance=True | predict_max=2.5s
+[decoded_serial_node-3] [INFO] [1794022836.291093022] [bw_dr03_decoded_serial_node]: BW-DR03 decoder connected on /dev/serial/by-id/usb-FTDI_FT231X_USB_UART_D30BF0NT-if00-port0 at 115200
+[rssi_scanner-5] [INFO] [1794022836.291155950] [rssi_scanner_node]: /dev/serial/by-path/pci-0000:05:00.3-usb-0:1.3:1.0-port0: da mo
+[decoded_serial_node-3] [INFO] [1794022836.291483647] [bw_dr03_decoded_serial_node]: Params: max_linear=0.49, max_angular=2.46, max_percent=60, cmd_timeout=1.0
+[rssi_scanner-5] [INFO] [1794022836.292837180] [rssi_scanner_node]: /dev/serial/by-path/pci-0000:05:00.3-usb-0:1.2:1.0-port0: da mo
+[rssi_scanner-5] [INFO] [1794022836.292974908] [rssi_scanner_node]: /dev/serial/by-path/pci-0000:05:00.3-usb-0:1.1:1.0-port0: da mo
+[target_tracker-7] [INFO] [1794022836.316399340] [target_tracker_node]: muc tieu: wait_odom
+[follow_planner-8] [INFO] [1794022836.317461982] [follow_planner_node]: follow_planner_node san sang | footprint 0.47x0.60m | v_max=0.22 w_max=1.00 | khoang cach bam=1.00m | margin mem=0.15 cung=0.06 | enabled=False
+[follow_planner-8] [INFO] [1794022836.317859731] [follow_planner_node]: Bat bam: ros2 service call /follow/enable std_srvs/srv/Trigger {}
+[follow_planner-8] [INFO] [1794022836.369448336] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-
+[rssi_bearing-6] [INFO] [1794022836.384495111] [rssi_bearing_node]: chua co huong hop le: chua du du lieu
+[decoded_serial_node-3] [INFO] [1794022836.436281997] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1794022836.503366180] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1794022836.570724632] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1794022836.636312805] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1794022836.703020611] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1794022836.769651242] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1794022836.836294934] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1794022836.902965933] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1794022836.969616748] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1794022837.036279437] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1794022837.103007429] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1794022837.169729483] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1794022837.236488344] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1794022837.303004995] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[target_tracker-7] [INFO] [1794022837.366302848] [target_tracker_node]: muc tieu: no_target_yet
+[decoded_serial_node-3] [INFO] [1794022837.369505022] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1794022837.436162962] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[follow_planner-8] [INFO] [1794022837.436197394] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-
+[decoded_serial_node-3] [INFO] [1794022837.502898077] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1794022837.570504678] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1794022837.636380181] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[rssi_scanner-5] [INFO] [1794022837.689745002] [rssi_scanner_node]: /dev/serial/by-path/pci-0000:05:00.3-usb-0:1.1:1.0-port0: board A khoi dong
+[decoded_serial_node-3] [INFO] [1794022837.703076115] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1794022837.769522713] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1794022837.836381309] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1794022837.903000067] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1794022837.969489409] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1794022838.036378875] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1794022838.103099743] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[rssi_scanner-5] [INFO] [1794022838.118096652] [rssi_scanner_node]: /dev/serial/by-path/pci-0000:05:00.3-usb-0:1.2:1.0-port0: board B khoi dong
+[rssi_scanner-5] [INFO] [1794022838.131488318] [rssi_scanner_node]: /dev/serial/by-path/pci-0000:05:00.3-usb-0:1.3:1.0-port0: board C khoi dong
+[decoded_serial_node-3] [INFO] [1794022838.169686446] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1794022838.236266024] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[python3-4] [INFO] [1794022838.237082893] [identity_lock_node]: Loading detector/tracker/identity lock...
+[python3-4] [INFO] [1794022838.282656588] [identity_lock_node]: Models loaded; torch cuda/rocm backend not available; using CPU; detector=yolo26n_416x320.onnx (onnxruntime), reid=osnet_x0_5_msmt17.onnx (onnxruntime), ort_threads=2, torch_threads=16
+[decoded_serial_node-3] [INFO] [1794022838.302954835] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[target_tracker-7] [INFO] [1794022838.366301369] [target_tracker_node]: muc tieu: no_target_yet
+[decoded_serial_node-3] [INFO] [1794022838.369532039] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[follow_planner-8] [INFO] [1794022838.436224411] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-
+[decoded_serial_node-3] [INFO] [1794022838.436288526] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[python3-4] [INFO] [1794022838.470345317] [identity_lock_node]: camera: MJPG 640x480 25 fps, phoi sang fixed_fps 30 ms
+[decoded_serial_node-3] [INFO] [1794022838.503665977] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1794022838.569657837] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1794022838.636960487] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1794022838.703668295] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1794022838.769861997] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1794022838.836338280] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1794022838.902991471] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1794022838.969404826] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[follow_planner-8] [INFO] [1794022838.981737412] [follow_planner_node]: self-filter: bo 9/221 tia dap vao than xe
+[decoded_serial_node-3] [INFO] [1794022839.036172000] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[python3-4] Warning: Ignoring XDG_SESSION_TYPE=wayland on Gnome. Use QT_QPA_PLATFORM=wayland to run on Wayland anyway.
+[decoded_serial_node-3] [INFO] [1794022839.102977168] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1794022839.169717034] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1794022839.236468773] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1794022839.302851259] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1794022839.369695608] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[target_tracker-7] [INFO] [1794022839.416285641] [target_tracker_node]: muc tieu: no_target_yet
+[decoded_serial_node-3] [INFO] [1794022839.436230070] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[follow_planner-8] [INFO] [1794022839.503013866] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-
+[decoded_serial_node-3] [INFO] [1794022839.503025739] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1794022839.569684868] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1794022839.636272759] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1794022839.702958009] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1794022839.769570832] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1794022839.836368877] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1794022839.903010196] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1794022839.970045702] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1794022840.036345077] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1794022840.102967400] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1794022840.169682333] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1794022840.236251228] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1794022840.303042149] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1794022840.369760644] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[target_tracker-7] [INFO] [1794022840.416614260] [target_tracker_node]: muc tieu: no_target_yet
+[decoded_serial_node-3] [INFO] [1794022840.436352097] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1794022840.502964922] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[follow_planner-8] [INFO] [1794022840.503064656] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-
+[decoded_serial_node-3] [INFO] [1794022840.569506508] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1794022840.636302179] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1794022840.703076478] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1794022840.769842465] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[sc_mini-1] sc_mini start
+[decoded_serial_node-3] [INFO] [1794022840.836498033] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1794022840.903222465] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1794022840.970007450] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1794022841.036438616] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1794022841.103126242] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1794022841.170014524] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1794022841.236766265] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1794022841.303869449] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1794022841.369999040] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[target_tracker-7] [INFO] [1794022841.416701868] [target_tracker_node]: muc tieu: no_target_yet
+[decoded_serial_node-3] [INFO] [1794022841.436468201] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[follow_planner-8] [INFO] [1794022841.503138017] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-
+[decoded_serial_node-3] [INFO] [1794022841.503140392] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1794022841.570047670] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1794022841.636772103] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1794022841.703204458] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1794022841.770135482] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1794022841.836824296] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1794022841.903350448] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1794022841.970089128] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1794022842.036595096] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1794022842.103104627] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1794022842.171428366] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1794022842.236606923] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1794022842.303289800] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1794022842.369947745] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[target_tracker-7] [INFO] [1794022842.416738435] [target_tracker_node]: muc tieu: no_target_yet
+[decoded_serial_node-3] [INFO] [1794022842.436762414] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[follow_planner-8] [INFO] [1794022842.503148464] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-
+[decoded_serial_node-3] [INFO] [1794022842.503160337] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1794022842.569764852] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1794022842.636717249] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1794022842.703352635] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1794022842.770053322] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1794022842.836672085] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1794022842.903117501] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1794022842.970048526] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1794022843.036616235] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1794022843.103160199] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1794022843.171381831] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1794022843.236955762] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1794022843.303287197] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1794022843.370012818] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1794022843.436781183] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[target_tracker-7] [INFO] [1794022843.466949537] [target_tracker_node]: muc tieu: no_target_yet
+[follow_planner-8] [INFO] [1794022843.504288055] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-
+[decoded_serial_node-3] [INFO] [1794022843.504341484] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1794022843.570031771] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1794022843.636661221] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1794022843.703910446] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1794022843.770055473] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1794022843.836769222] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1794022843.903982828] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1794022843.970140916] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1794022844.036828544] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1794022844.103322641] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[rssi_scanner-5] [WARN] [1794022844.164900088] [rssi_scanner_node]: Chua thay beacon tu luc khoi dong (8 s) — beacon chua bat / sac du phong tu ngat?
+[decoded_serial_node-3] [INFO] [1794022844.170087445] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1794022844.236520989] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1794022844.303430645] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1794022844.370006666] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1794022844.436753660] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[target_tracker-7] [INFO] [1794022844.468214995] [target_tracker_node]: muc tieu: no_target_yet
+[decoded_serial_node-3] [INFO] [1794022844.503356990] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[follow_planner-8] [INFO] [1794022844.569941323] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-
+[decoded_serial_node-3] [INFO] [1794022844.570012561] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1794022844.636452042] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1794022844.703510111] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1794022844.770019643] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1794022844.836640783] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1794022844.903157439] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1794022844.970017227] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1794022845.036741663] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1794022845.103217951] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1794022845.169899644] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1794022845.236647827] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1794022845.303164483] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1794022845.369983904] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1794022845.436500561] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1794022845.503601374] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[target_tracker-7] [INFO] [1794022845.516776951] [target_tracker_node]: muc tieu: no_target_yet
+[decoded_serial_node-3] [INFO] [1794022845.569960119] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1794022845.636436407] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[follow_planner-8] [INFO] [1794022845.636449468] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-
+[decoded_serial_node-3] [INFO] [1794022845.703071795] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1794022845.770765076] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1794022845.836637024] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1794022845.903558553] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1794022845.969981413] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1794022846.036806770] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1794022846.103091903] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1794022846.169892327] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1794022846.236722435] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1794022846.303465869] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1794022846.370423018] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1794022846.436505121] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1794022846.503078769] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[target_tracker-7] [INFO] [1794022846.567011841] [target_tracker_node]: muc tieu: no_target_yet
+[decoded_serial_node-3] [INFO] [1794022846.571609104] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1794022846.636452843] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1794022846.703231896] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[follow_planner-8] [INFO] [1794022846.703301947] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-
+[decoded_serial_node-3] [INFO] [1794022846.771156703] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1794022846.836790002] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1794022846.903063261] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1794022846.970045344] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1794022847.036528758] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1794022847.103206890] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1794022847.169927766] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1794022847.236801805] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1794022847.303115434] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1794022847.370058336] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1794022847.436570246] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1794022847.503392043] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1794022847.569939571] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[target_tracker-7] [INFO] [1794022847.616716017] [target_tracker_node]: muc tieu: no_target_yet
+[decoded_serial_node-3] [INFO] [1794022847.636560713] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1794022847.703048876] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1794022847.769887296] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[follow_planner-8] [INFO] [1794022847.769935975] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-
+[decoded_serial_node-3] [INFO] [1794022847.836451447] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1794022847.903305301] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1794022847.969985809] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1794022848.036444289] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1794022848.103025063] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1794022848.169819553] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1794022848.236792140] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1794022848.303372914] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1794022848.370065295] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1794022848.436689999] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1794022848.503187662] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[python3-4] [INFO] [1794022848.547571678] [identity_lock_node]: camera: nhan nan fps (phoi sang 30 ms, do sang 145), xu ly 11.8 Hz, TB 19 ms/khung, tre tu luc chup 76.5 ms, 0 nguoi, status WAITING_FOR_ENROLLMENT
+[decoded_serial_node-3] [INFO] [1794022848.569922786] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[target_tracker-7] [INFO] [1794022848.616948567] [target_tracker_node]: muc tieu: no_target_yet
+[decoded_serial_node-3] [INFO] [1794022848.636429947] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1794022848.703218500] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1794022848.769864577] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[follow_planner-8] [INFO] [1794022848.836606825] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-
+[decoded_serial_node-3] [INFO] [1794022848.836611574] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1794022848.903155541] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1794022848.970028394] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1794022849.036748084] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[follow_planner-8] [INFO] [1794022849.082287353] [follow_planner_node]: self-filter: bo 15/231 tia dap vao than xe
+[decoded_serial_node-3] [INFO] [1794022849.103331233] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1794022849.169951189] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1794022849.236586580] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1794022849.303088993] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1794022849.369968970] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1794022849.436797893] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1794022849.503350172] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1794022849.569974877] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1794022849.636631640] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[target_tracker-7] [INFO] [1794022849.666775063] [target_tracker_node]: muc tieu: no_target_yet
+[decoded_serial_node-3] [INFO] [1794022849.703172047] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1794022849.769865616] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1794022849.836639922] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[follow_planner-8] [INFO] [1794022849.836643484] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-
+[decoded_serial_node-3] [INFO] [1794022849.903356051] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1794022849.969812158] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1794022850.036517601] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1794022850.103135183] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1794022850.170085212] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1794022850.236459396] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1794022850.303189773] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1794022850.370051941] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1794022850.436929544] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1794022850.503122070] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1794022850.570056664] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1794022850.636669497] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[target_tracker-7] [INFO] [1794022850.666622951] [target_tracker_node]: muc tieu: no_target_yet
+[decoded_serial_node-3] [INFO] [1794022850.703326261] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1794022850.769980650] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1794022850.836756144] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[follow_planner-8] [INFO] [1794022850.836789389] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-
+[decoded_serial_node-3] [INFO] [1794022850.903141014] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1794022850.969974687] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1794022851.036715750] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1794022851.103164735] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1794022851.169921233] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1794022851.236667046] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1794022851.303093472] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1794022851.369981762] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1794022851.436737073] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1794022851.503304789] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1794022851.570218013] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1794022851.636474654] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1794022851.703226403] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[target_tracker-7] [INFO] [1794022851.716599074] [target_tracker_node]: muc tieu: no_target_yet
+[decoded_serial_node-3] [INFO] [1794022851.769847548] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1794022851.836638478] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[follow_planner-8] [INFO] [1794022851.903269122] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-
+[decoded_serial_node-3] [INFO] [1794022851.903291681] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1794022851.969887893] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1794022852.036520911] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1794022852.103016202] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1794022852.169782200] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1794022852.236454400] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1794022852.303076734] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1794022852.370671474] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1794022852.436411636] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1794022852.503087398] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1794022852.570327132] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1794022852.636457919] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1794022852.703132494] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[target_tracker-7] [INFO] [1794022852.766300943] [target_tracker_node]: muc tieu: no_target_yet
+[decoded_serial_node-3] [INFO] [1794022852.769614725] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1794022852.836221623] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1794022852.902776280] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1794022852.969727498] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[follow_planner-8] [INFO] [1794022852.969900845] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-
+[decoded_serial_node-3] [INFO] [1794022853.036330834] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1794022853.103038655] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1794022853.169587376] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[decoded_serial_node-3] [INFO] [1794022853.236210897] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[WARNING] [launch]: user interrupted with ctrl-c (SIGINT)
+[static_transform_publisher-2] [INFO] [1794022853.242567754] [rclcpp]: signal_handler(SIGINT/SIGTERM)
+[sc_mini-1] [INFO] [1794022853.242577253] [rclcpp]: signal_handler(SIGINT/SIGTERM)
+[decoded_serial_node-3] [INFO] [1794022853.243028431] [bw_dr03_decoded_serial_node]: SEND MOTOR CMD: cd eb d7 09 74 53 53 53 53 1e 1e 00 00
+[decoded_serial_node-3] Failed to publish log message to rosout: publisher's context is invalid, at ./src/rcl/publisher.c:423
+[decoded_serial_node-3] Traceback (most recent call last):
+[decoded_serial_node-3]   File "/home/thach/ros2_ws/ros2_jazzy_person_reid_ws/install/bw_dr03_ros2/lib/bw_dr03_ros2/decoded_serial_node", line 33, in <module>
+[decoded_serial_node-3]     sys.exit(load_entry_point('bw-dr03-ros2==0.0.0', 'console_scripts', 'decoded_serial_node')())
+[decoded_serial_node-3]              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[decoded_serial_node-3]   File "/home/thach/ros2_ws/ros2_jazzy_person_reid_ws/install/bw_dr03_ros2/lib/python3.12/site-packages/bw_dr03_ros2/decoded_serial_node.py", line 531, in main
+[decoded_serial_node-3]     rclpy.shutdown()
+[decoded_serial_node-3]   File "/opt/ros/jazzy/lib/python3.12/site-packages/rclpy/__init__.py", line 134, in shutdown
+[decoded_serial_node-3]     _shutdown(context=context)
+[decoded_serial_node-3]   File "/opt/ros/jazzy/lib/python3.12/site-packages/rclpy/utilities.py", line 82, in shutdown
+[decoded_serial_node-3]     context.shutdown()
+[decoded_serial_node-3]   File "/opt/ros/jazzy/lib/python3.12/site-packages/rclpy/context.py", line 129, in shutdown
+[decoded_serial_node-3]     self.__context.shutdown()
+[decoded_serial_node-3] rclpy._rclpy_pybind11.RCLError: failed to shutdown: rcl_shutdown already called on the given context, at ./src/rcl/init.c:333
+[INFO] [static_transform_publisher-2]: process has finished cleanly [pid 10374]
+[INFO] [rssi_scanner-5]: process has finished cleanly [pid 10377]
+[INFO] [rssi_bearing-6]: process has finished cleanly [pid 10378]
+[INFO] [target_tracker-7]: process has finished cleanly [pid 10379]
+[INFO] [follow_planner-8]: process has finished cleanly [pid 10380]
+[ERROR] [decoded_serial_node-3]: process has died [pid 10375, exit code 1, cmd '/home/thach/ros2_ws/ros2_jazzy_person_reid_ws/install/bw_dr03_ros2/lib/bw_dr03_ros2/decoded_serial_node --ros-args -r __node:=bw_dr03_decoded_serial_node --params-file /tmp/launch_params_n32y2uh6'].
+[INFO] [sc_mini-1]: process has finished cleanly [pid 10373]
+[INFO] [python3-4]: process has finished cleanly [pid 10376]
