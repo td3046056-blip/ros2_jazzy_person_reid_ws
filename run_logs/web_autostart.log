@@ -1,0 +1,182 @@
+2026-10-10 20:41:15 container khoi dong
+2026-10-10 20:41:15 bat web_server (image_max_fps 8)
+[INFO] [1791639677.756905512] [robot_web]: Trang dieu khien: http://10.42.0.11:8080, http://172.17.0.1:8080
+[INFO] [1791639677.758897247] [robot_web]: Mat khau trang web: xem /home/xiaoqiang/.config/robot_web.conf
+2026-10-10 20:41:38 web_server thoat (ma 137) -> bat lai sau 3 s
+2026-10-10 20:41:41 bat web_server (image_max_fps 8)
+[INFO] [1791639703.076236301] [robot_web]: Trang dieu khien: http://10.42.0.11:8080, http://172.17.0.1:8080
+[INFO] [1791639703.077994026] [robot_web]: Mat khau trang web: xem /home/xiaoqiang/.config/robot_web.conf
+2026-10-10 20:42:06 nhan tin hieu tat container -> dung xe + tat he robot
+std_srvs.srv.Trigger_Response(success=True, message='DUNG KHAN CAP')
+2026-10-10 20:42:10 SIGINT nhom 118 (follow_nav_real.launch.py)
+2026-10-10 20:42:11 da tat
+2026-10-10 20:42:20 container khoi dong
+2026-10-10 20:42:20 bat web_server (image_max_fps 8)
+[INFO] [1791639742.050858762] [robot_web]: Trang dieu khien: http://10.42.0.11:8080, http://172.17.0.1:8080
+[INFO] [1791639742.051946840] [robot_web]: Mat khau trang web: xem /home/xiaoqiang/.config/robot_web.conf
+[INFO] [1791639930.746585192] [robot_web]: [10.42.0.11] login: dang nhap
+[INFO] [1791640063.348987747] [robot_web]: [10.42.0.1] login: dang nhap
+[INFO] [1791640118.933183128] [robot_web]: [10.42.0.1] start: dang kiem tra roi khoi dong
+2026-10-10 20:55:16 nhan tin hieu tat container -> dung xe + tat he robot
+2026-10-10 20:55:23 da tat
+2026-10-10 20:55:52 container khoi dong
+2026-10-10 20:55:53 bat web_server (image_max_fps 8)
+[INFO] [1791640556.588261030] [robot_web]: Trang dieu khien: http://10.42.0.11:8080, http://172.17.0.1:8080
+[INFO] [1791640556.589102931] [robot_web]: Mat khau trang web: xem /home/xiaoqiang/.config/robot_web.conf
+[WARN] [1791640613.484514994] [robot_web]: [10.42.0.1] login: sai mat khau
+[INFO] [1791640617.493051815] [robot_web]: [10.42.0.1] login: dang nhap
+[INFO] [1791640622.640172921] [robot_web]: [10.42.0.1] start: dang kiem tra roi khoi dong
+[INFO] [1791641583.181003495] [robot_web]: [10.42.0.1] check: dang kiem tra
+2026-10-10 21:34:52 nhan tin hieu tat container -> dung xe + tat he robot
+2026-10-10 21:34:59 da tat
+2026-10-10 21:35:27 container khoi dong
+2026-10-10 21:35:28 bat web_server (image_max_fps 8)
+[INFO] [1791642931.453279188] [robot_web]: Trang dieu khien: http://10.42.0.11:8080, http://172.17.0.1:8080
+[INFO] [1791642931.454360930] [robot_web]: Mat khau trang web: xem /home/xiaoqiang/.config/robot_web.conf
+[INFO] [1791642941.450513110] [robot_web]: [10.42.0.1] login: dang nhap
+[INFO] [1791643255.287597921] [robot_web]: [10.42.0.1] start: dang kiem tra roi khoi dong
+2026-10-10 22:15:23 nhan tin hieu tat container -> dung xe + tat he robot
+2026-10-10 22:15:31 da tat
+2026-10-12 12:34:29 container khoi dong
+2026-10-12 12:34:29 bat web_server (image_max_fps 8)
+[INFO] [1791783272.283972502] [robot_web]: Trang dieu khien: http://10.42.0.11:8080, http://172.17.0.1:8080
+[INFO] [1791783272.284813755] [robot_web]: Mat khau trang web: xem /home/xiaoqiang/.config/robot_web.conf
+2026-10-12 13:23:46 nhan tin hieu tat container -> dung xe + tat he robot
+2026-10-12 13:23:53 da tat
+2026-10-13 10:10:37 container khoi dong
+2026-10-13 10:10:38 bat web_server (image_max_fps 8)
+[INFO] [1791861040.741711558] [robot_web]: Trang dieu khien: http://10.42.0.11:8080, http://172.17.0.1:8080
+[INFO] [1791861040.742607155] [robot_web]: Mat khau trang web: xem /home/xiaoqiang/.config/robot_web.conf
+[INFO] [1791861332.590409970] [robot_web]: [10.42.0.1] login: dang nhap
+2026-10-13 10:29:42 web_server thoat (ma 0) -> bat lai sau 3 s
+2026-10-13 10:29:45 bat web_server (image_max_fps 8)
+[INFO] [1791862187.238967879] [robot_web]: Trang dieu khien: http://10.42.0.11:8080, http://172.17.0.1:8080
+[INFO] [1791862187.240033169] [robot_web]: Mat khau trang web: xem /home/xiaoqiang/.config/robot_web.conf
+[INFO] [1791862223.991886544] [robot_web]: [127.0.0.1] login: dang nhap
+[WARN] [1791862559.950749576] [robot_web]: [10.42.0.1] login: sai mat khau
+[INFO] [1791862562.272309514] [robot_web]: [10.42.0.1] login: dang nhap
+[INFO] [1791862563.870198322] [robot_web]: [10.42.0.1] start: dang kiem tra roi khoi dong
+[INFO] [1791862609.063051380] [robot_web]: [10.42.0.1] enroll_start: Enrollment started. Stand the target person near the camera center.
+[INFO] [1791862628.759596582] [robot_web]: [10.42.0.1] reset_identity: Target identity reset
+[INFO] [1791863391.802241328] [robot_web]: [10.42.0.1] shutdown: dang tat he thong (dung xe truoc)
+[INFO] [1791863391.821186066] [robot_web]: [-] shutdown: /follow/stop: DUNG KHAN CAP
+2026-10-13 11:24:31 nhan tin hieu tat container -> dung xe + tat he robot
+2026-10-13 11:24:38 da tat
+2026-10-13 11:24:39 container khoi dong
+2026-10-13 11:24:39 bat web_server (image_max_fps 5)
+[INFO] [1791865481.100624631] [robot_web]: Trang dieu khien: http://10.42.0.11:8080, http://172.17.0.1:8080
+[INFO] [1791865481.101757073] [robot_web]: Mat khau trang web: xem /home/xiaoqiang/.config/robot_web.conf
+[INFO] [1791865490.840423731] [robot_web]: [127.0.0.1] login: dang nhap
+[INFO] [1791865490.856105531] [robot_web]: [127.0.0.1] start: dang kiem tra roi khoi dong
+[INFO] [1791865663.447029969] [robot_web]: [127.0.0.1] shutdown: dang tat he thong (dung xe truoc)
+[INFO] [1791865663.482368272] [robot_web]: [-] shutdown: /follow/stop: DUNG KHAN CAP
+[INFO] [1791866963.484940682] [robot_web]: [127.0.0.1] start: dang kiem tra roi khoi dong
+[INFO] [1791867396.691291779] [robot_web]: [10.42.0.1] login: dang nhap
+[INFO] [1791867539.032369055] [robot_web]: [10.42.0.1] shutdown: dang tat he thong (dung xe truoc)
+[INFO] [1791867539.038824489] [robot_web]: [-] shutdown: /follow/stop: DUNG KHAN CAP
+[INFO] [1791870911.964901905] [robot_web]: [10.42.0.1] start: dang kiem tra roi khoi dong
+[INFO] [1791870949.925271023] [robot_web]: [10.42.0.1] enroll_start: Enrollment started. Stand the target person near the camera center.
+[INFO] [1791871022.423363881] [robot_web]: [10.42.0.1] follow_enable: Bam nguoi: BAT
+[INFO] [1791871109.975766694] [robot_web]: [10.42.0.1] follow_disable: Bam nguoi: TAT
+[INFO] [1791871114.489139418] [robot_web]: [10.42.0.1] shutdown: dang tat he thong (dung xe truoc)
+[INFO] [1791871114.503517067] [robot_web]: [-] shutdown: /follow/stop: DUNG KHAN CAP
+2026-10-13 12:58:53 nhan tin hieu tat container -> dung xe + tat he robot
+2026-10-13 12:59:00 da tat
+2026-10-13 14:42:36 container khoi dong
+2026-10-13 14:42:36 bat web_server (image_max_fps 5)
+[INFO] [1791877359.339022517] [robot_web]: Trang dieu khien: http://172.17.0.1:8080
+[INFO] [1791877359.339865830] [robot_web]: Mat khau trang web: xem /home/xiaoqiang/.config/robot_web.conf
+[INFO] [1791878349.909884942] [robot_web]: [192.168.1.102] login: dang nhap
+[INFO] [1791878359.323676482] [robot_web]: [192.168.1.102] start: dang kiem tra roi khoi dong
+[INFO] [1791878386.947345945] [robot_web]: [192.168.1.102] check: dang kiem tra
+[INFO] [1791878510.907714236] [robot_web]: [192.168.1.102] check: dang kiem tra
+[INFO] [1791878523.560727095] [robot_web]: [192.168.1.102] start: dang kiem tra roi khoi dong
+[INFO] [1791878630.355572032] [robot_web]: [192.168.1.102] enroll_start: Enrollment started. Stand the target person near the camera center.
+[INFO] [1791878786.530031315] [robot_web]: [192.168.1.102] follow_enable: Bam nguoi: BAT
+[INFO] [1791878936.457292945] [robot_web]: [192.168.1.102] follow_disable: Bam nguoi: TAT
+[INFO] [1791878941.610352887] [robot_web]: [192.168.1.102] follow_enable: Bam nguoi: BAT
+[INFO] [1791879224.752310899] [robot_web]: [192.168.1.102] follow_disable: Bam nguoi: TAT
+[INFO] [1791879230.224688896] [robot_web]: [192.168.1.102] estop: DUNG KHAN CAP
+[INFO] [1791879239.298792272] [robot_web]: [192.168.1.102] shutdown: dang tat he thong (dung xe truoc)
+[INFO] [1791879239.316390493] [robot_web]: [-] shutdown: /follow/stop: DUNG KHAN CAP
+[INFO] [1791879410.885577095] [robot_web]: [192.168.1.101] login: dang nhap
+[WARN] [1791879462.821438231] [robot_web]: [192.168.1.101] estop: KHONG DUNG DUOC QUA WEB (/follow/stop chua san sang; /follow/disable chua san sang) — dung cong tac nguon dong co
+[INFO] [1791881126.799840845] [robot_web]: [192.168.1.101] start: dang kiem tra roi khoi dong
+[INFO] [1791881172.671511944] [robot_web]: [192.168.1.101] bag_start: bat dau ghi bag
+[INFO] [1791881180.382558888] [robot_web]: [192.168.1.101] enroll_start: Enrollment started. Stand the target person near the camera center.
+[INFO] [1791881185.951585304] [robot_web]: [192.168.1.101] reset_identity: Target identity reset
+[INFO] [1791881187.588531714] [robot_web]: [192.168.1.101] enroll_start: Enrollment started. Stand the target person near the camera center.
+[INFO] [1791881339.786796181] [robot_web]: [192.168.1.101] follow_enable: Bam nguoi: BAT
+[INFO] [1791881488.165136911] [robot_web]: [192.168.1.101] follow_disable: Bam nguoi: TAT
+[INFO] [1791881511.002311908] [robot_web]: [192.168.1.101] follow_enable: Bam nguoi: BAT
+[INFO] [1791881585.834624727] [robot_web]: [192.168.1.101] follow_disable: Bam nguoi: TAT
+[INFO] [1791881595.926525203] [robot_web]: [192.168.1.101] follow_enable: Bam nguoi: BAT
+[INFO] [1791881618.342826222] [robot_web]: [192.168.1.101] follow_disable: Bam nguoi: TAT
+[INFO] [1791881647.418099671] [robot_web]: [192.168.1.101] follow_enable: Bam nguoi: BAT
+[INFO] [1791881689.234080918] [robot_web]: [192.168.1.101] follow_disable: Bam nguoi: TAT
+[INFO] [1791881709.008944677] [robot_web]: [192.168.1.101] follow_enable: Bam nguoi: BAT
+[INFO] [1791881711.546685863] [robot_web]: [192.168.1.101] follow_disable: Bam nguoi: TAT
+[INFO] [1791881714.537202767] [robot_web]: [192.168.1.101] follow_enable: Bam nguoi: BAT
+[INFO] [1791881723.424176902] [robot_web]: [192.168.1.101] follow_disable: Bam nguoi: TAT
+[INFO] [1791881727.431906629] [robot_web]: [192.168.1.101] bag_stop: dang dung ghi bag
+[INFO] [1791881751.132709469] [robot_web]: [192.168.1.101] shutdown: dang tat he thong (dung xe truoc)
+[INFO] [1791881751.137051109] [robot_web]: [-] shutdown: /follow/stop: DUNG KHAN CAP
+                                                                                                                                                                                                                                                                                                                      2026-10-14 10:00:32 container khoi dong
+2026-10-14 10:00:32 bat web_server (image_max_fps 5)
+[INFO] [1791946835.764388954] [robot_web]: Trang dieu khien: http://192.168.1.104:8080, http://172.17.0.1:8080
+[INFO] [1791946835.765226588] [robot_web]: Mat khau trang web: xem /home/xiaoqiang/.config/robot_web.conf
+[INFO] [1791946841.682068882] [robot_web]: [192.168.1.101] login: dang nhap
+[INFO] [1791946855.207227519] [robot_web]: [192.168.1.101] start: dang kiem tra roi khoi dong
+[INFO] [1791946909.273228426] [robot_web]: [192.168.1.101] shutdown: dang tat he thong (dung xe truoc)
+[INFO] [1791946909.282037292] [robot_web]: [-] shutdown: /follow/stop: DUNG KHAN CAP
+[INFO] [1791946954.320725766] [robot_web]: [192.168.1.101] start: dang kiem tra roi khoi dong
+[INFO] [1791947018.713539197] [robot_web]: [192.168.1.101] enroll_start: Enrollment started. Stand the target person near the camera center.
+[INFO] [1791947053.698439816] [robot_web]: [192.168.1.101] bag_start: bat dau ghi bag
+[INFO] [1791947127.615835852] [robot_web]: [192.168.1.101] follow_enable: Bam nguoi: BAT
+[INFO] [1791947194.554857630] [robot_web]: [192.168.1.101] follow_disable: Bam nguoi: TAT
+[INFO] [1791947196.372899645] [robot_web]: [192.168.1.101] follow_enable: Bam nguoi: BAT
+[INFO] [1791947202.464711781] [robot_web]: [192.168.1.101] follow_disable: Bam nguoi: TAT
+[INFO] [1791947214.577106996] [robot_web]: [192.168.1.101] reset_identity: Target identity reset
+[INFO] [1791947220.147738858] [robot_web]: [192.168.1.101] bag_stop: dang dung ghi bag
+[INFO] [1791947225.693847521] [robot_web]: [192.168.1.101] bag_start: bat dau ghi bag
+[INFO] [1791947228.377979660] [robot_web]: [192.168.1.101] enroll_start: Enrollment started. Stand the target person near the camera center.
+[INFO] [1791947314.685804755] [robot_web]: [192.168.1.102] login: dang nhap
+[INFO] [1791947329.545108080] [robot_web]: [192.168.1.101] follow_enable: Bam nguoi: BAT
+2026-10-14 10:12:59 container khoi dong
+2026-10-14 10:13:00 bat web_server (image_max_fps 5)
+[INFO] [1791947582.996863751] [robot_web]: Trang dieu khien: http://192.168.1.104:8080, http://172.17.0.1:8080
+[INFO] [1791947582.997704461] [robot_web]: Mat khau trang web: xem /home/xiaoqiang/.config/robot_web.conf
+[INFO] [1791947588.987126518] [robot_web]: [192.168.1.101] login: dang nhap
+[INFO] [1791947592.976874572] [robot_web]: [192.168.1.101] start: dang kiem tra roi khoi dong
+                                                                                                                                                           2026-10-14 12:30:14 container khoi dong
+2026-10-14 12:30:14 bat web_server (image_max_fps 5)
+[INFO] [1791955817.678370046] [robot_web]: Trang dieu khien: http://172.17.0.1:8080
+[INFO] [1791955817.679217351] [robot_web]: Mat khau trang web: xem /home/xiaoqiang/.config/robot_web.conf
+2026-10-14 12:48:04 nhan tin hieu tat container -> dung xe + tat he robot
+2026-10-14 12:48:11 da tat
+2026-10-14 15:34:09 container khoi dong
+2026-10-14 15:34:10 bat web_server (image_max_fps 5)
+[INFO] [1791966852.936548853] [robot_web]: Trang dieu khien: http://192.168.1.104:8080, http://172.17.0.1:8080
+[INFO] [1791966852.937459591] [robot_web]: Mat khau trang web: xem /home/xiaoqiang/.config/robot_web.conf
+[INFO] [1791966868.022025322] [robot_web]: [192.168.1.101] login: dang nhap
+[INFO] [1791966870.737212629] [robot_web]: [192.168.1.101] start: dang kiem tra roi khoi dong
+[INFO] [1791966919.423270358] [robot_web]: [192.168.1.101] bag_start: bat dau ghi bag
+[INFO] [1791966921.807359168] [robot_web]: [192.168.1.101] enroll_start: Enrollment started. Stand the target person near the camera center.
+[INFO] [1791967025.564112268] [robot_web]: [192.168.1.101] follow_enable: Bam nguoi: BAT
+[INFO] [1791967086.594012985] [robot_web]: [192.168.1.101] follow_disable: Bam nguoi: TAT
+[INFO] [1791967093.665129417] [robot_web]: [192.168.1.101] follow_enable: Bam nguoi: BAT
+[INFO] [1791967106.467332900] [robot_web]: [192.168.1.101] follow_disable: Bam nguoi: TAT
+[INFO] [1791967114.996860460] [robot_web]: [192.168.1.101] follow_enable: Bam nguoi: BAT
+[INFO] [1791967317.953106581] [robot_web]: [192.168.1.101] follow_disable: Bam nguoi: TAT
+[INFO] [1791967338.123689143] [robot_web]: [192.168.1.101] follow_enable: Bam nguoi: BAT
+[INFO] [1791967411.292325153] [robot_web]: [192.168.1.101] follow_disable: Bam nguoi: TAT
+[INFO] [1791967433.679668738] [robot_web]: [192.168.1.101] follow_enable: Bam nguoi: BAT
+[INFO] [1791967529.797230414] [robot_web]: [192.168.1.101] follow_disable: Bam nguoi: TAT
+[INFO] [1791967532.874932969] [robot_web]: [192.168.1.101] bag_stop: dang dung ghi bag
+[INFO] [1791967549.585805285] [robot_web]: [-] shutdown: /follow/stop: DUNG KHAN CAP
+[INFO] [1791967549.587222870] [robot_web]: [192.168.1.101] shutdown: dang tat he thong (dung xe truoc)
+[WARN] [1791967561.952366002] [robot_web]: [192.168.1.101] estop: KHONG DUNG DUOC QUA WEB (/follow/stop chua san sang; /follow/disable chua san sang) — dung cong tac nguon dong co
+2026-10-14 15:48:33 container khoi dong
+2026-10-14 15:48:33 bat web_server (image_max_fps 5)
+[INFO] [1791967716.842927605] [robot_web]: Trang dieu khien: http://192.168.1.104:8080, http://10.165.106.206:8080, http://172.17.0.1:8080
+[INFO] [1791967716.844587143] [robot_web]: Mat khau trang web: xem /home/xiaoqiang/.config/robot_web.conf

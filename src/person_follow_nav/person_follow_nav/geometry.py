@@ -342,6 +342,130 @@ def segment_blocked(
     return True, float(np.min(proj[inside]))
 
 
+# ── Ban NHANH cho mini PC i5-5200U (13/10) ──────────────────────────────────────────────────────────
+# Ba ham duoi cho KET QUA GIONG HET TUNG BIT ban goc (cung phep tinh, cung thu tu tren tung phan tu; chi bo
+# phan viec thua / gop nhieu lan goi thanh mot). scripts/test_fast_geometry.py so sanh voi ban goc.
+
+def rect_clearance_min(
+    X: np.ndarray,
+    Y: np.ndarray,
+    theta: np.ndarray,
+    pts: np.ndarray,
+    front_len: float,
+    rear_len: float,
+    half_width: float,
+    chunk_elems: int = 20000,
+) -> np.ndarray:
+    """= rect_clearance(lx, ly, ...).min(axis=2) voi lx, ly tinh nhu _dwa — do thoang nho nhat tren MOI
+    tu the (X, Y, theta: (N, K)) toi cac diem pts (M, 2). Tra ve (N, K).
+
+    Nhanh hon vi: (1) lay min TRUOC roi moi sqrt (sqrt don dieu, lam tron dung -> sqrt(min) == min(sqrt) tung
+    bit), con N*K sqrt thay vi N*K*M; (2) tinh theo tung khoi quy dao de mang tam nam gon trong cache.
+    """
+    n = X.shape[0]
+    out = np.empty(X.shape, dtype=np.float64)
+    c_all = np.cos(theta)
+    s_all = np.sin(theta)
+    px = pts[None, None, :, 0]
+    py = pts[None, None, :, 1]
+    step = max(1, int(chunk_elems // max(1, X.shape[1] * pts.shape[0])))
+    for i0 in range(0, n, step):
+        i1 = min(n, i0 + step)
+        dx = px - X[i0:i1, :, None]
+        dy = py - Y[i0:i1, :, None]
+        c = c_all[i0:i1, :, None]
+        s = s_all[i0:i1, :, None]
+        lx = c * dx
+        lx += s * dy                      # = c * dx + s * dy
+        ly = -s * dx
+        ly += c * dy                      # = -s * dx + c * dy
+        dxb = np.maximum(-rear_len - lx, lx - front_len)
+        dyb = np.maximum(-half_width - ly, ly - half_width)
+        np.maximum(dxb, 0.0, out=dxb)     # ox
+        np.maximum(dyb, 0.0, out=dyb)     # oy
+        dxb *= dxb
+        dyb *= dyb
+        dxb += dyb                        # = ox * ox + oy * oy
+        out[i0:i1] = dxb.min(axis=2)
+    return np.sqrt(out)
+
+
+def segments_blocked(
+    pts: np.ndarray,
+    goals: List[Tuple[float, float]],
+    corridor_half_width: float,
+) -> np.ndarray:
+    """= [segment_blocked(pts, gx, gy, corridor_half_width)[0] for (gx, gy) in goals] — mot lan cho moi dich.
+
+    Cac so vo huong (length, ux, uy) van tinh bang math nhu ban goc; phan mang tinh cung bieu thuc.
+    """
+    k = len(goals)
+    if pts.shape[0] == 0 or k == 0:
+        return np.zeros(k, dtype=bool)
+    length = np.empty(k)
+    ux = np.empty(k)
+    uy = np.empty(k)
+    valid = np.ones(k, dtype=bool)
+    for i, (gx, gy) in enumerate(goals):
+        L = math.hypot(gx, gy)
+        if L < 1e-3:
+            valid[i] = False
+            L = 1.0
+        length[i] = L
+        ux[i] = gx / L
+        uy[i] = gy / L
+    p0 = pts[None, :, 0]
+    p1 = pts[None, :, 1]
+    proj = p0 * ux[:, None] + p1 * uy[:, None]
+    perp = -p0 * uy[:, None] + p1 * ux[:, None]
+    inside = (proj > 0.05) & (proj < length[:, None]) & (np.abs(perp) < corridor_half_width)
+    return inside.any(axis=1) & valid
+
+
+def grid_min_dist2(
+    GX: np.ndarray,
+    GY: np.ndarray,
+    Q: np.ndarray,
+    cutoff: float,
+    tile: int = 12,
+) -> np.ndarray:
+    """Binh phuong khoang cach tu tam moi o luoi (GX, GY: (ny, nx) float32) toi diem gan nhat trong Q (M, 2)
+    — CHINH XAC TUNG BIT voi vet can (GX - qx)**2 + (GY - qy)**2 cho MOI o co khoang cach < cutoff; o xa hon
+    cutoff co the la inf (nguoi goi chi dung gia tri duoi cutoff).
+
+    Moi khoi tile x tile o chi xet cac diem trong hop bao cua khoi noi them cutoff (+ 2 o du phong) — diem gan
+    nhat cua mot o (neu < cutoff) chac chan nam trong do, nen min giong het vet can.
+    """
+    ny, nx = GX.shape
+    d2 = np.full(GX.shape, np.inf, dtype=np.float32)
+    if Q.shape[0] == 0:
+        return d2
+    res = float(abs(GX[0, 1] - GX[0, 0])) if nx > 1 else float(abs(GY[1, 0] - GY[0, 0])) if ny > 1 else 0.1
+    pad = float(cutoff) + 2.0 * res
+    qx = Q[:, 0]
+    qy = Q[:, 1]
+    for r0 in range(0, ny, tile):
+        r1 = min(ny, r0 + tile)
+        ylo = float(GY[r0:r1, 0].min()) - pad
+        yhi = float(GY[r0:r1, 0].max()) + pad
+        in_y = (qy >= ylo) & (qy <= yhi)
+        if not np.any(in_y):
+            continue
+        for c0 in range(0, nx, tile):
+            c1 = min(nx, c0 + tile)
+            xlo = float(GX[0, c0:c1].min()) - pad
+            xhi = float(GX[0, c0:c1].max()) + pad
+            sel = in_y & (qx >= xlo) & (qx <= xhi)
+            if not np.any(sel):
+                continue
+            q = Q[sel]
+            gx = GX[r0:r1, c0:c1, None]
+            gy = GY[r0:r1, c0:c1, None]
+            dd = (gx - q[:, 0]) ** 2 + (gy - q[:, 1]) ** 2
+            d2[r0:r1, c0:c1] = dd.min(axis=2)
+    return d2
+
+
 # ─────────────────────────────────────────────────────────────────────────────
 # Bo loc alpha-beta 2D cho vi tri muc tieu
 # ─────────────────────────────────────────────────────────────────────────────

@@ -1,0 +1,23 @@
+# ~/rssi_env.sh — cong thiet bi cua robot tren mini PC xiaoqiang-desktop (13/10/2026)
+# run_full.sh tu source file nay. Doi o cam USB thi phai sua lai.
+# Xac dinh 13/10: 3 board tu bao ten + MAC (khop CLAUDE.md), LiDAR la CH340 im lang (chi phat khi duoc lenh).
+#
+# LUU Y: luat udev cu cua hang Xiaoqiang (/etc/udev/rules.d/95-persistent-serial.rules) dung SYMLINK="..."
+# cho cong 2-2, 2-4, 2-7 -> GHI DE duong dan chuan by-id/by-path cua thiet bi o cac cong do.
+# Vi vay LiDAR (cong 2-7) va khung xe (cong 2-2) tam dung ten do luat cu dat (gan voi CONG vat ly, nhu by-path).
+# Neu sau nay go/sua luat cu: PL -> by-path ...-usb-0:7:1.0-port0, PROBOT -> by-id FTDI D30BF0NT.
+
+export WS=$HOME/ros2_ws/ros2_jazzy_person_reid_ws
+
+# 3 board RSSI qua hub 1a40:0101 o cong 2-3
+export PA=/dev/serial/by-path/pci-0000:00:14.0-usb-0:3.1:1.0-port0   # board A dau xe   94:e6:86:0d:ec:52
+export PB=/dev/serial/by-path/pci-0000:00:14.0-usb-0:3.2:1.0-port0   # board B sau phai 48:55:19:bc:73:6a
+export PC=/dev/serial/by-path/pci-0000:00:14.0-usb-0:3.3:1.0-port0   # board C sau trai 48:55:19:bc:72:d2
+
+# LiDAR SC-Mini (CH340) cam thang cong 2-7
+export PL=/dev/galileo_serial
+# Khung xe BW-DR03 (FTDI FT231X D30BF0NT) cam thang cong 2-2 (cong rieng, khong qua hub — CLAUDE.md 7.3)
+export PROBOT=/dev/stm32Car
+# Camera KINGSEN (13/10: CHUA nhan — cong 2-5 bao loi -71 khi cam). Neu xe co 2 camera KINGSEN (cung serial
+# 200901010001) thi by-id trung nhau -> phai doi sang /dev/v4l/by-path/... cua camera TRUOC.
+export PCAM=/dev/v4l/by-id/usb-Generic_KINGSEN_CAMERA_200901010001-video-index0

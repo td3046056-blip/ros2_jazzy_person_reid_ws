@@ -1,0 +1,28 @@
+13:26:06 su_kien         sys             -   he thong STOPPED -> STARTING: he thong dang chay (bat ngoai web)
+13:26:06 su_kien         sys             OK  he thong STARTING -> RUNNING
+13:26:22 127.0.0.1       login           OK  dang nhap
+13:27:04 su_kien         sys             -   he thong STOPPED -> STARTING: he thong dang chay (bat ngoai web)
+13:27:04 su_kien         sys             OK  he thong STARTING -> RUNNING
+13:27:22 127.0.0.1       login           OK  dang nhap
+13:29:31 su_kien         sys             -   he thong STOPPED -> STARTING: he thong dang chay (bat ngoai web)
+13:29:32 su_kien         sys             OK  he thong STARTING -> RUNNING
+13:29:49 127.0.0.1       login           OK  dang nhap
+20:41:49 su_kien         sys             -   he thong STOPPED -> STARTING: he thong dang chay (bat ngoai web)
+20:41:53 su_kien         sys             OK  he thong STARTING -> RUNNING
+20:45:30 10.42.0.11      login           OK  dang nhap
+20:47:43 10.42.0.1       login           OK  dang nhap
+20:48:38 su_kien         sys             -   he thong STOPPED -> CHECKING: dang kiem tra thiet bi truoc khi chay
+20:48:38 10.42.0.1       start           OK  dang kiem tra roi khoi dong
+20:48:42 su_kien         sys             LOI he thong CHECKING -> FAILED: kiem tra co 8 muc HONG — khong khoi dong (xem ket qua)
+20:56:53 10.42.0.1       login           LOI sai mat khau
+20:56:57 10.42.0.1       login           OK  dang nhap
+20:57:02 su_kien         sys             -   he thong STOPPED -> CHECKING: dang kiem tra thiet bi truoc khi chay
+20:57:02 10.42.0.1       start           OK  dang kiem tra roi khoi dong
+20:57:05 su_kien         sys             LOI he thong CHECKING -> FAILED: kiem tra co 8 muc HONG — khong khoi dong (xem ket qua)
+21:13:03 su_kien         sys             -   he thong FAILED -> CHECKING: dang kiem tra thiet bi
+21:13:03 10.42.0.1       check           OK  dang kiem tra
+21:13:06 su_kien         sys             -   he thong CHECKING -> STOPPED: kiem tra: 8 muc HONG, 1 canh bao — sua truoc khi chay
+21:35:41 10.42.0.1       login           OK  dang nhap
+21:40:55 su_kien         sys             -   he thong STOPPED -> CHECKING: dang kiem tra thiet bi truoc khi chay
+21:40:55 10.42.0.1       start           OK  dang kiem tra roi khoi dong
+21:40:58 su_kien         sys             LOI he thong CHECKING -> FAILED: kiem tra co 8 muc HONG — khong khoi dong (xem ket qua)

@@ -1,0 +1,1351 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Robot">
+<meta name="theme-color" content="#0f172a">
+<title>Robot bám người</title>
+<script>
+  // Giao dien da chon tren may nay: "light" / "dark"; khong co = tu dong theo dien thoai
+  try { const t = localStorage.getItem("rw.theme"); if (t === "light" || t === "dark") document.documentElement.dataset.theme = t; } catch (e) {}
+</script>
+<style>
+  /* ── Mau va kich thuoc dung chung ───────────────────────────────── */
+  :root {
+    --bg: #eef2f7; --surface: #ffffff; --surface-2: #f6f8fb; --border: #dfe5ee;
+    --text: #0f172a; --text-2: #475569; --text-3: #8392a7;
+    --primary: #2563eb; --primary-hover: #1d4ed8; --primary-ink: #ffffff; --primary-soft: #e0eaff;
+    --ok: #15803d; --ok-soft: #dcfce7; --warn: #b45309; --warn-soft: #fef3c7; --bad: #c81e1e; --bad-soft: #fee2e2;
+    --idle: #94a3b8; --idle-soft: #eef2f6; --stop: #dc2626; --stop-hover: #b91c1c;
+    --radius: 16px; --radius-sm: 10px;
+    --shadow: 0 1px 2px rgba(15, 23, 42, .05), 0 6px 20px rgba(15, 23, 42, .06);
+    --stopbar: 70px;
+  }
+  :root { color-scheme: light; }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      color-scheme: dark;
+      --bg: #0a0f1c; --surface: #111a2c; --surface-2: #0d1525; --border: #1f2c45;
+      --text: #e6ebf4; --text-2: #a3b0c6; --text-3: #6d7d97;
+      --primary: #3b82f6; --primary-hover: #2563eb; --primary-soft: #132748;
+      --ok: #34d399; --ok-soft: #0d2a20; --warn: #fbbf24; --warn-soft: #2b220b; --bad: #f87171; --bad-soft: #2e1315;
+      --idle: #64748b; --idle-soft: #172236;
+      --shadow: 0 1px 2px rgba(0, 0, 0, .4), 0 8px 24px rgba(0, 0, 0, .35);
+    }
+  }
+  :root[data-theme="dark"] {
+    color-scheme: dark;
+      --bg: #0a0f1c; --surface: #111a2c; --surface-2: #0d1525; --border: #1f2c45;
+      --text: #e6ebf4; --text-2: #a3b0c6; --text-3: #6d7d97;
+      --primary: #3b82f6; --primary-hover: #2563eb; --primary-soft: #132748;
+      --ok: #34d399; --ok-soft: #0d2a20; --warn: #fbbf24; --warn-soft: #2b220b; --bad: #f87171; --bad-soft: #2e1315;
+      --idle: #64748b; --idle-soft: #172236;
+      --shadow: 0 1px 2px rgba(0, 0, 0, .4), 0 8px 24px rgba(0, 0, 0, .35);
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html { background: var(--bg); }
+  body {
+    margin: 0; color: var(--text); background: var(--bg); touch-action: manipulation;
+    font: 15px/1.45 system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    padding-bottom: calc(var(--stopbar) + 20px + env(safe-area-inset-bottom));
+  }
+  .wrap { max-width: 1180px; margin: 0 auto; padding: 0 12px; }
+  button { font: inherit; color: inherit; }
+  [hidden] { display: none !important; }
+  @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
+
+  /* ── Thanh tren cung ───────────────────────────────────────────── */
+  .topbar {
+    position: sticky; top: 0; z-index: 30; background: var(--bg); background: color-mix(in srgb, var(--bg) 88%, transparent);
+    backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border-bottom: 1px solid var(--border);
+  }
+  .topbar .wrap { display: flex; align-items: center; justify-content: space-between; gap: 8px; height: 54px; }
+  .brand { display: flex; align-items: center; gap: 10px; font-weight: 750; font-size: 16.5px; letter-spacing: -.01em; min-width: 0; }
+  .brand > span:last-child { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .brand-mark { flex: none; width: 30px; height: 30px; border-radius: 9px; display: grid; place-items: center; background: var(--primary); color: #fff; }
+  .top-right { display: flex; align-items: center; gap: 6px; flex: none; }
+  .pill {
+    display: inline-flex; align-items: center; gap: 7px; padding: 4px 11px; border-radius: 999px;
+    font-size: 13px; font-weight: 650; white-space: nowrap; background: var(--idle-soft); color: var(--text-2);
+  }
+  .pill::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--idle); flex: none; }
+  .pill.ok { background: var(--ok-soft); color: var(--ok); } .pill.ok::before { background: var(--ok); }
+  .pill.warn { background: var(--warn-soft); color: var(--warn); } .pill.warn::before { background: var(--warn); }
+  .pill.bad { background: var(--bad-soft); color: var(--bad); } .pill.bad::before { background: var(--bad); }
+  .recpill {
+    display: none; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 999px; border: 0; cursor: pointer;
+    background: var(--stop); color: #fff; font-weight: 800; font-size: 12.5px; font-variant-numeric: tabular-nums;
+  }
+  .recpill.show { display: inline-flex; }
+  .themebtn {
+    flex: none; width: 36px; height: 36px; border-radius: 50%; border: 1px solid var(--border); cursor: pointer;
+    background: var(--surface); color: var(--text-2); font-size: 17px; line-height: 1; display: grid; place-items: center;
+  }
+  .recpill::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: #fff; animation: blink 1.2s infinite; }
+  @keyframes blink { 50% { opacity: .25; } }
+
+  /* ── Bang mat ket noi + canh bao ───────────────────────────────── */
+  #lost {
+    display: none; margin: 12px 0 0; padding: 12px 14px; border-radius: var(--radius-sm);
+    background: var(--stop); color: #fff; font-weight: 750;
+  }
+  #lost span { display: block; font-weight: 500; font-size: 13px; opacity: .92; }
+  body.lost #lost { display: block; }
+  body.lost main { opacity: .45; }
+  .alert { margin: 12px 0 0; padding: 11px 14px; border-radius: var(--radius-sm); font-weight: 650; font-size: 14px; border: 1px solid transparent; }
+  .alert.bad { background: var(--bad-soft); color: var(--bad); border-color: color-mix(in srgb, var(--bad) 35%, transparent); }
+  .alert.warn { background: var(--warn-soft); color: var(--warn); border-color: color-mix(in srgb, var(--warn) 35%, transparent); }
+
+  /* ── Bo cuc: 1 cot tren dien thoai, 2 cot tren man hinh rong ───── */
+  main { padding-top: 12px; }
+  .layout { display: grid; grid-template-columns: minmax(0, 1fr); gap: 12px; align-items: start; }
+  @media (min-width: 980px) { .layout { grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); gap: 14px; } }
+  .col { display: grid; gap: 12px; min-width: 0; }
+
+  /* ── The (card) ────────────────────────────────────────────────── */
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow); min-width: 0; scroll-margin-top: 66px; }
+  .card-pad { padding: 14px 16px 16px; }
+  .step {
+    flex: none; width: 32px; height: 32px; border-radius: 50%; display: grid; place-items: center;
+    background: var(--primary-soft); color: var(--primary); font-weight: 800; font-size: 15px;
+  }
+  .step.cur { background: var(--primary); color: #fff; }
+  .step.done { background: var(--ok-soft); color: var(--ok); }
+  .icon { flex: none; width: 32px; height: 32px; border-radius: 50%; display: grid; place-items: center; background: var(--idle-soft); color: var(--text-2); }
+  .state { font-size: 18px; font-weight: 750; margin: 0 0 2px; }
+  .state.ok { color: var(--ok); } .state.warn { color: var(--warn); } .state.bad { color: var(--bad); }
+  .detail { color: var(--text-2); font-size: 13.5px; min-height: 1.2em; word-break: break-word; }
+  .hint { padding: 0 12px 12px; color: var(--text-2); font-size: 13.5px; }
+  .hint b { color: var(--text); font-weight: 650; }
+  .hint ol { margin: 0; padding-left: 20px; } .hint li { margin: 3px 0; }
+  .meta { font-size: 12.5px; color: var(--text-3); }
+
+  /* ── Nut ───────────────────────────────────────────────────────── */
+  .actions { display: grid; grid-template-columns: repeat(auto-fit, minmax(118px, 1fr)); gap: 8px; margin-top: 12px; }
+  .btn {
+    min-height: 50px; padding: 10px 12px; border-radius: 12px; border: 1px solid var(--border); cursor: pointer;
+    background: var(--surface-2); color: var(--text); font-weight: 650; font-size: 15px; transition: background .15s, transform .05s;
+  }
+  .btn:active:not(:disabled) { transform: scale(.98); }
+  .btn.primary { background: var(--primary); border-color: var(--primary); color: var(--primary-ink); }
+  .btn.primary:hover:not(:disabled) { background: var(--primary-hover); }
+  .btn.ghost { background: transparent; }
+  .btn.danger { color: var(--bad); border-color: var(--bad); border-color: color-mix(in srgb, var(--bad) 45%, var(--border)); background: transparent; }
+  .btn.rec::before { content: ""; display: inline-block; width: 11px; height: 11px; margin-right: 8px; border-radius: 50%; background: var(--stop); vertical-align: -1px; }
+  .btn:disabled { opacity: .38; cursor: not-allowed; }
+  .btn.dim:not(:disabled) { opacity: .55; }
+  .btn.big { display: block; width: 100%; min-height: 58px; margin-top: 14px; border-radius: 14px; font-size: 18px; font-weight: 750; }
+  .btn-link { display: inline-block; background: none; border: 0; padding: 10px 2px 0; color: var(--primary); font-weight: 650; font-size: 14px; cursor: pointer; }
+  .why { margin-top: 8px; font-size: 12.5px; color: var(--text-3); display: none; word-break: break-word; }
+  .why.show { display: block; }
+  .why::before { content: "🔒 "; }
+  .switch { display: flex; align-items: center; gap: 9px; font-size: 14px; color: var(--text-2); cursor: pointer; min-height: 32px; }
+  .switch input { width: 20px; height: 20px; margin: 0; accent-color: var(--primary); flex: none; }
+  .opts { display: flex; flex-wrap: wrap; gap: 4px 18px; margin-top: 10px; }
+  .spin { display: inline-block; width: 17px; height: 17px; margin-right: 9px; vertical-align: -2px; border: 2.5px solid currentColor; border-right-color: transparent; border-radius: 50%; animation: spin .8s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* ── The "buoc tiep theo" ──────────────────────────────────────── */
+  .hero { padding: 10px 14px 12px; border-left: 4px solid var(--idle); }
+  .hero.ok { border-left-color: var(--ok); } .hero.warn { border-left-color: var(--warn); } .hero.bad { border-left-color: var(--bad); }
+  .hero-eye { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; font-size: 11px; font-weight: 700; color: var(--text-3); text-transform: uppercase; letter-spacing: .06em; }
+  .hero-eye .pill { font-size: 11px; padding: 2px 8px; gap: 5px; }
+  .hero-eye .pill::before { width: 6px; height: 6px; }
+  /* chu ben trai, nut ben phai: gon ma nut van du lon de bam */
+  .hero-row { display: flex; align-items: center; gap: 12px; margin-top: 6px; }
+  .hero-text { flex: 1; min-width: 0; }
+  .hero h1 { margin: 0 0 2px; font-size: 18px; line-height: 1.25; letter-spacing: -.01em; word-break: break-word; }
+  .hero.ok h1 { color: var(--ok); } .hero.warn h1 { color: var(--warn); } .hero.bad h1 { color: var(--bad); }
+  .hero p { margin: 0; color: var(--text-2); font-size: 13px; line-height: 1.35; word-break: break-word;
+    display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+  #heroBtn { flex: none; width: auto; min-width: 128px; max-width: 46%; min-height: 48px; margin: 0; padding: 8px 16px; font-size: 16px; border-radius: 12px; }
+  .hero .progress { margin-top: 8px; height: 8px; }
+  .hero .why { margin-top: 6px; }
+  .hero-foot { display: flex; flex-wrap: wrap; align-items: center; gap: 2px 16px; margin-top: 8px; }
+  .hero-foot .opts { margin: 0; gap: 2px 14px; }
+  .hero-foot .switch { font-size: 13px; min-height: 28px; gap: 7px; }
+  .hero-foot .switch input { width: 18px; height: 18px; }
+  .hero-foot .btn-link { padding: 4px 0; font-size: 13px; }
+  @media (max-width: 340px) { .hero-row { flex-direction: column; align-items: stretch; } #heroBtn { max-width: none; width: 100%; } }
+
+  /* ── The co the gap / mo (cham vao tieu de) ────────────────────── */
+  .fold-head {
+    display: flex; align-items: center; gap: 12px; width: 100%; padding: 12px 14px; min-height: 58px;
+    background: none; border: 0; border-radius: var(--radius); text-align: left; cursor: pointer;
+  }
+  .fold-head:focus-visible { outline: 2px solid var(--primary); outline-offset: -2px; }
+  .fh-title { flex: 1; min-width: 0; font-size: 16px; font-weight: 750; letter-spacing: -.01em; }
+  .fh-title small { display: block; font-size: 12.5px; font-weight: 500; color: var(--text-3); letter-spacing: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .chev { flex: none; width: 26px; height: 26px; border-radius: 50%; display: grid; place-items: center; color: var(--text-3); background: var(--surface-2); transition: transform .15s; }
+  .chev::before { content: "▾"; font-size: 14px; line-height: 1; }
+  .fold.open > .fold-head .chev { transform: rotate(180deg); }
+  .fold-body { display: none; padding: 0 16px 16px; }
+  .fold.open > .fold-body { display: block; }
+  .stepc .fold-head .pill { max-width: 52%; overflow: hidden; text-overflow: ellipsis; }
+  .stepc .fh-title { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .chips-head { flex-direction: column; align-items: stretch; gap: 8px; padding-bottom: 8px; }
+  .more { display: flex; align-items: center; justify-content: center; gap: 6px; font-size: 12px; font-weight: 650; color: var(--text-3); }
+  .more .chev { width: 20px; height: 20px; }
+  @media (max-width: 430px) {
+    .fh-title small { display: none; }
+    body.recording .brand > span:last-child { display: none; }
+  }
+  .stepc.cur { border-color: color-mix(in srgb, var(--primary) 50%, var(--border)); }
+  details.box { margin-top: 12px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--surface-2); }
+  details.box summary {
+    list-style: none; cursor: pointer; padding: 11px 12px; display: flex; align-items: center; gap: 8px; min-height: 44px;
+    font-size: 13.5px; font-weight: 650; color: var(--text-2);
+  }
+  details.box summary::-webkit-details-marker { display: none; }
+  details.box summary::after { content: "▾"; margin-left: auto; color: var(--text-3); transition: transform .15s; }
+  details.box[open] summary::after { transform: rotate(180deg); }
+
+  /* ── Video ─────────────────────────────────────────────────────── */
+  .camcard { padding: 10px; }
+  .video { position: relative; background: #05080f; border-radius: 12px; overflow: hidden; aspect-ratio: 4 / 3; }
+  .video img { width: 100%; height: 100%; object-fit: contain; display: block; }
+  /* che khung hinh cu khi camera mat tin hieu: khong de tuong nham hinh cu la hinh hien tai */
+  .video .empty { position: absolute; inset: 0; display: grid; place-items: center; color: #b4c1d6; font-size: 14px; font-weight: 600; text-align: center; padding: 20px; background: rgba(5, 8, 15, .86); }
+  #camBadge {
+    position: absolute; left: 10px; bottom: 20px; max-width: calc(100% - 76px); padding: 7px 11px; border-radius: 10px;
+    background: rgba(5, 8, 15, .66); color: #f1f5f9; font-weight: 800; font-size: 17px; line-height: 1.25;
+    text-transform: uppercase; letter-spacing: .02em; backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px);
+  }
+  #camBadge:empty { display: none; }
+  #camBadge small { display: block; font-size: 12.5px; font-weight: 600; text-transform: none; letter-spacing: 0; color: #cbd5e1; }
+  #camBadge.ok { color: #4ade80; } #camBadge.warn { color: #fbbf24; } #camBadge.bad { color: #f87171; }
+  #camBig {
+    position: absolute; right: 10px; bottom: 20px; width: 44px; height: 44px; border-radius: 12px; border: 0; cursor: pointer;
+    background: rgba(5, 8, 15, .6); color: #f1f5f9; font-size: 20px; font-weight: 700;
+  }
+  /* chua co anh camera: thu thanh dai thap, co anh moi mo du kich thuoc */
+  .video.nocam { aspect-ratio: auto; height: 64px; }
+  .video.nocam #camBig, .video.nocam #camBarWrap, .video.nocam img { display: none; }
+  body.vbig .video.nocam { height: auto; }
+  #camBarWrap { display: none; position: absolute; left: 0; right: 0; bottom: 0; height: 12px; background: rgba(5, 8, 15, .6); }
+  #camBarWrap.show { display: block; }
+  #camBar { display: block; height: 100%; width: 0; background: #3b82f6; transition: width .3s; }
+  #camBarWrap.done #camBar { background: #22c55e; }
+  .video-foot { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 8px 4px 0; flex-wrap: wrap; }
+  /* Phong to: phu kin man hinh NHUNG chua nut DUNG (z-index nho hon thanh nut DUNG) */
+  body.vbig { overflow: hidden; }
+  body.vbig .video { position: fixed; left: 0; right: 0; top: 0; bottom: calc(var(--stopbar) + env(safe-area-inset-bottom)); z-index: 35; border-radius: 0; aspect-ratio: auto; }
+  body.vbig #camBadge { font-size: 20px; }
+  body.vbig.lost .video::after { content: "MẤT KẾT NỐI TỚI ROBOT"; position: absolute; left: 0; right: 0; bottom: 0; padding: 10px; text-align: center; background: var(--stop); color: #fff; font-weight: 800; }
+
+  /* ── Tien do hoc ───────────────────────────────────────────────── */
+  .progress { height: 10px; border-radius: 999px; background: var(--idle-soft); overflow: hidden; margin-top: 10px; }
+  .progress > i { display: block; height: 100%; width: 0; background: var(--primary); transition: width .3s; }
+  .progress.done > i { background: var(--ok); }
+  .progress-row { display: flex; justify-content: space-between; gap: 8px; font-size: 12.5px; color: var(--text-3); margin-top: 5px; }
+
+  /* ── Chip trang thai + chi tiet cam bien ───────────────────────── */
+  .chips { flex: 1; min-width: 0; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 5px; }
+  @media (min-width: 560px) { .chips { grid-template-columns: repeat(auto-fill, minmax(86px, 1fr)); } }
+  .chip { display: block; min-width: 0; padding: 5px 6px 6px; border-radius: 10px; background: var(--surface-2); border: 1px solid var(--border); }
+  .chip .cn { display: flex; align-items: center; gap: 4px; font-size: 11px; font-weight: 650; color: var(--text-3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .chip .cn::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: var(--idle); flex: none; }
+  .chip .cv { display: block; font-size: 13.5px; font-weight: 750; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .chip.ok .cn::before { background: var(--ok); } .chip.warn .cn::before { background: var(--warn); } .chip.bad .cn::before { background: var(--bad); }
+  .chip.bad { border-color: color-mix(in srgb, var(--bad) 50%, var(--border)); background: var(--bad-soft); }
+  .chip.warn { border-color: color-mix(in srgb, var(--warn) 50%, var(--border)); }
+  .sensors { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+  @media (min-width: 560px) { .sensors { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+  .sensor { padding: 9px 11px; border-radius: var(--radius-sm); background: var(--surface-2); border: 1px solid var(--border); min-width: 0; }
+  .sensor .name { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text-3); font-weight: 650; }
+  .sensor .name::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--idle); flex: none; }
+  .sensor.ok .name::before { background: var(--ok); } .sensor.bad .name::before { background: var(--bad); } .sensor.warn .name::before { background: var(--warn); }
+  .sensor .val { font-size: 15px; font-weight: 750; margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .sensor .sub { font-size: 11.5px; color: var(--text-3); word-break: break-word; }
+  .sec-title { margin: 14px 0 8px; font-size: 11.5px; font-weight: 750; color: var(--text-3); text-transform: uppercase; letter-spacing: .06em; }
+
+  /* ── Ket qua kiem tra + nhat ky ────────────────────────────────── */
+  .counts { display: inline-flex; gap: 6px; flex-wrap: wrap; }
+  .count { font-size: 12px; font-weight: 750; padding: 2px 8px; border-radius: 999px; }
+  .count.ok { background: var(--ok-soft); color: var(--ok); } .count.warn { background: var(--warn-soft); color: var(--warn); }
+  .count.bad { background: var(--bad-soft); color: var(--bad); }
+  ul.checks { list-style: none; margin: 0; padding: 0 12px 10px; font-size: 13px; }
+  ul.checks li.sec { margin-top: 8px; font-size: 11.5px; font-weight: 750; color: var(--text-3); text-transform: uppercase; letter-spacing: .05em; }
+  ul.checks li.item { display: grid; grid-template-columns: 76px minmax(0, 1fr); gap: 8px; padding: 4px 0; border-top: 1px solid var(--border); }
+  ul.checks li.item b { font-size: 11.5px; padding-top: 1px; }
+  ul.checks li.item b.ok { color: var(--ok); } ul.checks li.item b.warn { color: var(--warn); } ul.checks li.item b.bad { color: var(--bad); }
+  ul.checks li.item span { word-break: break-word; }
+  pre.log {
+    margin: 0 12px 12px; padding: 10px; border-radius: 8px; background: var(--bg); color: var(--text-2);
+    font: 11.5px/1.45 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; white-space: pre-wrap; word-break: break-all;
+    max-height: 280px; overflow: auto;
+  }
+
+  /* ── Ghi bag ───────────────────────────────────────────────────── */
+  .rec-head { display: flex; align-items: center; gap: 12px; }
+  .rec-ico { flex: none; width: 32px; height: 32px; border-radius: 50%; display: grid; place-items: center; background: var(--idle-soft); }
+  .rec-ico::before { content: ""; width: 12px; height: 12px; border-radius: 50%; background: var(--idle); }
+  .rec-ico.on { background: var(--bad-soft); } .rec-ico.on::before { background: var(--stop); animation: blink 1.2s infinite; }
+  .rec-main { flex: 1; min-width: 0; }
+  .rec-main b { display: block; font-size: 16px; font-weight: 750; letter-spacing: -.01em; }
+  .rec-main span { display: block; font-size: 13px; color: var(--text-2); font-variant-numeric: tabular-nums; word-break: break-word; }
+  #bRec { flex: none; min-width: 108px; min-height: 48px; }
+  .kv { display: grid; grid-template-columns: 82px minmax(0, 1fr); gap: 4px 10px; margin: 0; padding: 0 12px 12px; font-size: 13px; }
+  .kv dt { color: var(--text-3); } .kv dd { margin: 0; word-break: break-word; }
+  ul.bags { list-style: none; margin: 0; padding: 0 12px 10px; font-size: 13px; }
+  ul.bags li { display: flex; justify-content: space-between; gap: 10px; padding: 7px 0; border-top: 1px solid var(--border); }
+  ul.bags li span:first-child { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 600; }
+  ul.bags li > span:last-child { flex: none; color: var(--text-3); font-variant-numeric: tabular-nums; }
+  .tag { font-size: 11px; font-weight: 750; padding: 1px 7px; border-radius: 999px; margin-left: 6px; background: var(--warn-soft); color: var(--warn); }
+  .tag.live { background: var(--bad-soft); color: var(--bad); }
+
+  /* ── Dong su kien ──────────────────────────────────────────────── */
+  .ev-head { display: flex; align-items: center; gap: 12px; }
+  .ev-head b { flex: 1; font-size: 16px; font-weight: 750; letter-spacing: -.01em; }
+  ul.ev { list-style: none; margin: 10px 0 0; padding: 0; }
+  ul.ev li { display: grid; grid-template-columns: 58px 10px minmax(0, 1fr) auto; gap: 8px; align-items: start; padding: 8px 0; border-top: 1px solid var(--border); font-size: 13.5px; }
+  ul.ev li.ev-empty { display: block; color: var(--text-3); }
+  .ev-t { color: var(--text-3); font-size: 12.5px; font-variant-numeric: tabular-nums; padding-top: 1px; }
+  .ev-dot { width: 10px; height: 10px; border-radius: 50%; margin-top: 5px; background: var(--idle); }
+  .ev-dot.ok { background: var(--ok); } .ev-dot.warn { background: var(--warn); } .ev-dot.bad { background: var(--bad); } .ev-dot.info { background: var(--primary); }
+  .ev-text { font-weight: 650; word-break: break-word; }
+  .ev-sub { color: var(--text-3); font-size: 12px; word-break: break-word; }
+  .ev-dur { font-size: 12px; font-weight: 750; color: var(--text-2); background: var(--surface-2); border: 1px solid var(--border); padding: 1px 8px; border-radius: 999px; white-space: nowrap; font-variant-numeric: tabular-nums; }
+  .ev-dur.live { color: var(--warn); border-color: color-mix(in srgb, var(--warn) 45%, var(--border)); }
+
+  /* ── Chan trang + nut DUNG ─────────────────────────────────────── */
+  .footnote { margin: 18px 0 8px; text-align: center; font-size: 12px; color: var(--text-3); }
+  .stopbar {
+    position: fixed; left: 0; right: 0; bottom: 0; z-index: 40; padding: 8px 12px calc(8px + env(safe-area-inset-bottom));
+    background: var(--bg); background: color-mix(in srgb, var(--bg) 82%, transparent); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+    border-top: 1px solid var(--border);
+  }
+  #stop {
+    display: block; width: 100%; max-width: 1156px; margin: 0 auto; min-height: 54px; border: 0; border-radius: 14px; cursor: pointer;
+    background: var(--stop); color: #fff; font-weight: 800; font-size: 20px; letter-spacing: .12em; line-height: 1.15;
+    box-shadow: 0 6px 20px rgba(220, 38, 38, .35);
+  }
+  #stop small { display: block; font-size: 10.5px; font-weight: 600; letter-spacing: .02em; opacity: .9; }
+  #stop:active { transform: scale(.99); background: var(--stop-hover); }
+  #toast {
+    display: none; position: fixed; left: 12px; right: 12px; bottom: calc(var(--stopbar) + 12px + env(safe-area-inset-bottom)); z-index: 45;
+    max-width: 640px; margin: 0 auto; padding: 12px 14px; border-radius: 12px; font-weight: 650; font-size: 14px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, .25); word-break: break-word;
+  }
+  #toast.show { display: block; }
+  #toast.ok { background: var(--ok-soft); color: var(--ok); border: 1px solid color-mix(in srgb, var(--ok) 35%, transparent); }
+  #toast.bad { background: var(--bad-soft); color: var(--bad); border: 1px solid color-mix(in srgb, var(--bad) 35%, transparent); }
+
+  /* ── Dang nhap ─────────────────────────────────────────────────── */
+  #login { display: none; max-width: 420px; margin: 8vh auto 0; }
+  #pw {
+    width: 100%; font: inherit; font-size: 20px; letter-spacing: .25em; text-align: center; padding: 14px; margin-top: 12px;
+    border-radius: 12px; border: 1px solid var(--border); background: var(--surface-2); color: var(--text);
+  }
+  #pw:focus { outline: 2px solid var(--primary); outline-offset: 1px; }
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="wrap">
+    <div class="brand">
+      <span class="brand-mark" aria-hidden="true">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="7" width="16" height="11" rx="3"/><path d="M12 7V4"/><circle cx="9" cy="12.5" r="1.3" fill="currentColor"/><circle cx="15" cy="12.5" r="1.3" fill="currentColor"/></svg>
+      </span>
+      <span>Robot bám người</span>
+    </div>
+    <div class="top-right">
+      <button class="recpill" id="recPill" type="button" aria-label="Đang ghi bag">REC</button>
+      <button class="themebtn" id="themeBtn" type="button" aria-label="Giao diện"></button>
+      <span id="net" class="pill warn">Đang nối…</span>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+  <div id="lost">MẤT KẾT NỐI TỚI ROBOT<span>Các nút trên trang không còn tác dụng, xe vẫn làm việc đang làm. Cần dừng gấp: công tắc nguồn động cơ trên xe.</span></div>
+  <div id="alerts"></div>
+
+  <!-- Dang nhap -->
+  <section id="login" class="card">
+    <div class="card-pad">
+      <div class="brand"><span class="brand-mark" aria-hidden="true">🔒</span><span>Đăng nhập</span></div>
+      <p class="meta">Mật khẩu nằm trong ~/.config/robot_web.conf trên máy robot</p>
+      <input id="pw" type="password" inputmode="numeric" autocomplete="current-password" placeholder="••••••">
+      <button class="btn primary big" id="btnLogin" type="button">Vào bảng điều khiển</button>
+      <div class="detail" id="loginMsg" style="margin-top:10px;text-align:center"></div>
+    </div>
+  </section>
+
+  <main id="main" hidden>
+    <div class="layout">
+      <!-- Cot 1: buoc tiep theo + camera + trang thai nhanh -->
+      <div class="col">
+        <section class="card hero" id="hero" aria-live="polite">
+          <div class="hero-eye"><span class="pill" id="heroEye">—</span><span id="heroStep"></span></div>
+          <div class="hero-row">
+            <div class="hero-text"><h1 id="heroTitle">Đang tải…</h1><p id="heroSub"></p></div>
+            <button class="btn big primary" id="heroBtn" type="button" hidden>—</button>
+          </div>
+          <div class="progress" id="heroProg" hidden><i id="heroBar"></i></div>
+          <div class="why" id="heroWhy"></div>
+          <div class="hero-foot" id="heroFoot">
+            <div class="opts" id="heroOpts" hidden>
+              <label class="switch"><input type="checkbox" class="optRssi" checked> RSSI (beacon)</label>
+              <label class="switch"><input type="checkbox" class="optBag"> Tự ghi bag</label>
+            </div>
+            <button class="btn-link" id="heroAlt" type="button" hidden>—</button>
+          </div>
+        </section>
+
+        <section class="card camcard" id="camCard">
+          <div class="video" id="camWrap">
+            <div class="empty" id="camEmpty">Chưa có ảnh camera</div>
+            <img id="cam" alt="Ảnh camera của robot">
+            <div id="camBadge"></div>
+            <button id="camBig" type="button" aria-label="Phóng to video">⤢</button>
+            <div id="camBarWrap"><i id="camBar"></i></div>
+          </div>
+          <div class="video-foot">
+            <label class="switch"><input type="checkbox" id="camOn" checked> Hiện video</label>
+            <span class="meta" id="vidMeta"></span>
+          </div>
+        </section>
+
+        <section class="card fold" id="fSen">
+          <button class="fold-head chips-head" type="button" aria-expanded="false" aria-label="Trạng thái cảm biến — chạm để xem chi tiết">
+            <span class="chips" id="chips"></span>
+            <span class="more">Chi tiết cảm biến · pin <span class="chev" aria-hidden="true"></span></span>
+          </button>
+          <div class="fold-body">
+            <div class="sensors" id="sensors"></div>
+            <div class="sec-title">Pin</div>
+            <div class="sensors" id="power"></div>
+          </div>
+        </section>
+      </div>
+
+      <!-- Cot 2: tung buoc + ghi bag + su kien -->
+      <div class="col">
+        <section class="card fold stepc" id="fS1" data-wide="open">
+          <button class="fold-head" type="button" aria-expanded="false">
+            <span class="step" id="n1">1</span>
+            <span class="fh-title">Hệ thống<small>Kiểm tra thiết bị · khởi động · tắt</small></span>
+            <span class="pill" id="pSys">—</span><span class="chev" aria-hidden="true"></span>
+          </button>
+          <div class="fold-body">
+            <div class="detail" id="sysDetail"></div>
+            <div class="opts" id="s1Opts">
+              <label class="switch"><input type="checkbox" class="optRssi" checked> Dùng RSSI (beacon)</label>
+              <label class="switch"><input type="checkbox" class="optBag"> Tự ghi bag khi khởi động</label>
+            </div>
+            <div class="actions">
+              <button class="btn" id="bCheck" type="button">Kiểm tra</button>
+              <button class="btn primary" id="bStart" type="button">Khởi động</button>
+              <button class="btn danger" id="bShutdown" type="button">Tắt hệ thống</button>
+            </div>
+            <div class="why" id="wSys"></div>
+            <details class="box" id="checkBox">
+              <summary>Kết quả kiểm tra <span class="counts" id="checkCounts"></span></summary>
+              <ul class="checks" id="checkList"></ul>
+            </details>
+            <details class="box"><summary>Nhật ký hệ thống</summary><pre class="log" id="log"></pre></details>
+            <details class="box"><summary>Hướng dẫn</summary>
+              <div class="hint"><ol>
+                <li>Cắm đủ thiết bị (LiDAR, khung xe, camera, 3 board RSSI), bật nguồn khung xe.</li>
+                <li><b>Khởi động</b>: web chạy kiểm tra trước; có mục <b>HỎNG</b> thì không chạy — sửa rồi bấm lại.</li>
+                <li>Xong việc: <b>Tắt hệ thống</b> — xe được dừng trước rồi mới tắt các node.</li>
+              </ol></div>
+            </details>
+          </div>
+        </section>
+
+        <section class="card fold stepc" id="fS2" data-wide="open">
+          <button class="fold-head" type="button" aria-expanded="false">
+            <span class="step" id="n2">2</span>
+            <span class="fh-title">Học người<small>Camera học người cần bám</small></span>
+            <span class="pill" id="pId">—</span><span class="chev" aria-hidden="true"></span>
+          </button>
+          <div class="fold-body">
+            <div class="state" id="idState">—</div>
+            <div class="progress" id="idProg"><i id="idBar"></i></div>
+            <div class="progress-row"><span id="idSamples">&nbsp;</span><span id="idPct">&nbsp;</span></div>
+            <div class="actions">
+              <button class="btn primary" id="bEnroll" type="button">Học người</button>
+              <button class="btn" id="bFinish" type="button">Xong</button>
+              <button class="btn danger" id="bReset" type="button">Xoá người đã học</button>
+            </div>
+            <div class="why" id="wId"></div>
+            <details class="box"><summary>Hướng dẫn</summary>
+              <div class="hint"><ol>
+                <li>Bấm <b>Học người</b>, đứng trước camera ~3 m.</li>
+                <li>Đi lại gần ~0,8 m rồi lùi ra, xoay trái / phải.</li>
+                <li>Tự xong ở <b>100%</b> (≥ 80 mẫu và ≥ 30 giây). Đủ 80 mẫu thì bấm <b>Xong</b> sớm được.</li>
+              </ol></div>
+            </details>
+          </div>
+        </section>
+
+        <section class="card fold stepc" id="fS3" data-wide="open">
+          <button class="fold-head" type="button" aria-expanded="false">
+            <span class="step" id="n3">3</span>
+            <span class="fh-title">Bám người<small>Xe tự bám và né vật cản</small></span>
+            <span class="pill" id="pFol">—</span><span class="chev" aria-hidden="true"></span>
+          </button>
+          <div class="fold-body">
+            <div class="state" id="plState">—</div>
+            <div class="detail" id="plDetail"></div>
+            <div class="actions">
+              <button class="btn primary" id="bEnable" type="button">Bắt đầu bám</button>
+              <button class="btn" id="bDisable" type="button">Tạm dừng</button>
+            </div>
+            <div class="why" id="wPl"></div>
+            <details class="box"><summary>Hướng dẫn</summary>
+              <div class="hint"><ol>
+                <li>Đứng trước xe ~2 m, đợi camera báo <b>Đang thấy chủ</b> rồi bấm <b>Bắt đầu bám</b>.</li>
+                <li>Đi chậm (xe ≤ 0,22 m/s).</li>
+                <li>Xe xoay tại chỗ dò beacon: đứng yên, quay lưng về xe.</li>
+              </ol></div>
+            </details>
+          </div>
+        </section>
+
+        <section class="card card-pad" id="recCard">
+          <div class="rec-head">
+            <span class="rec-ico" id="recIco" aria-hidden="true"></span>
+            <div class="rec-main"><b>Ghi dữ liệu (bag)</b><span id="recSub">—</span></div>
+            <button class="btn" id="bRec" type="button">Ghi</button>
+          </div>
+          <div class="why" id="wRec"></div>
+          <details class="box" id="recBox">
+            <summary>Chi tiết · bag gần đây</summary>
+            <div class="opts" style="margin: 0 12px 8px"><label class="switch"><input type="checkbox" class="optBag"> Tự ghi bag khi bấm Khởi động</label></div>
+            <dl class="kv" id="recKv"></dl>
+            <ul class="bags" id="recList"></ul>
+          </details>
+        </section>
+
+        <section class="card card-pad" id="evCard">
+          <div class="ev-head"><span class="icon" aria-hidden="true"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></span><b>Sự kiện</b><span class="meta" id="evCount"></span></div>
+          <ul class="ev" id="evList"></ul>
+          <button class="btn-link" id="evMore" type="button" hidden>Xem tất cả</button>
+        </section>
+      </div>
+    </div>
+
+    <p class="footnote">Nút DỪNG gửi lệnh qua Wi-Fi — an toàn cuối cùng là công tắc nguồn động cơ trên xe · Nút bấm và sự kiện được ghi vào run_logs/web_*.log</p>
+  </main>
+</div>
+
+<div id="toast" role="status"></div>
+<div class="stopbar"><button id="stop" type="button">DỪNG<small>Dừng khẩn — không cần đăng nhập</small></button></div>
+
+<script>
+"use strict";
+// Bang dieu khien robot — chi goi /api cua robot_web (node nay KHONG ghi /cmd_vel).
+const $ = (id) => document.getElementById(id);
+const PLAN = { IDLE: "Đứng chờ", FOLLOW: "Đang bám", AVOID: "Đang né vật cản", OCCLUDED: "Người khuất camera",
+  SEARCH: "Đang tìm người", ARRIVED: "Đã tới, giữ khoảng cách", BLOCKED: "Bị chặn đường", ESTOP: "Dừng khẩn" };
+const PLAN_CLS = { FOLLOW: "ok", ARRIVED: "ok", AVOID: "warn", OCCLUDED: "warn", SEARCH: "warn", IDLE: "warn", BLOCKED: "bad", ESTOP: "bad" };
+// Nhan camera: [chu, mau]
+const BADGE = { WAITING_FOR_ENROLLMENT: ["Chưa học người", ""], ENROLLING: ["Đang học người", "ok"],
+  ENROLLING_WAITING_FOR_PERSON: ["Đang học — chưa thấy người", "warn"],
+  ENROLLING_NEED_GAIT: ["Đang học — hãy đi lại vài bước", "warn"], ENROLLMENT_DONE: ["Đã học xong", "ok"],
+  TRACKING: ["Đang thấy chủ", "ok"], TRACK_VERIFY_HOLD: ["Đang xác minh chủ", "warn"],
+  TRACK_VERIFY_WARN: ["Nghi ngờ — đang xác minh", "warn"], TRACK_ID_SUSPECT: ["Nghi nhầm người", "warn"],
+  LOST: ["Không thấy chủ", "bad"], LOST_REJECTED_CANDIDATE: ["Không thấy chủ", "bad"] };
+const SYS = { STOPPED: "Đã tắt", CHECKING: "Đang kiểm tra", STARTING: "Đang khởi động", RUNNING: "Đang chạy",
+  STOPPING: "Đang tắt", FAILED: "Lỗi" };
+const SYS_CLS = { RUNNING: "ok", FAILED: "bad", CHECKING: "warn", STARTING: "warn", STOPPING: "warn" };
+const SRC = { "camera+lidar": "camera + LiDAR", "camera+bbox": "camera (ước lượng)", lidar_track: "chỉ LiDAR",
+  predicted: "dự đoán (mất dấu)", rssi_bearing: "hướng beacon", "rssi+lidar": "beacon + LiDAR" };
+const LABEL = { bCheck: "Kiểm tra", bStart: "Khởi động", bShutdown: "Tắt hệ thống", bEnroll: "Học người",
+  bFinish: "Xong", bReset: "Xoá", bEnable: "Bắt đầu bám", bDisable: "Tạm dừng" };
+const ACT_LABEL = { check: "Kiểm tra", start: "Khởi động", shutdown: "Tắt hệ thống", enroll_start: "Học người",
+  enroll_finish: "Xong (học người)", reset_identity: "Xoá người đã học", follow_enable: "Bắt đầu bám",
+  follow_disable: "Tạm dừng bám", estop: "DỪNG KHẨN", bag_start: "Ghi bag", bag_stop: "Dừng ghi bag" };
+const PLAN_EV = { AVOID: "Né vật cản", OCCLUDED: "Người khuất camera", SEARCH: "Tìm người", BLOCKED: "Bị chặn đường",
+  ESTOP: "Planner dừng xe", IDLE: "Đứng chờ — không thấy người" };
+const STALE_EV = { scan: "LiDAR", odom: "Khung xe (/odom)", cam: "Camera", planner: "Planner", rssi: "RSSI" };
+const WHY = { "bam Dung ghi": "bấm Dừng ghi", "he thong da tat": "hệ thống tắt", "o dia sap day": "ổ đĩa sắp đầy" };
+const BAT = { Charging: "đang sạc", Discharging: "đang dùng pin", Full: "đầy", "Not charging": "cắm điện, không sạc" };
+// Cau may chu tra ve (khong dau, de file .py chi co ASCII) -> tieng Viet co dau. Cau khong co trong bang: giu nguyen.
+const VI = [
+  [/^he thong dang chay — tat truoc$/, "hệ thống đang chạy — tắt trước"],
+  [/^dang kiem tra \/ dang tat$/, "đang kiểm tra / đang tắt"],
+  [/^dang co planner chay \(he thong khac\?\) — tat truoc$/, "đang có planner khác chạy — tắt trước"],
+  [/^he thong chua chay — khoi dong truoc$/, "hệ thống chưa chạy — khởi động trước"],
+  [/^he thong chua chay$/, "hệ thống chưa chạy"], [/^dang tat$/, "đang tắt"],
+  [/^camera chua gui du lieu$/, "camera chưa gửi dữ liệu"], [/^dang bam — tam dung truoc$/, "đang bám — tạm dừng trước"],
+  [/^dang hoc roi$/, "đang học rồi"], [/^chua bat dau hoc$/, "chưa bắt đầu học"], [/^planner chua chay$/, "planner chưa chạy"],
+  [/^dang bam roi$/, "đang bám rồi"], [/^dang hoc nguoi — bam Xong$/, "đang học người — bấm Xong"],
+  [/^chua hoc nguoi$/, "chưa học người"], [/^LiDAR khong gui du lieu$/, "LiDAR không gửi dữ liệu"],
+  [/^khung xe \(\/odom\) khong gui du lieu$/, "khung xe (/odom) không gửi dữ liệu"],
+  [/^khong thay node nao ghi \/cmd_vel$/, "không thấy node nào ghi /cmd_vel"],
+  [/^co (\d+) node cung ghi \/cmd_vel — nguy hiem, tat bot$/, "có $1 node cùng ghi /cmd_vel — nguy hiểm, tắt bớt"],
+  [/^dang ghi roi$/, "đang ghi rồi"], [/^dang dung ghi$/, "đang dừng ghi"], [/^khong dang ghi$/, "không đang ghi"],
+  [/^o dia con duoi (\S+) GB$/, "ổ đĩa còn dưới $1 GB"], [/^o dia con (\S+) GB \(< (\S+) GB\)$/, "ổ đĩa còn $1 GB (cần ≥ $2 GB)"],
+  [/^khong thay run_full\.sh \(dat tham so ws_dir\)$/, "không thấy run_full.sh (đặt tham số ws_dir)"],
+  [/^khong thay run_full\.sh$/, "không thấy run_full.sh"],
+  [/^dang kiem tra thiet bi( truoc khi chay)?$/, "đang kiểm tra thiết bị"], [/^dang khoi dong cac node$/, "đang khởi động các node"],
+  [/^kiem tra: (\d+) muc HONG, (\d+) canh bao — sua truoc khi chay$/, "$1 mục HỎNG, $2 cảnh báo — sửa trước khi chạy"],
+  [/^kiem tra dat \((\d+) canh bao\) — bam Khoi dong$/, "kiểm tra đạt ($1 cảnh báo) — bấm Khởi động"],
+  [/^kiem tra co (\d+) muc HONG — khong khoi dong \(xem ket qua\)$/, "$1 mục HỎNG — không khởi động (xem kết quả kiểm tra)"],
+  [/^he thong tu tat \(ma (-?\d+)\) — xem nhat ky$/, "hệ thống tự tắt (mã $1) — xem nhật ký"],
+  [/^dung xe roi tat cac node$/, "dừng xe rồi tắt các node"], [/^da tat$/, "đã tắt"],
+  [/^he thong dang chay \(bat ngoai web\)$/, "hệ thống đang chạy (bật ngoài web)"],
+  [/^he thong da tat \(ngoai web\)$/, "hệ thống đã tắt (ngoài web)"],
+  [/^planner khong gui trang thai — kiem tra nhat ky$/, "planner không gửi trạng thái — xem nhật ký"],
+  [/^dang kiem tra$/, "đang kiểm tra"], [/^dang kiem tra roi khoi dong$/, "đang kiểm tra rồi khởi động"],
+  [/^dang kiem tra roi khoi dong \(tu ghi bag khi qua kiem tra\)$/, "đang kiểm tra rồi khởi động (tự ghi bag khi qua kiểm tra)"],
+  [/^dang tat he thong \(dung xe truoc\)$/, "đang tắt hệ thống (dừng xe trước)"],
+  [/^bat dau ghi bag$/, "bắt đầu ghi bag"], [/^dang dung ghi bag$/, "đang dừng ghi bag, lưu file…"],
+  [/^(\/[\w/]+) chua san sang$/, "$1 chưa sẵn sàng"], [/^(\/[\w/]+) khong tra loi trong (\S+) s$/, "$1 không trả lời trong $2 s"],
+  [/^KHONG DUNG DUOC QUA WEB \((.*)\) — dung cong tac nguon dong co$/,
+    (m, a) => "KHÔNG DỪNG ĐƯỢC QUA WEB (" + a.split("; ").map(vi).join("; ") + ") — dùng công tắc nguồn động cơ"],
+  [/^Bam nguoi: BAT$/, "Đã bật bám"], [/^Bam nguoi: TAT$/, "Đã tắt bám"], [/^DUNG KHAN CAP$/, "Đã dừng khẩn"],
+  [/^Enrollment started\..*$/, "Bắt đầu học — đứng giữa khung hình camera"], [/^Identity ready$/, "Học xong người"],
+  [/^Not enough target samples yet$/, "Chưa đủ mẫu (cần ≥ 80)"], [/^Target identity reset$/, "Đã xoá người đã học"],
+  [/^can dang nhap$/, "cần đăng nhập"], [/^nut khong ton tai$/, "nút không tồn tại"],
+  [/^khong chay duoc (.+?): (.*)$/, "không chạy được $1: $2"], [/^khong thay tien trinh ghi$/, "không thấy tiến trình ghi"],
+  [/^khong dung duoc: tien trinh ghi chung nhom voi web$/, "không dừng được: tiến trình ghi chung nhóm với web"],
+  [/^khong tat duoc: he thong chung nhom tien trinh voi web$/, "không tắt được: hệ thống chung nhóm tiến trình với web"],
+  [/^(\/[\w/]+): khong co ket qua$/, "$1: không có kết quả"],
+];
+function vi(s) {
+  s = String(s ?? "");
+  const m = /^chua bam duoc: (.*)$/.exec(s);
+  if (m) return "chưa bấm được: " + vi(m[1]);
+  for (const [re, r] of VI) if (re.test(s)) return s.replace(re, r);
+  return s;
+}
+const BLANK = "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7";
+const ENROLL_MIN = 80;                 // so mau toi thieu (enroll_min_samples cua camera) de bam Xong som
+
+let st = null, lastOk = 0, everOk = false, authed = true, lastCheck = "", lastLog = "", lastCamOk = false;
+let heroM = null, lastStep = 0, lastAlerts = "", latency = 0;
+
+// ── goi API ─────────────────────────────────────────────────────────
+async function req(path, opts, ms) {
+  const ctl = new AbortController();
+  const t = setTimeout(() => ctl.abort(), ms || 2500);
+  try {
+    return await fetch(path, Object.assign({ cache: "no-store", credentials: "same-origin", signal: ctl.signal }, opts || {}));
+  } finally { clearTimeout(t); }
+}
+function post(path, body, ms) {
+  return req(path, { method: "POST", headers: { "Content-Type": "application/json", "X-Robot-Web": "1" },
+    body: JSON.stringify(body || {}) }, ms);
+}
+
+// ── tien ich ────────────────────────────────────────────────────────
+let toastTimer = 0;
+function toast(msg, kind, ms) {
+  const e = $("toast");
+  e.textContent = msg;
+  e.className = "show " + (kind || "ok");
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => { e.className = ""; }, ms || 3000);
+}
+function show(view) {
+  $("login").style.display = view === "login" ? "block" : "none";
+  $("main").hidden = view !== "main";
+}
+function num(v) { return v !== null && v !== undefined && v !== "" && !Number.isNaN(Number(v)); }
+function fmt(v, d, unit) { return num(v) ? Number(v).toFixed(d).replace(".", ",") + (unit || "") : "—"; }
+function fresh(age, lim) { return age !== null && age !== undefined && age < lim; }
+function pad(n) { return String(n).padStart(2, "0"); }
+function clock(sec) {                       // 3:05 / 1:02:03
+  if (!num(sec)) return "—";
+  const s = Math.max(0, Math.round(sec)), h = Math.floor(s / 3600), m = Math.floor(s / 60) % 60;
+  return (h ? h + ":" + pad(m) : String(m)) + ":" + pad(s % 60);
+}
+function dur(sec) {                         // 12 s / 3 ph 05 s / 1 giờ 02 ph
+  const s = Math.max(0, Math.round(sec));
+  if (s < 60) return s + " s";
+  if (s < 3600) return Math.floor(s / 60) + " ph " + pad(s % 60) + " s";
+  return Math.floor(s / 3600) + " giờ " + pad(Math.floor(s / 60) % 60) + " ph";
+}
+function size(b) {
+  if (!num(b)) return "—";
+  return b >= 1e9 ? fmt(b / 1e9, 1, "\u00a0GB") : b >= 1e5 ? fmt(b / 1e6, 1, "\u00a0MB") : fmt(b / 1e3, 0, "\u00a0kB");
+}
+function hms(t) { const d = new Date(t * 1000); return pad(d.getHours()) + ":" + pad(d.getMinutes()) + ":" + pad(d.getSeconds()); }
+function dayTime(t) { const d = new Date(t * 1000); return pad(d.getDate()) + "/" + pad(d.getMonth() + 1) + " " + pad(d.getHours()) + ":" + pad(d.getMinutes()); }
+function el(tag, cls, text) {
+  const e = document.createElement(tag);
+  if (cls) e.className = cls;
+  if (text !== undefined) e.textContent = text;
+  return e;
+}
+function setText(id, text, cls, base) {
+  const e = $(id);
+  e.textContent = text;
+  if (cls !== undefined) e.className = (base || "") + (cls ? " " + cls : "");
+}
+function setWhy(id, text) {
+  text = text ? text.split(" · ").map((t) => { const i = t.indexOf(": "); return i > 0 && i < 20 ? t.slice(0, i + 2) + vi(t.slice(i + 2)) : vi(t); }).join(" · ") : "";
+  $(id).textContent = text;
+  $(id).className = "why" + (text ? " show" : "");
+}
+// Nut bi khoa: hien ly do duoi nhom nut (tren dien thoai khong bam duoc nut da tat de xem ly do)
+function gate(pairs, A, whyId) {
+  const why = [];
+  for (const [id, key] of pairs) {
+    const a = A[key] || [false, "?"];
+    $(id).disabled = !a[0];
+    if (!a[0] && a[1]) why.push(LABEL[id] + ": " + a[1]);
+  }
+  setWhy(whyId, why.join(" · "));
+}
+// He thong chua chay: cac nut buoc 2, 3, ghi bag deu khoa vi cung mot ly do -> chi hien MOT dong
+const OFF_MSG = "Khởi động hệ thống trước (bước 1)";
+function sysOff(s) { return !s.system.alive && !fresh(s.planner.age, 2); }
+function enrollPct(idt) {                   // % hoc = phan cham hon giua so mau (>= 80) va thoi gian (>= 30 s)
+  const enrolling = String(idt.status || "").startsWith("ENROLLING");
+  return idt.ready && !enrolling ? 100 : Math.round(100 * Math.min(1, Math.max(0, Number(idt.progress || 0))));
+}
+function store(k, v) { try { localStorage.setItem("rw." + k, v); } catch (e) { /* che do rieng tu */ } }
+function load(k) { try { return localStorage.getItem("rw." + k); } catch (e) { return null; } }
+
+// ── the gap / mo ────────────────────────────────────────────────────
+const WIDE = window.matchMedia ? window.matchMedia("(min-width: 980px)").matches : false;
+function setFold(id, open, save) {
+  const f = $(id);
+  f.classList.toggle("open", open);
+  f.querySelector(".fold-head").setAttribute("aria-expanded", open ? "true" : "false");
+  if (save) store("fold." + id, open ? "1" : "0");
+}
+function openFold(id, scroll) {
+  setFold(id, true, false);
+  if (scroll) $(id).scrollIntoView({ behavior: "smooth", block: "start" });
+}
+function initFolds() {
+  for (const f of document.querySelectorAll(".fold")) {
+    const v = load("fold." + f.id);
+    setFold(f.id, v === null ? (WIDE && f.dataset.wide === "open") : v === "1", false);
+    f.querySelector(".fold-head").addEventListener("click", () => setFold(f.id, !f.classList.contains("open"), true));
+  }
+}
+// Tuy chon khoi dong co o nhieu cho (the tren cung, buoc 1, the ghi bag): giu dong bo + nho tren may nay
+function initOpts() {
+  for (const [cls, key, def] of [["optRssi", "rssi", "1"], ["optBag", "bag", "0"]]) {
+    const boxes = document.querySelectorAll("." + cls);
+    const v = (load("opt." + key) ?? def) === "1";
+    for (const b of boxes) {
+      b.checked = v;
+      b.addEventListener("change", () => {
+        for (const o of boxes) o.checked = b.checked;
+        store("opt." + key, b.checked ? "1" : "0");
+      });
+    }
+  }
+}
+function opt(cls) { const b = document.querySelector("." + cls); return !!(b && b.checked); }
+function startBody() { return { rssi: opt("optRssi"), bag: opt("optBag") }; }
+
+// ── the "buoc tiep theo": MOT nut lon cho viec can lam bay gio ─────
+function heroModel(s) {
+  const sys = s.system, p = s.planner, idt = s.identity;
+  const pOk = fresh(p.age, 2), idOk = fresh(idt.age, 2);
+  const nBad = (s.check || []).filter((i) => i.level === "HONG").length;
+  const st0 = String(idt.status || ""), enrolling = idOk && st0.startsWith("ENROLLING");
+  const m = { cls: "", step: 1, title: "", sub: "", act: null, confirm: null, label: "", kind: "primary",
+    block: "", alt: null, opts: false, prog: null, busy: false };
+  if (!sys.run_script) return Object.assign(m, { cls: "bad", title: "Không thấy run_full.sh", sub: "Chạy web với tham số ws_dir:=<thư mục workspace>" });
+  if (sys.state === "CHECKING") return Object.assign(m, { cls: "warn", busy: true, sub: "Mất khoảng 10–20 giây",
+    title: sys.mode === "check" ? "Đang kiểm tra thiết bị…" : "Kiểm tra trước khi khởi động…" });
+  if (sys.state === "STARTING") return Object.assign(m, { cls: "warn", busy: true, title: "Đang khởi động…",
+    sub: "Các node đang chạy lên — camera nạp mô hình 10–40 giây" });
+  if (sys.state === "STOPPING") return Object.assign(m, { cls: "warn", busy: true, title: "Đang tắt hệ thống…", sub: "Dừng xe trước rồi tắt các node" });
+  if (sys.state === "FAILED") return Object.assign(m, { cls: "bad", title: nBad ? "Thiết bị có lỗi" : "Hệ thống bị tắt do lỗi",
+    sub: vi(sys.detail), act: nBad ? "check" : "start", label: nBad ? "Kiểm tra lại" : "Khởi động lại",
+    opts: !nBad, alt: ["Xem chi tiết lỗi", () => { openFold("fS1", true); $("checkBox").open = nBad > 0; }] });
+  if (sys.state !== "RUNNING") {
+    if (pOk) return Object.assign(m, { cls: "warn", title: "Có planner đang chạy ngoài web",
+      sub: "Một hệ thống khác đang chạy (vd. rssi_follow) — tắt nó ở terminal trước" });
+    if (nBad) return Object.assign(m, { cls: "bad", title: "Thiết bị có lỗi", sub: `${nBad} mục HỎNG — sửa rồi kiểm tra lại`,
+      act: "check", label: "Kiểm tra lại", alt: ["Xem mục hỏng", () => { openFold("fS1", true); $("checkBox").open = true; }] });
+    return Object.assign(m, { title: "Hệ thống đang tắt", sub: "Cắm đủ thiết bị, bật nguồn khung xe rồi bấm Khởi động",
+      act: "start", label: "Khởi động", opts: true, alt: ["Chỉ kiểm tra", () => act("check")] });
+  }
+  m.step = 2;
+  if (!idOk) return Object.assign(m, { cls: "warn", busy: true, title: "Chờ camera…", sub: "Camera chưa gửi dữ liệu (nạp mô hình 10–40 giây)" });
+  if (enrolling) {
+    const pct = enrollPct(idt), n = Number(idt.samples || 0);
+    return Object.assign(m, { cls: "ok", title: `Đang học người · ${pct}%`, prog: pct,
+      sub: st0 === "ENROLLING_WAITING_FOR_PERSON" ? "Chưa thấy người — đứng trước camera" :
+        `${n} mẫu · đi lại gần ~0,8 m rồi lùi ra, xoay trái / phải — tự xong ở 100%`,
+      act: "enroll_finish", label: n >= ENROLL_MIN ? "Xong sớm" : "Xong", kind: n >= ENROLL_MIN ? "primary" : "ghost",
+      block: n >= ENROLL_MIN ? "" : `cần ≥ ${ENROLL_MIN} mẫu (đang có ${n})`,
+      alt: ["Huỷ học", () => act("reset_identity", {}, "Huỷ học người? Phải học lại trước khi bám.")] });
+  }
+  if (!idt.ready) return Object.assign(m, { title: "Chưa học người", sub: "Đứng trước camera ~3 m rồi bấm Học người",
+    act: "enroll_start", label: "Học người" });
+  m.step = 3;
+  if (!pOk) return Object.assign(m, { cls: "warn", title: "Planner không gửi trạng thái",
+    sub: "Xem nhật ký hệ thống ở Bước 1", alt: ["Mở nhật ký", () => openFold("fS1", true)] });
+  if (p.enabled) {
+    return Object.assign(m, { cls: PLAN_CLS[p.state] || "", title: (PLAN[p.state] || p.state) + (num(p.dist) ? ` · ${fmt(p.dist, 1)} m` : ""),
+      sub: [p.source ? "nguồn: " + (SRC[p.source] || p.source) : "", p.note || ""].filter(Boolean).join(" · "),
+      act: "follow_disable", label: "Tạm dừng", kind: "ghost" });
+  }
+  return Object.assign(m, { cls: "ok", title: "Sẵn sàng bám",
+    sub: idt.found ? "Camera đang thấy chủ — bấm để xe bắt đầu bám" : "Đứng trước xe ~2 m cho camera thấy chủ",
+    act: "follow_enable", label: "Bắt đầu bám",
+    alt: ["Học lại người", () => act("enroll_start", {}, "Học lại từ đầu? Người đã học sẽ bị xoá.")] });
+}
+
+function renderHero(s) {
+  const m = heroModel(s), sys = s.system;
+  heroM = m;
+  $("hero").className = "card hero" + (m.cls ? " " + m.cls : "");
+  setText("heroEye", (SYS[sys.state] || sys.state) + (sys.external ? " · ngoài web" : ""), SYS_CLS[sys.state] || "", "pill");
+  $("heroStep").textContent = `Bước ${m.step}/3`;
+  const t = $("heroTitle");
+  t.textContent = "";
+  if (m.busy) t.appendChild(el("span", "spin"));
+  t.appendChild(document.createTextNode(m.title));
+  $("heroSub").textContent = m.sub;
+  $("heroProg").hidden = m.prog === null;
+  if (m.prog !== null) {
+    $("heroBar").style.width = m.prog + "%";
+    $("heroProg").className = "progress" + (m.prog >= 100 ? " done" : "");
+  }
+  const b = $("heroBtn");
+  b.hidden = !m.act;
+  let why = "";
+  if (m.act) {
+    const a = s.allowed[m.act] || [false, "?"];
+    b.textContent = m.label;
+    b.className = "btn big " + m.kind;
+    why = !a[0] ? a[1] : m.block;
+    b.disabled = !!why;
+  }
+  setWhy("heroWhy", why);
+  $("heroOpts").hidden = !m.opts;
+  $("heroAlt").hidden = !m.alt;
+  $("heroFoot").hidden = !m.opts && !m.alt;
+  if (m.alt) $("heroAlt").textContent = m.alt[0];
+  // buoc hien tai: lam noi the buoc + mo no MOT lan khi vua chuyen buoc (khong gap lai the nguoi dung da mo)
+  for (const i of [1, 2, 3]) $("fS" + i).classList.toggle("cur", i === m.step);
+  if (m.step !== lastStep && lastStep !== 0 && !WIDE) openFold("fS" + m.step, false);
+  lastStep = m.step;
+}
+
+// ── canh bao quan trong (o tren cung) ───────────────────────────────
+function renderAlerts(s) {
+  const out = [], S = s.sensors, P = s.power || {}, b = s.bag || {};
+  if (S.cmd_pubs > 1) out.push(["bad", `Có ${S.cmd_pubs} node cùng ghi /cmd_vel — nguy hiểm (xe giật). Tắt bớt node.`]);
+  const bat = P.bat;
+  if (bat && bat.status === "Discharging" && bat.pct <= 20)
+    out.push([bat.pct <= 10 ? "bad" : "warn", `Pin máy robot còn ${bat.pct}%` + (bat.h_left ? ` (~${dur(bat.h_left * 3600)})` : "") + " — cắm sạc"]);
+  const ch = P.chassis;
+  if (ch && ch.lvl && fresh(ch.age, 2)) out.push([ch.lvl, `Pin khung xe thấp: ${fmt(ch.v, 2)}${ch.unit ? " " + ch.unit : ""}`]);
+  if (num(b.free) && b.free < 1e9) out.push(["warn", `Ổ đĩa máy robot còn ${size(b.free)} — ghi bag sẽ tự dừng khi gần đầy`]);
+  const key = JSON.stringify(out);
+  if (key === lastAlerts) return;
+  lastAlerts = key;
+  const box = $("alerts");
+  box.textContent = "";
+  for (const [c, t] of out) box.appendChild(el("div", "alert " + c, t));
+}
+
+// ── buoc 1: he thong ────────────────────────────────────────────────
+function renderSystem(s) {
+  const sys = s.system, cls = SYS_CLS[sys.state] || "";
+  setText("pSys", (SYS[sys.state] || sys.state) + (sys.external ? " (ngoài web)" : ""), cls, "pill");
+  setText("n1", sys.state === "RUNNING" ? "✓" : "1", sys.state === "RUNNING" ? "done" : (heroM && heroM.step === 1 ? "cur" : ""), "step");
+  $("sysDetail").textContent = vi(sys.detail);
+  $("s1Opts").hidden = !!sys.alive;
+  gate([["bCheck", "check"], ["bStart", "start"], ["bShutdown", "shutdown"]], s.allowed, "wSys");
+
+  const ck = JSON.stringify(s.check);
+  if (ck !== lastCheck) {
+    lastCheck = ck;
+    const n = { OK: 0, "CANH BAO": 0, HONG: 0 };
+    const ul = $("checkList");
+    ul.textContent = "";
+    let sec = null;
+    for (const it of s.check) {
+      n[it.level] = (n[it.level] || 0) + 1;
+      if (it.section !== sec) {
+        sec = it.section;
+        ul.appendChild(el("li", "sec", sec || "Khác"));
+      }
+      const li = el("li", "item");
+      li.append(el("b", it.level === "OK" ? "ok" : it.level === "HONG" ? "bad" : "warn",
+        it.level === "OK" ? "OK" : it.level === "HONG" ? "HỎNG" : "CẢNH BÁO"), el("span", "", it.text));
+      ul.appendChild(li);
+    }
+    const c = $("checkCounts");
+    c.textContent = "";
+    if (s.check.length) {
+      for (const [k, cl, name] of [["OK", "ok", "OK"], ["CANH BAO", "warn", "cảnh báo"], ["HONG", "bad", "hỏng"]]) {
+        if (n[k]) c.appendChild(el("span", "count " + cl, n[k] + " " + name));
+      }
+      if (n.HONG) $("checkBox").open = true;
+    } else {
+      c.textContent = "chưa chạy";
+    }
+  }
+  const lg = s.log.join("\n");
+  if (lg !== lastLog) {
+    const pre = $("log"), atEnd = pre.scrollTop + pre.clientHeight >= pre.scrollHeight - 8;
+    lastLog = lg;
+    pre.textContent = lg || "(chưa có)";
+    if (atEnd) pre.scrollTop = pre.scrollHeight;
+  }
+}
+
+// ── buoc 2: hoc nguoi + nhan tren khung video ───────────────────────
+function renderIdentity(s) {
+  const idt = s.identity, idOk = fresh(idt.age, 2);
+  const st0 = String(idt.status || "");
+  const [label, cls] = idOk ? (BADGE[st0] || [st0 || "—", ""]) : ["Camera chưa gửi dữ liệu", s.system.alive ? "bad" : ""];
+  const enrolling = idOk && st0.startsWith("ENROLLING");
+  const pct = idOk ? enrollPct(idt) : 0;
+  const done = idOk && idt.ready && !enrolling;
+  setText("pId", idOk ? label : "Chưa có camera", cls, "pill");
+  setText("n2", done ? "✓" : "2", done ? "done" : (heroM && heroM.step === 2 ? "cur" : ""), "step");
+  setText("idState", label, cls, "state");
+  $("idBar").style.width = pct + "%";
+  $("idProg").className = "progress" + (pct >= 100 ? " done" : "");
+  $("idSamples").textContent = idOk ? `${idt.samples ?? 0} mẫu đã học · ${idt.num_tracks ?? 0} người trong khung` : " ";
+  $("idPct").textContent = idOk ? pct + "%" : " ";
+  gate([["bEnroll", "enroll_start"], ["bFinish", "enroll_finish"], ["bReset", "reset_identity"]], s.allowed, "wId");
+  if (sysOff(s)) setWhy("wId", OFF_MSG);
+
+  const b = $("camBadge"), wrap = $("camBarWrap");
+  b.textContent = "";
+  b.className = cls;
+  wrap.className = "";
+  if (enrolling) {
+    b.append(document.createTextNode(`${label} ${pct}%`), el("small", "", `${idt.samples ?? 0} mẫu đã học`));
+    wrap.className = "show";
+    $("camBar").style.width = pct + "%";
+  } else if (idOk && st0 === "ENROLLMENT_DONE") {
+    b.textContent = `${label} 100%`;
+    wrap.className = "show done";
+    $("camBar").style.width = "100%";
+  } else if (idOk) {
+    b.textContent = label;
+  }
+}
+
+// ── buoc 3: bam nguoi ───────────────────────────────────────────────
+function renderFollow(s) {
+  const p = s.planner, pOk = fresh(p.age, 2);
+  let label, cls = "";
+  if (!pOk) label = "Planner chưa chạy";
+  else if (p.enabled) { label = PLAN[p.state] || p.state; cls = PLAN_CLS[p.state] || ""; }
+  else label = "Chưa bật bám";
+  setText("pFol", pOk ? label : "Chưa chạy", cls, "pill");
+  setText("n3", "3", heroM && heroM.step === 3 ? "cur" : "", "step");
+  setText("plState", label, cls, "state");
+  const parts = pOk ? [num(p.dist) ? "cách người " + fmt(p.dist, 2, " m") : "",
+    p.source ? "nguồn: " + (SRC[p.source] || p.source) : "", p.note || ""].filter(Boolean) : [];
+  $("plDetail").textContent = parts.join(" · ");
+  gate([["bEnable", "follow_enable"], ["bDisable", "follow_disable"]], s.allowed, "wPl");
+  if (sysOff(s)) setWhy("wPl", OFF_MSG);
+  $("bDisable").classList.toggle("dim", !(pOk && p.enabled));     // luon bam duoc (an toan), chi lam nhat
+}
+
+// ── chip trang thai (luon hien) + chi tiet (cham de mo) ─────────────
+function hzc(v, age, lim) { return age == null ? ["—", ""] : [fmt(v, 0, " Hz"), fresh(age, lim) ? "ok" : "bad"]; }
+function batCls(b) { return b.status !== "Discharging" ? "ok" : b.pct <= 10 ? "bad" : b.pct <= 20 ? "warn" : "ok"; }
+function sensorTile(box, name, val, cls, sub) {
+  const d = el("div", "sensor" + (cls ? " " + cls : ""));
+  d.append(el("div", "name", name), el("div", "val", val));
+  if (sub) d.appendChild(el("div", "sub", sub));
+  box.appendChild(d);
+}
+function renderSensors(s) {
+  const S = s.sensors, R = s.rssi, idt = s.identity, P = s.power || {}, v = s.video || {};
+  const rssiOn = R.beacon_ok != null || fresh(R.age, 3);
+  const cmd = S.cmd_pubs > 1 ? [`${S.cmd_pubs} nguồn!`, "bad"] : hzc(S.cmd_hz, S.cmd_age, 0.5);
+  const chips = [["LiDAR", ...hzc(S.scan_hz, S.scan_age, 0.6)], ["Xe", ...hzc(S.odom_hz, S.odom_age, 0.5)],
+    ["Camera", ...hzc(idt.hz, idt.age, 2)], ["Lệnh", ...cmd]];
+  if (rssiOn) chips.push(["Beacon", R.beacon_ok ? "có" : "mất", R.beacon_ok ? "ok" : "bad"]);
+  if (P.bat) chips.push(["Pin", P.bat.pct + "%", batCls(P.bat)]);
+  const ch = P.chassis && fresh(P.chassis.age, 2) ? P.chassis : null;
+  if (ch) chips.push(["Pin xe", fmt(ch.v, 1) + (ch.unit ? " " + ch.unit : ""), ch.lvl || ""]);
+  const cbox = $("chips");
+  cbox.textContent = "";
+  for (const [n, val, c] of chips) {
+    const e = el("span", "chip" + (c ? " " + c : ""));
+    e.append(el("span", "cn", n), el("span", "cv", val));
+    cbox.appendChild(e);
+  }
+  const g = $("sensors");
+  g.textContent = "";
+  sensorTile(g, "LiDAR (/scan)", ...hzc(S.scan_hz, S.scan_age, 0.6), "cần ≥ 8 Hz");
+  sensorTile(g, "Khung xe (/odom)", ...hzc(S.odom_hz, S.odom_age, 0.5), "20–50 Hz");
+  sensorTile(g, "Camera (ReID)", ...hzc(idt.hz, idt.age, 2), fresh(idt.age, 2) ? `${idt.num_tracks ?? 0} người trong khung` : "");
+  sensorTile(g, "Lệnh xe (/cmd_vel)", cmd[0], S.cmd_pubs > 1 ? "bad" : cmd[1], `${S.cmd_pubs} node ghi (phải là 1)`);
+  for (const k of ["A", "B", "C"]) {
+    const bd = (R.boards || {})[k];
+    sensorTile(g, "RSSI " + k, bd ? fmt(bd.hz, 0, " mẫu/s") : "—", bd ? (bd.hz > 5 ? "ok" : "bad") : "",
+      bd && num(bd.dbm) ? fmt(bd.dbm, 0, " dBm") : "");
+  }
+  sensorTile(g, "Beacon", R.beacon_ok == null ? "—" : R.beacon_ok ? "có tín hiệu" : "không thấy",
+    R.beacon_ok == null ? "" : R.beacon_ok ? "ok" : "bad", R.bearing_valid ? "đã có hướng" : "");
+  sensorTile(g, "Video lên web", v.viewers ? fmt(v.fps, 0, " hình/s") : "không ai xem", v.viewers ? "ok" : "",
+    `${v.viewers || 0} người xem · ${v.width || ""} px`);
+  const pw = $("power");
+  pw.textContent = "";
+  if (P.bat) {
+    const b = P.bat;
+    sensorTile(pw, "Pin máy robot", b.pct + "%", batCls(b), (BAT[b.status] || b.status || "") +
+      (b.h_left ? ` · còn ~${dur(b.h_left * 3600)}` : "") + (num(b.w) ? ` · ${fmt(b.w, 1)} W` : ""));
+  } else {
+    sensorTile(pw, "Pin máy robot", "không có pin", "", "máy cắm điện trực tiếp");
+  }
+  if (P.chassis) {
+    sensorTile(pw, "Pin khung xe", fmt(P.chassis.v, 2) + (P.chassis.unit ? " " + P.chassis.unit : ""),
+      fresh(P.chassis.age, 2) ? (P.chassis.lvl || "ok") : "bad",
+      P.chassis.unit ? (fresh(P.chassis.age, 2) ? "trung vị 10 s" : "không có số mới") : "số thô từ driver — chưa rõ đơn vị");
+  } else {
+    sensorTile(pw, "Pin khung xe", "—", "", "chưa có /bw_dr03/power");
+  }
+  $("vidMeta").textContent = v.viewers ? `${fmt(v.fps, 0)} hình/s · ${v.width || ""} px` : "";
+}
+
+// ── ghi bag ─────────────────────────────────────────────────────────
+let lastRecKey = "";
+function renderRec(s) {
+  const b = s.bag || {}, A = s.allowed, rec = b.state === "RECORDING", stopping = b.state === "STOPPING";
+  const on = rec || stopping;
+  const pill = $("recPill");
+  pill.className = "recpill" + (on ? " show" : "");
+  document.body.classList.toggle("recording", on);
+  pill.textContent = stopping ? "ĐANG LƯU" : "REC " + clock(b.dur);
+  $("recIco").className = "rec-ico" + (on ? " on" : "");
+  const exp = b.expected || [], got = b.topics;
+  const topicTxt = got ? ` · ${got.length}/${exp.length || "?"} topic` : "";
+  $("recSub").textContent = rec ? `Đang ghi ${clock(b.dur)} · ${size(b.size)}${topicTxt}` + (b.external ? " · ngoài web" : "")
+    : stopping ? "Đang dừng ghi, lưu file…" : `Không ghi · ổ đĩa còn ${size(b.free)}`;
+  const btn = $("bRec");
+  const key = rec ? "bag_stop" : "bag_start";
+  const a = A[key] || [false, "?"];
+  btn.textContent = rec ? "Dừng ghi" : stopping ? "Đang lưu…" : "Ghi";
+  btn.className = "btn " + (rec ? "danger" : "rec");
+  btn.disabled = stopping || !a[0];
+  btn.dataset.act = key;
+  setWhy("wRec", !stopping && !a[0] ? (sysOff(s) && !rec ? OFF_MSG : a[1]) : "");
+
+  const kv = $("recKv");
+  kv.textContent = "";
+  const row = (k, val) => { kv.append(el("dt", "", k), el("dd", "", val)); };
+  if (on) {
+    row("Đang ghi", b.name || "—");
+    row("Thư mục", b.path || "—");
+    if (got) {
+      const miss = exp.filter((t) => !got.includes(t));
+      row("Topic", `${got.length}/${exp.length} đã có` + (miss.length ? " · chưa có: " + miss.join(", ") : ""));
+    } else {
+      row("Topic", "không rõ (ghi ngoài web)");
+    }
+  }
+  row("Lưu ở", (b.dir || "~/bags") + " trên máy robot");
+  row("Ổ đĩa", `còn ${size(b.free)}`);
+  row("Ghi gì", "topic của run_full.sh --bag — không ghi ảnh camera (~4–5 MB/phút)");
+  const rk = JSON.stringify([b.recent, b.name]);
+  if (rk === lastRecKey) return;
+  lastRecKey = rk;
+  const ul = $("recList");
+  ul.textContent = "";
+  for (const r of b.recent || []) {
+    const li = el("li");
+    const n = el("span", "", r.name);
+    if (on && r.name === b.name) n.appendChild(el("span", "tag live", "đang ghi"));
+    else if (!r.ok) n.appendChild(el("span", "tag", "thiếu metadata"));
+    li.append(n, el("span", "", [r.t ? dayTime(r.t) : "", r.ok ? clock(r.dur) : "", size(r.size)].filter(Boolean).join(" · ")));
+    ul.appendChild(li);
+  }
+  if (!(b.recent || []).length) ul.appendChild(el("li", "", "Chưa có bag nào"));
+}
+
+// ── dong su kien ────────────────────────────────────────────────────
+let evBoot = "", evRev = -1, evItems = [], evBusy = false, evAll = false, evKey = "";
+async function syncEvents(meta) {
+  if (!meta || evBusy || (meta.boot === evBoot && meta.rev === evRev)) return;
+  evBusy = true;
+  try {
+    const r = await req("/api/events", {}, 3000);
+    if (r.ok) {
+      const j = await r.json();
+      evBoot = j.boot; evRev = j.rev; evItems = j.items || [];
+      renderEvents(true);
+    }
+  } catch (e) { /* thu lai o lan hoi sau */ } finally { evBusy = false; }
+}
+function evView(e) {
+  const a = e.a || {};
+  let text = e.code, sub = "", lvl = e.lvl;
+  switch (e.code) {
+    case "sys": {
+      const ext = /ngoai web/.test(a.detail || "");
+      text = { CHECKING: a.mode === "check" ? "Bắt đầu kiểm tra thiết bị" : "Kiểm tra trước khi khởi động",
+        STARTING: ext ? "Phát hiện hệ thống chạy ngoài web" : "Kiểm tra đạt — đang khởi động",
+        RUNNING: "Hệ thống đã chạy", STOPPING: "Đang tắt hệ thống", FAILED: "Hệ thống lỗi",
+        STOPPED: a.prev === "CHECKING" ? "Kiểm tra xong" : "Hệ thống đã tắt" + (ext ? " (ngoài web)" : "") }[a.state] || a.state;
+      if ((a.state === "STOPPED" && a.prev === "CHECKING") || a.state === "FAILED") sub = vi(a.detail);
+      if (a.state === "STOPPED" && a.prev === "CHECKING") lvl = /HONG/.test(a.detail || "") ? "bad" : "ok";
+      break;
+    }
+    case "act":
+      text = "Bấm " + (ACT_LABEL[a.name] || a.name) + (a.ok ? "" : " — không được");
+      sub = (a.ok ? "" : vi(a.msg) + " · ") + "từ " + a.who;
+      break;
+    case "follow": text = a.on ? "Xe bắt đầu bám" : "Xe ngừng bám"; break;
+    case "plan": {
+      text = PLAN_EV[a.state] || a.state;
+      sub = a.note || "";
+      if (e.end) {
+        const nx = a.next, back = nx === "FOLLOW" || nx === "ARRIVED";
+        text += back ? (a.state === "SEARCH" || a.state === "IDLE" ? " → thấy lại người" : " → bám tiếp")
+          : nx === "OFF" ? " → ngừng bám" : " → " + String(PLAN_EV[nx] || nx).toLowerCase();
+        if (back && a.state === "SEARCH") lvl = "ok";
+      }
+      break;
+    }
+    case "enroll":
+      text = { done: "Học xong người", cancel: "Huỷ học người", clear: "Đã xoá người đã học" }[a.ev] || a.ev;
+      sub = a.ev === "done" && num(a.samples) ? `${a.samples} mẫu` : "";
+      break;
+    case "stale":
+      text = `${STALE_EV[a.what] || a.what} ngừng gửi dữ liệu` + (e.end ? (a.next === "ok" ? " → có lại" : " (hệ thống tắt)") : "");
+      break;
+    case "cmdpubs": text = `Có ${a.n} node cùng ghi /cmd_vel` + (e.end ? " → về 1" : ""); break;
+    case "beacon": text = "Mất tín hiệu beacon" + (e.end ? (a.next === "ok" ? " → có lại" : " → hết dữ liệu RSSI") : ""); break;
+    case "bag":
+      if (a.ev === "start") {
+        text = "Bắt đầu ghi bag" + (a.auto ? " (tự động)" : "") + (a.external ? " (ngoài web)" : "");
+        sub = a.name || "";
+      } else if (a.ev === "done") {
+        text = a.nometa ? "Dừng ghi bag — thiếu metadata.yaml" : "Đã lưu bag";
+        sub = [a.name, a.nometa ? "" : clock(a.dur), size(a.size), num(a.topics) && a.topics ? a.topics + " topic" : "",
+          WHY[a.why] || a.why || ""].filter(Boolean).join(" · ");
+      } else {
+        text = "Ghi bag lỗi";
+        sub = `mã ${a.code}: ${a.last || ""}`;
+      }
+      break;
+    case "bat":
+      text = a.src === "may" ? `Pin máy robot còn ${a.val}` : `Pin khung xe thấp: ${a.val}`;
+      break;
+  }
+  let d = "", live = false;
+  if (e.ep) {
+    live = !e.end;
+    const now = st ? st.t : Date.now() / 1000;
+    d = dur((e.end || now) - e.t) + (e.n > 1 ? ` · ${e.n} lần` : "");
+  }
+  return { text, sub, lvl, d, live };
+}
+function renderEvents(force) {
+  const list = evItems.slice().reverse();
+  const shown = evAll ? list : list.slice(0, 3);
+  const live = shown.some((e) => e.ep && !e.end);
+  const key = evRev + ":" + evAll;
+  if (!force && key === evKey && !live) return;           // chi ve lai khi co thay doi / dang dem thoi gian
+  evKey = key;
+  const ul = $("evList");
+  ul.textContent = "";
+  const today = new Date(); today.setHours(0, 0, 0, 0);
+  for (const e of shown) {
+    const v = evView(e), li = el("li");
+    const main = el("div");
+    main.appendChild(el("div", "ev-text", v.text));
+    if (v.sub) main.appendChild(el("div", "ev-sub", v.sub));
+    li.append(el("span", "ev-t", e.t * 1000 < today.getTime() ? dayTime(e.t) : hms(e.t)), el("span", "ev-dot " + v.lvl),
+      main, v.d ? el("span", "ev-dur" + (v.live ? " live" : ""), v.d) : el("span"));
+    ul.appendChild(li);
+  }
+  if (!shown.length) ul.appendChild(el("li", "ev-empty", "Chưa có sự kiện nào từ lúc web khởi động"));
+  $("evCount").textContent = list.length ? list.length + " sự kiện" : "";
+  $("evMore").hidden = list.length <= 3;
+  $("evMore").textContent = evAll ? "Thu gọn" : `Xem tất cả (${list.length})`;
+}
+
+function render(s) {
+  renderHero(s);
+  renderAlerts(s);
+  renderSystem(s);
+  renderIdentity(s);
+  renderFollow(s);
+  renderSensors(s);
+  renderRec(s);
+  renderEvents(false);
+  // camera vua co lai -> noi lai luong video (anh MJPEG chi bao "onload" o khung dau)
+  const camOk = fresh(s.identity.age, 2);
+  if (camOk && !lastCamOk) videoStart();
+  if (!camOk) $("camEmpty").style.display = "grid";
+  $("camWrap").classList.toggle("nocam", !camOk);
+  lastCamOk = camOk;
+}
+
+// ── vong hoi trang thai ─────────────────────────────────────────────
+async function poll() {
+  const t0 = performance.now();
+  try {
+    const r = await req("/api/status", {}, 1500);
+    if (r.status === 401) { authed = false; everOk = true; lastOk = Date.now(); show("login"); }
+    else if (r.ok) {
+      st = await r.json(); lastOk = Date.now(); everOk = true;
+      latency = Math.round(performance.now() - t0);
+      if (!authed) { authed = true; videoStart(); }
+      show("main"); render(st);
+      syncEvents(st.ev);
+    }
+  } catch (e) { /* mat ket noi: xu ly ben duoi */ }
+  const lost = everOk && Date.now() - lastOk > 1500;
+  document.body.classList.toggle("lost", lost);
+  const net = $("net");
+  if (!everOk) { net.textContent = "Chưa nối được"; net.className = "pill bad"; }
+  else if (lost) { net.textContent = "Mất kết nối"; net.className = "pill bad"; }
+  else { net.textContent = latency > 400 ? `Mạng chậm ${latency} ms` : "Đã kết nối"; net.className = "pill " + (latency > 400 ? "warn" : "ok"); }
+  setTimeout(poll, authed ? 400 : 1500);
+}
+
+// ── nut ─────────────────────────────────────────────────────────────
+async function act(name, body, confirmMsg) {
+  if (confirmMsg && !window.confirm(confirmMsg)) return;
+  try {
+    const r = await post("/api/action/" + name, body, 6000);
+    if (r.status === 401) { authed = false; show("login"); toast("Cần đăng nhập lại", "bad", 4000); return; }
+    const j = await r.json();
+    toast(vi(j.msg), j.ok ? "ok" : "bad", j.ok ? 2500 : 6000);
+  } catch (e) { toast("Không gửi được lệnh — kiểm tra Wi-Fi", "bad", 6000); }
+}
+async function stopNow(ev) {
+  if (ev) ev.preventDefault();
+  if (navigator.vibrate) navigator.vibrate(150);
+  try {
+    const r = await post("/api/action/estop", {}, 2000);
+    const j = await r.json();
+    toast(j.ok ? "ĐÃ DỪNG XE" : vi(j.msg), j.ok ? "ok" : "bad", j.ok ? 2500 : 10000);
+  } catch (e) {
+    toast("KHÔNG GỬI ĐƯỢC LỆNH DỪNG — dùng công tắc nguồn động cơ trên xe", "bad", 10000);
+  }
+}
+
+// ── video: luong MJPEG lien tuc; loi nhieu lan thi chuyen sang xin tung anh ─
+let vidMode = "stream", vidFails = 0, vidTimer = 0, snapBusy = false;
+function videoWanted() { return $("camOn").checked && !document.hidden && authed; }
+function videoStop() {
+  clearTimeout(vidTimer);
+  const img = $("cam");
+  img.onload = img.onerror = null;
+  img.src = BLANK;                     // dong luong cu
+  $("camEmpty").style.display = "grid";
+}
+function videoStart() {
+  videoStop();
+  $("camWrap").style.display = $("camOn").checked ? "block" : "none";
+  if (!$("camOn").checked) setBig(false);
+  if (!videoWanted()) return;
+  const img = $("cam");
+  if (vidMode === "stream") {
+    const t0 = Date.now();
+    img.onload = () => { vidFails = 0; $("camEmpty").style.display = "none"; };
+    img.onerror = () => {
+      $("camEmpty").style.display = "grid";
+      vidFails = Date.now() - t0 < 4000 ? vidFails + 1 : 1;
+      if (vidFails >= 3) { vidMode = "snap"; setTimeout(() => { vidMode = "stream"; vidFails = 0; }, 60000); }
+      vidTimer = setTimeout(videoStart, 1500);
+    };
+    img.src = "/api/camera.mjpg?t=" + t0;
+  } else {
+    snapLoop();
+  }
+}
+function snapLoop() {
+  if (!videoWanted() || vidMode !== "snap" || snapBusy) return;
+  snapBusy = true;
+  const img = $("cam"), t0 = Date.now();
+  img.onload = () => { snapBusy = false; $("camEmpty").style.display = "none"; vidTimer = setTimeout(snapLoop, Math.max(0, 150 - (Date.now() - t0))); };
+  img.onerror = () => { snapBusy = false; $("camEmpty").style.display = "grid"; vidTimer = setTimeout(videoStart, 1000); };
+  img.src = "/api/camera.jpg?t=" + t0;
+}
+function setBig(on) {
+  document.body.classList.toggle("vbig", on);
+  $("camBig").textContent = on ? "✕" : "⤢";
+  $("camBig").setAttribute("aria-label", on ? "Thu nhỏ video" : "Phóng to video");
+}
+
+// ── giao dien sang / toi (nho tren may nay) ─────────────────────────
+// Bieu tuong ve bang net (mau chu) -> ro tren ca nen sang lan toi
+const SVG = (d) => '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' + d + "</svg>";
+const THEME_ICON = {
+  light: SVG('<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>'),
+  dark: SVG('<path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/>'),
+  auto: SVG('<circle cx="12" cy="12" r="9"/><path d="M12 3a9 9 0 0 1 0 18z" fill="currentColor"/>'),
+};
+const darkMq = window.matchMedia ? window.matchMedia("(prefers-color-scheme: dark)") : null;
+function themeNow() { return document.documentElement.dataset.theme || ""; }       // "" = tu dong
+function themeShown() { const t = themeNow(); return t || (darkMq && darkMq.matches ? "dark" : "light"); }
+function themePaint() {
+  const t = themeNow(), b = $("themeBtn");
+  b.innerHTML = THEME_ICON[t || "auto"];
+  const name = t === "light" ? "Sáng" : t === "dark" ? "Tối" : "Tự động (theo điện thoại)";
+  b.title = "Giao diện: " + name + " — bấm để đổi";
+  b.setAttribute("aria-label", b.title);
+  const meta = document.querySelector('meta[name="theme-color"]');
+  if (meta) meta.setAttribute("content", themeShown() === "dark" ? "#0a0f1c" : "#eef2f7");
+  return name;
+}
+// Bam xoay vong: Tu dong -> mau NGUOC voi dien thoai -> mau giong dien thoai -> Tu dong.
+// Dien thoai dang toi thi bam 1 lan la sang (ra ngoai nang).
+$("themeBtn").onclick = () => {
+  const t = themeNow(), sys = darkMq && darkMq.matches ? "dark" : "light", opp = sys === "dark" ? "light" : "dark";
+  const next = t === "" ? opp : t === opp ? sys : "";
+  if (next) document.documentElement.dataset.theme = next; else delete document.documentElement.dataset.theme;
+  store("theme", next);
+  toast("Giao diện: " + themePaint(), "ok", 1800);
+};
+if (darkMq && darkMq.addEventListener) darkMq.addEventListener("change", themePaint);
+themePaint();
+
+// ── gan su kien ─────────────────────────────────────────────────────
+$("bCheck").onclick = () => act("check");
+$("bStart").onclick = () => act("start", startBody());
+$("bShutdown").onclick = () => act("shutdown", {}, "Tắt toàn bộ hệ thống robot? Xe sẽ được dừng trước.");
+$("bEnroll").onclick = () => act("enroll_start");
+$("bFinish").onclick = () => act("enroll_finish");
+$("bReset").onclick = () => act("reset_identity", {}, "Xoá người đã học? Phải học lại trước khi bám.");
+$("bEnable").onclick = () => act("follow_enable");
+$("bDisable").onclick = () => act("follow_disable");
+$("bRec").onclick = () => {
+  if ($("bRec").dataset.act === "bag_stop") act("bag_stop", {}, "Dừng ghi bag?");
+  else act("bag_start");
+};
+$("heroBtn").onclick = () => {
+  const m = heroM;
+  if (m && m.act) act(m.act, m.act === "start" ? startBody() : {}, m.confirm);
+};
+$("heroAlt").onclick = () => { if (heroM && heroM.alt) heroM.alt[1](); };
+$("recPill").onclick = () => $("recCard").scrollIntoView({ behavior: "smooth", block: "start" });
+$("evMore").onclick = () => { evAll = !evAll; renderEvents(true); };
+$("camBig").onclick = (e) => { e.stopPropagation(); setBig(!document.body.classList.contains("vbig")); };
+$("stop").addEventListener("pointerdown", stopNow);
+$("camOn").addEventListener("change", videoStart);
+document.addEventListener("visibilitychange", () => { if (document.hidden) videoStop(); else videoStart(); });
+document.addEventListener("keydown", (e) => { if (e.key === "Escape") setBig(false); });
+$("btnLogin").onclick = async () => {
+  $("loginMsg").textContent = "";
+  try {
+    const r = await post("/api/login", { password: $("pw").value }, 6000);
+    if (r.ok) { $("pw").value = ""; authed = true; show("main"); videoStart(); }
+    else { $("loginMsg").textContent = "Sai mật khẩu"; }
+  } catch (e) { $("loginMsg").textContent = "Không nối được tới robot"; }
+};
+$("pw").addEventListener("keydown", (e) => { if (e.key === "Enter") $("btnLogin").click(); });
+
+initFolds();
+initOpts();
+poll();
+videoStart();
+</script>
+</body>
+</html>
