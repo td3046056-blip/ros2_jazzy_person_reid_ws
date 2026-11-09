@@ -1920,22 +1920,35 @@ class FollowPlannerNode(Node):
                 prev = pr
                 cands.append(pr)
         best = None
-        for th in cands:
-            c, s_ = math.cos(th), math.sin(th)
-            S = P[:, 0] * c + P[:, 1] * s_
-            L = -P[:, 0] * s_ + P[:, 1] * c
-            sm = mx * c + my * s_
-            lm = -mx * s_ + my * c
-            win = ((S >= max(sm - 0.70, -self.rear_len - 0.05)) & (S <= sm + 0.30)
-                   & (np.abs(L - lm) <= lat_w))
-            if not np.any(win):
+        # 09/11 (mini PC): ca ~18 huong thu tinh GOP trong vai phep numpy (mang huong x diem) thay cho vong Python
+        # (~15 lan goi numpy moi huong, 2-3 ms / lan). Tung phan tu van dung cong thuc cu; min / max cua tung huong lay
+        # tren dung tap diem cua huong do (diem ngoai tap -> +-inf); chon huong tot nhat theo dung thu tu cu (diem bang
+        # nhau giu huong truoc); chi tiet (mat cat dau tien, do sau) chi tinh cho huong duoc chon — y nhu ban cu tinh
+        # lai moi khi doi huong tot nhat.
+        if P.shape[0] == 0:
+            return None                            # (ban cu: khong huong nao co diem -> best None -> None)
+        cosl = [math.cos(th) for th in cands]
+        sinl = [math.sin(th) for th in cands]
+        p0, p1 = P[:, 0][None, :], P[:, 1][None, :]
+        Ca, Sa = np.array(cosl)[:, None], np.array(sinl)[:, None]
+        S = p0 * Ca + p1 * Sa
+        L = -p0 * Sa + p1 * Ca
+        sml = [mx * c + my * s_ for c, s_ in zip(cosl, sinl)]
+        lml = [-mx * s_ + my * c for c, s_ in zip(cosl, sinl)]
+        lmA = np.array(lml)[:, None]
+        win = ((S >= np.array([max(sm - 0.70, -self.rear_len - 0.05) for sm in sml])[:, None])
+               & (S <= np.array([sm + 0.30 for sm in sml])[:, None]) & (np.abs(L - lmA) <= lat_w))
+        lft = L > lmA
+        wl = win & lft
+        wr = win & ~lft
+        ok_ = (wl.any(axis=1) & wr.any(axis=1)).tolist()    # mot ben khong co gi chan: khong phai loi di
+        Ll = np.where(wl, L, np.inf).min(axis=1).tolist()
+        Lr = np.where(wr, L, -np.inf).max(axis=1).tolist()
+        for a, th in enumerate(cands):
+            if not ok_[a]:
                 continue
-            Lw, Sw = L[win], S[win]
-            lft = Lw > lm
-            if not lft.any() or lft.all():
-                continue                           # mot ben khong co gi chan: khong phai loi di
-            l_l = float(np.min(Lw[lft]))
-            l_r = float(np.max(Lw[~lft]))
+            l_l = Ll[a]
+            l_r = Lr[a]
             w = l_l - l_r
             # Phat lech: 1 mm moi do so voi huong khe cu, 2 mm moi do so voi truc nhip truoc (chong nhay vi
             # nhieu). Phai NHO hon do doc be rong theo goc cua cua that: tuong day 12 cm chi hep them ~2 mm
@@ -1943,18 +1956,22 @@ class FollowPlannerNode(Node):
             dev = 0.057 * abs(wrap_pi(th - psi0)) + (0.115 * abs(wrap_pi(th - prev)) if prev is not None else 0.0)
             score = w - dev
             if best is None or score > best[0]:
-                # Mat cat hep DAU TIEN xe gap: s nho nhat cua MOI diem sat mep khoang trong (trong 3 cm ra
-                # ngoai), khong chi diem chan mep. Tuong day: goc ngoai va goc trong thanh cua cung toa do
-                # ngang, lay diem nao la ngau nhien -> 'along' nhay 12 cm moi nhip, cham nguong lui (mo phong
-                # cua ben tuong day 14/10: xe lui - tien mai cach mat cua 0.5 m).
-                e_l = (Lw >= l_l - 1e-3) & (Lw <= l_l + 0.03)
-                e_r = (Lw <= l_r + 1e-3) & (Lw >= l_r - 0.03)
-                # Do SAU loi di: thanh chan mep chay dai bao nhieu doc truc (tuong song song truc = hanh lang).
-                # Dai 10 cm (khong phai 3 cm): truc lech tuong vai do thi tuong dai 1 m chi con ~0.3 m trong dai 3 cm.
-                d_l = (Lw >= l_l - 1e-3) & (Lw <= l_l + 0.10)
-                d_r = (Lw <= l_r + 1e-3) & (Lw >= l_r - 0.10)
-                depth = max(float(np.ptp(Sw[d_l])), float(np.ptp(Sw[d_r])))
-                best = (score, th, w, 0.5 * (l_l + l_r), float(np.min(Sw[e_l | e_r])), depth)
+                best = (score, a, w, l_l, l_r)
+        if best is not None:
+            score, a, w, l_l, l_r = best
+            Lw, Sw = L[a][win[a]], S[a][win[a]]
+            # Mat cat hep DAU TIEN xe gap: s nho nhat cua MOI diem sat mep khoang trong (trong 3 cm ra
+            # ngoai), khong chi diem chan mep. Tuong day: goc ngoai va goc trong thanh cua cung toa do
+            # ngang, lay diem nao la ngau nhien -> 'along' nhay 12 cm moi nhip, cham nguong lui (mo phong
+            # cua ben tuong day 14/10: xe lui - tien mai cach mat cua 0.5 m).
+            e_l = (Lw >= l_l - 1e-3) & (Lw <= l_l + 0.03)
+            e_r = (Lw <= l_r + 1e-3) & (Lw >= l_r - 0.03)
+            # Do SAU loi di: thanh chan mep chay dai bao nhieu doc truc (tuong song song truc = hanh lang).
+            # Dai 10 cm (khong phai 3 cm): truc lech tuong vai do thi tuong dai 1 m chi con ~0.3 m trong dai 3 cm.
+            d_l = (Lw >= l_l - 1e-3) & (Lw <= l_l + 0.10)
+            d_r = (Lw <= l_r + 1e-3) & (Lw >= l_r - 0.10)
+            depth = max(float(np.ptp(Sw[d_l])), float(np.ptp(Sw[d_r])))
+            best = (score, cands[a], w, 0.5 * (l_l + l_r), float(np.min(Sw[e_l | e_r])), depth)
         # Mat cat hep nhat KHONG THE rong hon khe cu (hai mep cu nam trong cua so): rong hon la da mat diem
         # (bi che / bi loai nham) -> khong tin.
         if (best is None or best[2] < 2.0 * (self.half_width + self.gap_cross_margin) + 0.02
@@ -2263,6 +2280,25 @@ class FollowPlannerNode(Node):
         dp = np.hypot(GX - tx, GY - ty).ravel()
         return {"xs": xs, "ys": ys, "GX": GX, "GY": GY, "D": D, "pred": pred, "free": free, "N": N, "nxc": nxc,
                 "nyc": nyc, "start": start, "dp": dp, "G": G, "res": res, "x0": x0, "ey": ey}
+
+    def _obst_uniq(self) -> np.ndarray:
+        """self.obstacles BO DIEM TRUNG (trung tung byte ca hai toa do; giu lan xuat hien dau, dung thu tu) — 09/11.
+        Chi dung cho phep lay MIN do thoang theo diem (DWA): diem trung cho cung gia tri moi tu the nen bo di khong doi
+        ket qua. O bay sat vat ~1/3 diem la trung (diem quet trung diem noi tia / diem nho). Tinh mot lan moi vong quet
+        (_scan_cb gan mang MOI, khong sua tai cho)."""
+        P = self.obstacles
+        c = getattr(self, "_obst_u", None)
+        if c is None or c[0] is not P:
+            U = P
+            if P.shape[0] > 1 and P.ndim == 2 and P.shape[1] == 2:
+                A = np.ascontiguousarray(P)
+                v = A.view(np.dtype((np.void, A.dtype.itemsize * 2))).ravel()
+                _u, first = np.unique(v, return_index=True)
+                if first.shape[0] < P.shape[0]:
+                    U = A[np.sort(first)]
+            c = (P, U)
+            self._obst_u = c
+        return c[1]
 
     def _nav_graph(self, free: np.ndarray, flat_cost: np.ndarray, nyc: int, nxc: int, res: float):
         """Do thi luoi cho Dijkstra — DUNG BANG ma tran ban cu dung tu (u, v, w) qua COO -> CSR -> sap chi so (09/11).
@@ -3622,7 +3658,8 @@ class FollowPlannerNode(Node):
         if P.shape[0] > 0:
             # = rect_clearance(lx, ly, ...).min(axis=2) voi lx, ly theo tung tu the — giong het tung bit,
             # nhanh hon ~2 lan (13/10, mini PC): min truoc sqrt sau, tinh theo khoi (geometry.py)
-            clr_t = rect_clearance_min(X, Y, theta, P, self.front_len, self.rear_len,
+            # 09/11: tap diem DA BO DIEM TRUNG (min theo diem nen ket qua khong doi; o bay toi 1/3 so diem la trung)
+            clr_t = rect_clearance_min(X, Y, theta, self._obst_uniq(), self.front_len, self.rear_len,
                                        self.half_width)               # (N,K) tung buoc
             min_clear = clr_t.min(axis=1)                     # (N,)
             end_clear = clr_t[:, -1]

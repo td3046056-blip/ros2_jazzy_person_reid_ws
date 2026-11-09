@@ -48,6 +48,7 @@ def _perf():                       # dong ho CPU gia: tim thoat ket khong phu th
 
 FP._perf = _perf
 wrap_pi_arr = FP.wrap_pi_arr
+wrap_pi = FP.wrap_pi
 _sp_dijkstra, _csr_matrix, _edt = FP._sp_dijkstra, FP._csr_matrix, FP._edt
 try:
     from scipy.sparse import csr_matrix as _csr
@@ -379,6 +380,102 @@ def fields_same(fa, fb):
     return ok and all(same(fa[k], fb[k]) for k in fb)
 
 
+def ref_gap_refine(self, g: Dict[str, float],
+                target_xy: Optional[Tuple[float, float]] = None) -> Optional[Dict[str, float]]:
+    """Dat lai khe vao MAT CAT HEP NHAT cua loi di quanh khe vua chon (14/10).
+
+    _gap_target lay hai diem lidar KE NHAU THEO GOC. O cua that, cho do thuong KHONG phai cho
+    hep nhat: tuong day, khung cua nho ra, rem buoc gon, canh cua mo ap mot ben bien loi di thanh
+    mot "duong ham" ngan, va hai thanh cua o mieng cua nam o goc nhin rat cheo nen khong ke nhau
+    theo goc. Xe that 14/10 (bag follow_1014_153520, cua bep 0.80 m): khe chon duoc la cho mo
+    0.95 m PHIA TRONG bep (tuong trai trong bep <-> canh cua), lech 7-8 do so voi cua that ->
+    xe "da vao truc" (lech 0-1 cm) theo truc sai, that ra lech trai 4 cm + nghieng 8 do -> goc
+    truoc trai cach thanh cua 4-5 cm -> xoay qua xoay lai mai; lan sau khe nhay qua lai giua cua
+    that va mot cap diem cheo -> xe tien lui mai.
+
+    Cach tinh: thu cac huong chui quanh huong cu (+-16 do, buoc 2 do). Voi moi huong, chieu cac
+    diem lidar tu 0.7 m truoc khe toi 0.3 m sau khe (ke ca canh than xe) len truc ngang, lay
+    khoang TRONG LIEN TUC chua tam khe cu = be rong duong THANG lot qua that. Chon huong rong
+    nhat, phat nhe khi lech huong cu / truc nhip truoc (1-2 mm moi do) de khong nhay vi nhieu. Tam
+    khe moi = giua khoang trong do, dat o mat cat hep dau tien xe gap. Duoi 2*(half_width +
+    gap_cross_margin) + 2 cm (xe khong the lot) hoac khong tinh duoc thi tra None.
+    """
+    P = self.obstacles_full if self.obstacles_full.shape[0] else self.obstacles
+    if P.shape[0] < 2:
+        return None
+    if target_xy is not None:
+        # Bo chan nguoi dang bam (nguoi vua buoc qua cua thi chan ho khong duoc lam lech khe). Vi tri du
+        # doan troi toi sat thanh cua thi xoa luon thanh cua -> khe "no" ra: bat o dieu kien be rong ben
+        # duoi (mat cat hep nhat khong the rong hon khe cu).
+        d_t = np.hypot(P[:, 0] - target_xy[0], P[:, 1] - target_xy[1])
+        P = P[d_t > min(0.35, self.target_clear_r)]
+    mx, my, psi0 = g["mx"], g["my"], g["psi"]
+    lat_w = 0.5 * g["gw"] + 0.35
+    cands = [psi0 + math.radians(float(d)) for d in range(-16, 17, 2)]
+    # Truc nhip truoc (khung odom) — chi khi cung mot khe (tam gan, huong gan)
+    prev = None
+    now_ = time.time()
+    gox, goy = self._odom_of(mx, my)          # tam khe CU (khung odom) — de nhan ra "cung mot khe"
+    if self.gap_axis_prev is not None and now_ - self.gap_axis_prev[3] < 1.0:
+        pa, pox, poy, _t = self.gap_axis_prev
+        pr = wrap_pi(pa - self.robot_yaw)
+        if math.hypot(gox - pox, goy - poy) < 0.5 and abs(wrap_pi(pr - psi0)) < math.radians(20.0):
+            prev = pr
+            cands.append(pr)
+    best = None
+    for th in cands:
+        c, s_ = math.cos(th), math.sin(th)
+        S = P[:, 0] * c + P[:, 1] * s_
+        L = -P[:, 0] * s_ + P[:, 1] * c
+        sm = mx * c + my * s_
+        lm = -mx * s_ + my * c
+        win = ((S >= max(sm - 0.70, -self.rear_len - 0.05)) & (S <= sm + 0.30)
+               & (np.abs(L - lm) <= lat_w))
+        if not np.any(win):
+            continue
+        Lw, Sw = L[win], S[win]
+        lft = Lw > lm
+        if not lft.any() or lft.all():
+            continue                           # mot ben khong co gi chan: khong phai loi di
+        l_l = float(np.min(Lw[lft]))
+        l_r = float(np.max(Lw[~lft]))
+        w = l_l - l_r
+        # Phat lech: 1 mm moi do so voi huong khe cu, 2 mm moi do so voi truc nhip truoc (chong nhay vi
+        # nhieu). Phai NHO hon do doc be rong theo goc cua cua that: tuong day 12 cm chi hep them ~2 mm
+        # moi do nghieng — phat 4 mm/do thi khong bao gio xoay duoc truc ve phap tuyen that.
+        dev = 0.057 * abs(wrap_pi(th - psi0)) + (0.115 * abs(wrap_pi(th - prev)) if prev is not None else 0.0)
+        score = w - dev
+        if best is None or score > best[0]:
+            # Mat cat hep DAU TIEN xe gap: s nho nhat cua MOI diem sat mep khoang trong (trong 3 cm ra
+            # ngoai), khong chi diem chan mep. Tuong day: goc ngoai va goc trong thanh cua cung toa do
+            # ngang, lay diem nao la ngau nhien -> 'along' nhay 12 cm moi nhip, cham nguong lui (mo phong
+            # cua ben tuong day 14/10: xe lui - tien mai cach mat cua 0.5 m).
+            e_l = (Lw >= l_l - 1e-3) & (Lw <= l_l + 0.03)
+            e_r = (Lw <= l_r + 1e-3) & (Lw >= l_r - 0.03)
+            # Do SAU loi di: thanh chan mep chay dai bao nhieu doc truc (tuong song song truc = hanh lang).
+            # Dai 10 cm (khong phai 3 cm): truc lech tuong vai do thi tuong dai 1 m chi con ~0.3 m trong dai 3 cm.
+            d_l = (Lw >= l_l - 1e-3) & (Lw <= l_l + 0.10)
+            d_r = (Lw <= l_r + 1e-3) & (Lw >= l_r - 0.10)
+            depth = max(float(np.ptp(Sw[d_l])), float(np.ptp(Sw[d_r])))
+            best = (score, th, w, 0.5 * (l_l + l_r), float(np.min(Sw[e_l | e_r])), depth)
+    # Mat cat hep nhat KHONG THE rong hon khe cu (hai mep cu nam trong cua so): rong hon la da mat diem
+    # (bi che / bi loai nham) -> khong tin.
+    if (best is None or best[2] < 2.0 * (self.half_width + self.gap_cross_margin) + 0.02
+            or best[2] > min(g["gw"] + 0.03, self.gap_wp_max_w)):
+        return None
+    _sc, th, w, cl, s_star, depth = best
+    dx, dy = math.cos(th), math.sin(th)
+    mx2, my2 = s_star * dx - cl * dy, s_star * dy + cl * dx
+    self.gap_axis_prev = (wrap_pi(th + self.robot_yaw), gox, goy, now_)
+    return {"mx": mx2, "my": my2, "nx": -dx, "ny": -dy, "gw": w,
+            "psi": wrap_pi(th), "along": s_star, "lat": abs(cl),
+            # HANH LANG rong (thanh chan chay dai doc truc, vd. giua thung va tuong): khong phai khung cua,
+            # DWA / ban do tu di duoc. Dong tac chui khe o day thi 'along' tinh tu dau cua so (tuong chay
+            # suot) -> luat lui ve truc kich hoat -> lui - dung mai (mo phong 14/10: vong qua thung bi chan
+            # ben trai, sang phai thi ket o mieng hanh lang 1.1 m). Cua hep van chui (rong < 0.95 m).
+            "corridor": bool(w > 0.95 and depth > 0.45)}
+
+
 def ref_nav_plan(self, tx: float, ty: float, moving: bool,
               standoff: Optional[float] = None, prefer_side: int = 0,
               back: float = 1.0) -> Optional[Dict[str, Any]]:
@@ -588,6 +685,39 @@ def scene(rng):
     return P, (r * math.cos(a), r * math.sin(a))
 
 
+def gap_scene(rng):
+    """Canh CUA (khung base, xe o goc): tuong vuong goc truc cua, cua rong 0.70-1.10 m, tuong day 2-15 cm, them vai
+    vat; khe uoc luong (mx, my, psi, gw) lech chut so voi that; nguoi o ben kia cua (doi khi sat thanh cua)."""
+    W = rng.uniform(0.70, 1.10)
+    d = rng.uniform(0.6, 2.0)
+    y0 = rng.uniform(-0.5, 0.5)
+    psi = rng.uniform(-0.5, 0.5)                 # huong truc cua (xuyen qua cua, tu phia xe)
+    tw = rng.uniform(0.02, 0.15)
+    ux, uy = math.cos(psi), math.sin(psi)        # doc truc
+    vx, vy = -uy, ux                             # doc mat cua
+    cx, cy = d * math.cos(math.atan2(y0, d)), y0
+    segs = []
+    for sg in (1.0, -1.0):
+        ax, ay = cx + sg * 0.5 * W * vx, cy + sg * 0.5 * W * vy
+        bx, by = ax + sg * 1.5 * vx, ay + sg * 1.5 * vy
+        for off in (0.0, tw):                    # hai mat tuong (day tw)
+            segs.append((ax + off * ux, ay + off * uy, bx + off * ux, by + off * uy))
+        segs.append((ax, ay, ax + tw * ux, ay + tw * uy))   # mep thanh cua
+    for _ in range(int(rng.integers(0, 3))):     # do dac truoc / sau cua
+        ox, oy = cx + rng.uniform(-0.8, 1.2) * ux + rng.uniform(-1.0, 1.0) * vx, cy + rng.uniform(-0.8, 1.2) * uy
+        a = rng.uniform(0.1, 0.3)
+        segs += [(ox - a, oy - a, ox + a, oy - a), (ox + a, oy - a, ox + a, oy + a)]
+    P = _segs_points(segs, rng, step=0.02, noise=float(rng.choice([0.0, 0.005, 0.01])))
+    g = {"mx": cx + rng.uniform(-0.05, 0.05), "my": cy + rng.uniform(-0.05, 0.05),
+         "psi": psi + math.radians(rng.uniform(-8.0, 8.0)), "gw": W + rng.uniform(-0.03, 0.06)}
+    if rng.random() < 0.3:                       # nguoi sat thanh cua
+        tg = (cx + 0.1 * ux + 0.5 * W * vx, cy + 0.1 * uy + 0.5 * W * vy)
+    else:
+        k = rng.uniform(0.4, 1.5)
+        tg = (cx + k * ux, cy + k * uy)
+    return P, g, tg
+
+
 def set_state(pl, rng, P):
     """Gan trang thai node: tu the odom, tap diem (nhu _scan_cb), vet xe (co doan dung yen trung tu the), lich su quet."""
     rx, ry, ryaw = rng.uniform(-3, 3), rng.uniform(-3, 3), rng.uniform(-math.pi, math.pi)
@@ -653,7 +783,7 @@ def main():
     pl._p.update(CFG["follow_planner_node"]["ros__parameters"])
     pl._read_params()
     rng = np.random.default_rng(2026)
-    n_kf = n_nav = n_fld = n_srch = 0
+    n_kf = n_nav = n_fld = n_srch = n_gap = n_dwa = n_gap_ok = 0
     bad = []
     t0 = _real_perf()
     for sc in range(int(os.environ.get("SO_CANH", "36"))):
@@ -757,11 +887,56 @@ def main():
             if not same(a, b) or ea != eb:
                 bad.append(f"canh {sc}: tim thoat ket half {half} face {face is not None} {job[4:]}: {a} / {b}, "
                            f"buoc {ea} / {eb}")
+        # 5) _gap_refine (lam lai khe): canh CUA ngau nhien (+ do dac) va canh bay o tren; ket qua VA trang thai
+        #    gap_axis_prev (ham ghi lai truc khe) phai giong het
+        for k in range(8):
+            Pg, g, tg = gap_scene(rng) if k < 6 else (P, {"mx": rng.uniform(0.3, 1.5), "my": rng.uniform(-0.6, 0.6),
+                                                         "psi": rng.uniform(-0.6, 0.6), "gw": rng.uniform(0.7, 1.1)},
+                                                     None)
+            pl.obstacles_full = Pg
+            for prev_ in (None, "gan"):
+                if prev_ is None:
+                    pv = None
+                else:                                   # truc nhip truoc gan khe nay (khung odom), 0.4 s truoc
+                    ox_, oy_ = pl._odom_of(g["mx"], g["my"])
+                    pv = (wrap_pi(g["psi"] + pl.robot_yaw + rng.uniform(-0.2, 0.2)), ox_ + rng.uniform(-0.2, 0.2),
+                          oy_ + rng.uniform(-0.2, 0.2), FAKE_T[0] - 0.4)
+                for tgt in (None, tg):
+                    n_gap += 1
+                    pl.gap_axis_prev = pv
+                    a = pl._gap_refine(dict(g), tgt)
+                    sa = pl.gap_axis_prev
+                    pl.gap_axis_prev = pv
+                    b = ref_gap_refine(pl, dict(g), tgt)
+                    sb = pl.gap_axis_prev
+                    n_gap_ok += b is not None
+                    if not same(a, b) or not same(sa, sb):
+                        bad.append(f"canh {sc}: _gap_refine k {k} prev {prev_} tgt {tgt is not None}: {a} / {b}")
+        pl.obstacles_full = P[np.hypot(P[:, 0], P[:, 1]) < 3.0]
+        # 6) DWA dung tap diem BO DIEM TRUNG (_obst_uniq): rect_clearance_min giong tung bit tap goc (co diem trung)
+        Pd = np.vstack([pl.obstacles, pl.obstacles[rng.integers(0, max(1, pl.obstacles.shape[0]), 40)]]) \
+            if pl.obstacles.shape[0] else pl.obstacles
+        pl.obstacles = Pd
+        if Pd.shape[0]:
+            n_dwa += 1
+            nT, kT = 60, 12
+            Vv, Ww = rng.uniform(-0.1, 0.4, nT), rng.uniform(-1.0, 1.0, nT)
+            tt = np.arange(1, kT + 1) * 0.10
+            thT = Ww[:, None] * tt[None, :]
+            XT = (Vv / Ww)[:, None] * np.sin(thT)
+            YT = (Vv / Ww)[:, None] * (1.0 - np.cos(thT))
+            a = FP.rect_clearance_min(XT, YT, thT, pl._obst_uniq(), pl.front_len, pl.rear_len, pl.half_width)
+            b = FP.rect_clearance_min(XT, YT, thT, Pd, pl.front_len, pl.rear_len, pl.half_width)
+            if not same(a, b) or pl._obst_uniq().shape[0] >= Pd.shape[0]:
+                bad.append(f"canh {sc}: DWA tap diem bo trung")
     dt = _real_perf() - t0
     print(f"  _known_free  : {n_kf} lan so (6 diem / luoi 4 cm / rai rac / rong; vet 30 s + 90 s)")
     print(f"  _nav_plan    : {n_nav} lan so (duong bam, tim khe, luoi xa, giu ben, mang moi)")
     print(f"  _esc_fields  : {n_fld} lan so (truong 1 cm + luoi da biet trong 4 cm)")
     print(f"  tim thoat ket: {n_srch} lan so (ban do + quay mat ve nguoi; ke hoach + so buoc tim)")
+    print(f"  _gap_refine  : {n_gap} lan so ({n_gap_ok} ra khe; cua ngau nhien + do dac / canh bay; co / khong truc nhip "
+          f"truoc, chan nguoi)")
+    print(f"  DWA          : {n_dwa} lan so (tap diem bo trung vs tap goc)")
     for b_ in bad[:10]:
         print("  KHAC: " + b_)
     print(f"  ({dt:.0f} s)")
