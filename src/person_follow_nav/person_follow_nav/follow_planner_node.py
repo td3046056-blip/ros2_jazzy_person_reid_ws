@@ -884,8 +884,82 @@ class FollowPlannerNode(Node):
 
     def _known_free(self, Q: np.ndarray, trail_sec: float = 30.0) -> np.ndarray:
         """Diem Q (khung odom) da biet la TRONG: than xe tung o do (trail_sec, thuong 30 s; thoat ket dung
-        escape_trail_sec), hoac lidar da nhin xuyen qua (20 s)."""
+        escape_trail_sec), hoac lidar da nhin xuyen qua (20 s).
+
+        09/11 (mini PC i5-5200U): tinh GOP moi tu the / moi vong quet trong vai phep numpy thay cho vong Python (vong cu:
+        hang tram tu the x ~10 lan goi numpy moi tu the, toi 266 ms / lan khi mo phong bay sau co tai camera). Tung phan
+        tu van qua dung cac phep tinh, dung thu tu nhu vong cu -> GIONG TUNG BIT (scripts/test_fast_planner.py so voi ban
+        goc); tu the trung het nhau (xe dung yen) chi tinh mot lan — ket qua la phep HOAC nen khong doi."""
         now = time.time()
+        if Q.ndim != 2 or Q.dtype != np.float64 or Q.shape[0] > 2000:
+            # Q LON (khong gap trong code hien tai: luoi cua _esc_fields di _known_free_grid): vong cu nhanh hon ban gop
+            # (mang tam tu the x diem qua lon, tran bo nho dem) — do 09/11: 16900 diem 83 ms (vong) / 114 ms (gop)
+            return self._known_free_loop(Q, trail_sec, now)
+        ok = np.zeros(Q.shape[0], bool)
+        if Q.shape[0] == 0:
+            return ok
+        m_ = 0.02
+        F_, R_, H_ = self.front_len - m_, -self.rear_len + m_, self.half_width - m_
+        qx, qy = Q[:, 0], Q[:, 1]
+        poses = list(dict.fromkeys((x, y, yaw) for (t, x, y, yaw) in self.pose_trail if not (now - t > trail_sec)))
+        if poses:
+            PXa = np.array([p[0] for p in poses], dtype=np.float64)[:, None]
+            PYa = np.array([p[1] for p in poses], dtype=np.float64)[:, None]
+            Ca = np.array([math.cos(p[2]) for p in poses], dtype=np.float64)[:, None]
+            Sa = np.array([math.sin(p[2]) for p in poses], dtype=np.float64)[:, None]
+            step = max(1, 400000 // Q.shape[0])
+            for i0 in range(0, len(poses), step):
+                i1 = min(len(poses), i0 + step)
+                dx, dy = qx[None, :] - PXa[i0:i1], qy[None, :] - PYa[i0:i1]
+                c, s_ = Ca[i0:i1], Sa[i0:i1]
+                lx, ly = c * dx + s_ * dy, -s_ * dx + c * dy
+                ok |= ((lx < F_) & (lx > R_) & (np.abs(ly) < H_)).any(axis=0)
+                if ok.all():
+                    return ok
+        # vong quet trong 20 s (= _beam_lookup(..., long_free=True) cho tung vong, gop cac vong cung so tia)
+        groups: Dict[int, list] = {}
+        for h in self.scan_hist:
+            if now - h[0] > 20.0:
+                continue
+            n_ = h[4].shape[0]
+            if n_ == 0 or abs(h[6]) < 1e-9:
+                continue                                # _beam_lookup tra ok toan False -> khong them gi
+            groups.setdefault(n_, []).append(h)
+        for n_, hs in groups.items():
+            step = max(1, 400000 // Q.shape[0])
+            for i0 in range(0, len(hs), step):
+                g_ = hs[i0:i0 + step]
+                Rg = np.stack([h[4] for h in g_])
+                a0 = np.array([h[5] for h in g_], dtype=np.float64)[:, None]
+                ainc = np.array([h[6] for h in g_], dtype=np.float64)[:, None]
+                rmin = np.array([h[7] for h in g_], dtype=np.float64)[:, None]
+                rmax = np.array([h[8] for h in g_], dtype=np.float64)[:, None]
+                c = np.array([math.cos(h[3]) for h in g_], dtype=np.float64)[:, None]
+                s_ = np.array([math.sin(h[3]) for h in g_], dtype=np.float64)[:, None]
+                dx = qx[None, :] - np.array([h[1] for h in g_], dtype=np.float64)[:, None]
+                dy = qy[None, :] - np.array([h[2] for h in g_], dtype=np.float64)[:, None]
+                bx, by = c * dx + s_ * dy, -s_ * dx + c * dy
+                lx, ly = bx - self.lidar_x, by - self.lidar_y
+                rm = np.hypot(lx, ly)
+                a_las = (np.arctan2(ly, lx) - self.lidar_yaw_offset_rad) * self.lidar_angle_sign
+                idx = np.mod(np.round((a_las - a0) / ainc).astype(np.int64), n_)
+                rb = np.take_along_axis(Rg, idx, axis=1)
+                okb = np.isfinite(rb) & (rb > rmin) & (rb < rmax)
+                far = ~np.isnan(rb) & (rb >= rmax) & (rm < rmax - 0.1)
+                rb = np.where(far, rmax, rb)
+                okb = okb | far
+                if self.blind_sectors:
+                    deg = np.degrees(a0 + idx * ainc) % 360.0
+                    for lo, hi in self.blind_sectors:
+                        okb &= ~((deg >= lo) & (deg <= hi))
+                ok |= (okb & (rb > rm + 0.08)).any(axis=0)
+                if ok.all():
+                    return ok
+        return ok
+
+    def _known_free_loop(self, Q: np.ndarray, trail_sec: float, now: float) -> np.ndarray:
+        """Ban goc (vong Python) cua _known_free — chi dung khi Q khong phai mang float64 2 chieu (khong gap trong code
+        hien tai) de giu dung cach numpy doi kieu cua ban goc."""
         ok = np.zeros(Q.shape[0], bool)
         m_ = 0.02
         for (t, x, y, yaw) in self.pose_trail:
@@ -907,6 +981,105 @@ class FollowPlannerNode(Node):
             ok |= okb & (rb > rm + 0.08)
             if ok.all():
                 return ok
+        return ok
+
+    def _known_free_grid(self, Q: np.ndarray, kc: np.ndarray, kres: float, trail_sec: float) -> np.ndarray:
+        """= self._known_free(Q, trail_sec) — GIONG TUNG BIT — cho Q la LUOI DEU cua _esc_fields: Q[i * nk + j] = tu the
+        xe + R(yaw) * (kc[j], kc[i]), kc buoc deu kres.
+
+        09/11 (mini PC i5-5200U): _known_free thu MOI diem luoi (toi 130 x 130) voi MOI tu the cua vet 90 s va MOI vong quet
+        20 s -> 85-260 ms ngay trong nhip bat dau tim thoat ket. O day: (1) THAN XE — moi tu the chi thu cac o nam trong
+        khung bao cua hinh chu nhat (+2 o = 8 cm); o ngoai khung cach hinh chu nhat > 8 cm nen phep thu chac chan sai
+        (sai so lam tron ~1e-14 m). (2) VONG QUET — chi thu diem CHUA biet trong; cac vong quet cung tu the (xe dung yen)
+        tinh khoang cach / chi so tia mot lan; phan cua tung TIA (hop le, khong ve, cung mu) tinh san tren 360 tia. Moi
+        phep thu tren mot diem van la dung cong thuc, dung thu tu phep tinh cua _known_free + _beam_lookup."""
+        now = time.time()
+        N = Q.shape[0]
+        nk = int(kc.shape[0])
+        if Q.ndim != 2 or Q.dtype != np.float64 or nk < 2 or N != nk * nk:
+            return self._known_free(Q, trail_sec)
+        ok = np.zeros(N, bool)
+        m_ = 0.02
+        F_, R_, H_ = self.front_len - m_, -self.rear_len + m_, self.half_width - m_
+        qx, qy = Q[:, 0], Q[:, 1]
+        poses = list(dict.fromkeys((x, y, yaw) for (t, x, y, yaw) in self.pose_trail if not (now - t > trail_sec)))
+        if poses:
+            PXa = np.array([p[0] for p in poses], dtype=np.float64)
+            PYa = np.array([p[1] for p in poses], dtype=np.float64)
+            Ca = np.array([math.cos(p[2]) for p in poses], dtype=np.float64)
+            Sa = np.array([math.sin(p[2]) for p in poses], dtype=np.float64)
+            # 4 goc hinh chu nhat (khung tu the) -> odom -> khung luoi (base luc goi) -> khung bao theo chi so o (+2 o)
+            U4 = np.array([F_, F_, R_, R_])[None, :]
+            V4 = np.array([H_, -H_, H_, -H_])[None, :]
+            ex = PXa[:, None] + Ca[:, None] * U4 - Sa[:, None] * V4 - self.robot_x
+            ey = PYa[:, None] + Sa[:, None] * U4 + Ca[:, None] * V4 - self.robot_y
+            cR, sR = math.cos(self.robot_yaw), math.sin(self.robot_yaw)
+            gxc, gyc = cR * ex + sR * ey, -sR * ex + cR * ey
+            k0 = float(kc[0])
+            j_lo = np.floor((gxc.min(axis=1) - k0) / kres).astype(np.int64) - 2
+            j_hi = np.ceil((gxc.max(axis=1) - k0) / kres).astype(np.int64) + 2
+            i_lo = np.floor((gyc.min(axis=1) - k0) / kres).astype(np.int64) - 2
+            i_hi = np.ceil((gyc.max(axis=1) - k0) / kres).astype(np.int64) + 2
+            sel = np.flatnonzero((j_hi >= 0) & (j_lo <= nk - 1) & (i_hi >= 0) & (i_lo <= nk - 1))
+            if sel.size:
+                j_lo, j_hi = np.clip(j_lo[sel], 0, nk - 1), np.clip(j_hi[sel], 0, nk - 1)
+                i_lo, i_hi = np.clip(i_lo[sel], 0, nk - 1), np.clip(i_hi[sel], 0, nk - 1)
+                PXs, PYs, Cs, Ss = PXa[sel], PYa[sel], Ca[sel], Sa[sel]
+                aj = np.arange(int((j_hi - j_lo).max()) + 1)[None, None, :]
+                ai = np.arange(int((i_hi - i_lo).max()) + 1)[None, :, None]
+                step = max(1, 200000 // (aj.shape[2] * ai.shape[1]))
+                for s0 in range(0, sel.size, step):
+                    s1 = min(sel.size, s0 + step)
+                    J = j_lo[s0:s1, None, None] + aj
+                    I = i_lo[s0:s1, None, None] + ai
+                    val = (J <= j_hi[s0:s1, None, None]) & (I <= i_hi[s0:s1, None, None])
+                    flat = np.where(val, I * nk + J, 0)
+                    dx = qx[flat] - PXs[s0:s1, None, None]
+                    dy = qy[flat] - PYs[s0:s1, None, None]
+                    c, s_ = Cs[s0:s1, None, None], Ss[s0:s1, None, None]
+                    lx, ly = c * dx + s_ * dy, -s_ * dx + c * dy
+                    hit = val & (lx < F_) & (lx > R_) & (np.abs(ly) < H_)
+                    ok[flat[hit]] = True
+        rem = np.flatnonzero(~ok)
+        if rem.size == 0:
+            return ok
+        # vong quet 20 s: gop cac vong CUNG tu the + cung thong so tia (xe dung yen -> nhieu vong trung tu the)
+        groups: Dict[Tuple, list] = {}
+        for h in self.scan_hist:
+            if now - h[0] > 20.0:
+                continue
+            n_ = h[4].shape[0]
+            if n_ == 0 or abs(h[6]) < 1e-9:
+                continue                                # _beam_lookup tra ok toan False -> khong them gi
+            groups.setdefault((h[1], h[2], h[3], n_, h[5], h[6], h[7], h[8]), []).append(h[4])
+        for (hx, hy, hyaw, n_, a0, ainc, rmin, rmax), Rs in groups.items():
+            # theo TIA (cung phep so sanh cua _beam_lookup): tia hop le -> tam xa nhat qua cac vong; tia khong ve (>= tam)
+            nb = np.ones(n_, bool)
+            if self.blind_sectors:
+                deg = np.degrees(a0 + np.arange(n_) * ainc) % 360.0
+                for lo, hi in self.blind_sectors:
+                    nb &= ~((deg >= lo) & (deg <= hi))
+            Rv = None
+            Fa = None
+            for Rr in Rs:
+                rv = np.where(np.isfinite(Rr) & (Rr > rmin) & (Rr < rmax) & nb, Rr, -np.inf)
+                fa = ~np.isnan(Rr) & (Rr >= rmax) & nb
+                Rv = rv if Rv is None else np.maximum(Rv, rv)
+                Fa = fa if Fa is None else (Fa | fa)
+            c, s_ = math.cos(hyaw), math.sin(hyaw)
+            dx, dy = qx[rem] - hx, qy[rem] - hy
+            bx, by = c * dx + s_ * dy, -s_ * dx + c * dy
+            lx, ly = bx - self.lidar_x, by - self.lidar_y
+            rm = np.hypot(lx, ly)
+            a_las = (np.arctan2(ly, lx) - self.lidar_yaw_offset_rad) * self.lidar_angle_sign
+            idx = np.mod(np.round((a_las - a0) / ainc).astype(np.int64), n_)
+            t_ = rm + 0.08
+            hit = (Rv[idx] > t_) | (Fa[idx] & (rm < rmax - 0.1) & (rmax > t_))
+            if hit.any():
+                ok[rem[hit]] = True
+                rem = rem[~hit]
+                if rem.size == 0:
+                    break
         return ok
 
     def _reverse_ok_many(self, V: np.ndarray, W: np.ndarray) -> np.ndarray:
@@ -1900,7 +2073,65 @@ class FollowPlannerNode(Node):
         tu o cua xe. Chon o dich theo J = quang duong + nav_far_weight * (khoang cach toi nguoi vuot
         follow_distance): dung truoc thung cach nguoi 1.4 m (J ~ 1.6) re hon vong 2 m de toi 1.0 m;
         nguoi o xa hon nua thi vong. O tot nhat ngay duoi xe -> 'hold' (dung cho, nhin nguoi).
-        """
+
+        09/11 (mini PC): phan NANG (luoi, khoang cach toi vat, Dijkstra) chi phu thuoc tap diem vat can + (tx, ty, back,
+        prefer_side) -> _nav_grid nho lai theo dung cac dau vao do. Duong bam (_nav_get) va duong tim khe (_nav_gap_path)
+        cung nhip, cung luoi thi dung chung; chi phan chon o dich (moving / standoff) tinh rieng. Cung code, cung so ->
+        giong tung bit (scripts/test_fast_planner.py)."""
+        g = self._nav_grid(tx, ty, prefer_side, back)
+        xs, ys, GX, GY, D, pred, free, N, nxc, nyc, start, dp, G, res, x0, ey = (
+            g["xs"], g["ys"], g["GX"], g["GY"], g["D"], g["pred"], g["free"], g["N"], g["nxc"], g["nyc"], g["start"],
+            g["dp"], g["G"], g["res"], g["x0"], g["ey"])
+        kfar = self.nav_far_w_moving if moving else self.nav_far_w
+        fd = self.follow_distance if standoff is None else float(standoff)
+        cand = np.isfinite(D) & free & (dp >= fd - 0.3)
+        if not np.any(cand):
+            return None
+        J = np.where(cand, D + kfar * np.maximum(0.0, dp - fd)
+                     + 4.0 * np.maximum(0.0, fd - 0.1 - dp), np.inf)
+        k = int(np.argmin(J))
+        path = []
+        cur = k
+        for _ in range(N):
+            cy_, cx_ = divmod(cur, nxc)
+            path.append((float(xs[cx_]), float(ys[cy_])))
+            if cur == start:
+                break
+            cur = int(pred[cur])
+            if cur < 0:
+                return None
+        path.reverse()
+        path[0] = (0.0, 0.0)
+        tgt_xy = path[-1]
+        hold = math.hypot(*tgt_xy) < self.nav_hold_r
+        out = {"path": path, "target": tgt_xy, "hold": hold, "cost": float(D[k]), "J": float(J[k]),
+               "person_d": float(dp[k])}
+        if _sp_dijkstra is not None:
+            # 05/11: giu luoi + do thi de bo THOAT KET tinh "con bao xa toi dich" tu MOI o (Dijkstra nguoc tu dich)
+            out["grid"] = {"G": G, "k": k, "nxc": nxc, "nyc": nyc, "res": res, "x0": x0, "ey": ey,
+                           "pose": (self.robot_x, self.robot_y, self.robot_yaw)}
+        return out
+
+    def _nav_grid(self, tx: float, ty: float, prefer_side: int, back: float) -> Dict[str, Any]:
+        """Phan nang cua _nav_plan, NHO LAI theo dau vao (09/11, mini PC). Dau vao: tap diem vat can (cung DOI TUONG mang —
+        _scan_cb chi gan mang moi, khong sua tai cho), (tx, ty, back, prefer_side); tham so ban do doc mot lan luc khoi
+        dong. Mang vat can moi (vong quet moi) -> xoa het."""
+        P = self.obstacles_dense if self.obstacles_dense.shape[0] else self.obstacles
+        key = (type(tx), tx, type(ty), ty, type(back), back, prefer_side)
+        memo = getattr(self, "_nav_memo", None)
+        if memo is None or memo[0] is not P:
+            memo = (P, {})
+            self._nav_memo = memo
+        g = memo[1].get(key)
+        if g is None:
+            g = self._nav_grid_calc(tx, ty, prefer_side, back)
+            if len(memo[1]) >= 8:
+                memo[1].clear()
+            memo[1][key] = g
+        return g
+
+    def _nav_grid_calc(self, tx: float, ty: float, prefer_side: int, back: float) -> Dict[str, Any]:
+        """Code goc cua _nav_plan tu luoi toi Dijkstra (chuyen nguyen sang day 09/11, khong doi phep tinh nao)."""
         res = self.nav_res if _sp_dijkstra is not None else max(self.nav_res, 0.08)
         dist = math.hypot(tx, ty)
         # back: luoi nhin bao xa SAU xe (thuong 1.0 m; bay sau 06/11: escape_far_back_m — xem _nav_get)
@@ -1936,7 +2167,18 @@ class FollowPlannerNode(Node):
                 occ[ri_[ok_], ci_[ok_]] = True
             if occ.any():
                 # tam o luoi 6 cm = tam o min giua khoi 3x3
-                dobs = (_edt(~occ) * rf)[pad + 1:pad + nyc * f3:f3, pad + 1:pad + nxc * f3:f3].astype(np.float32)
+                # 09/11 (mini PC): chi tinh khoang cach o CAC O LAY MAU (1/9 luoi min) tu bien doi dac trung cua scipy (chi so
+                # o vat gan nhat) — dung cac buoc distance_transform_edt tu lam ben trong (hieu chi so -> float64 -> binh
+                # phuong -> cong -> sqrt), roi * rf -> float32 nhu cu. Truoc: tinh cho ca luoi min roi bo 8/9.
+                ft = _edt(~occ, return_distances=False, return_indices=True)
+                rr = np.arange(pad + 1, pad + nyc * f3, f3)[:, None]
+                cc = np.arange(pad + 1, pad + nxc * f3, f3)[None, :]
+                ddy = (ft[0][rr, cc] - rr).astype(np.float64)
+                ddx = (ft[1][rr, cc] - cc).astype(np.float64)
+                ddy *= ddy
+                ddx *= ddx
+                ddy += ddx
+                dobs = (np.sqrt(ddy) * rf).astype(np.float32)
             else:
                 dobs = np.full(GX.shape, np.inf, dtype=np.float32)
         else:
@@ -1976,7 +2218,11 @@ class FollowPlannerNode(Node):
         flat_cost = cost.ravel()
         free = ~lethal.ravel()
 
-        if _sp_dijkstra is not None:
+        G = None
+        if _sp_dijkstra is not None and nxc > 2:
+            G = self._nav_graph(free, flat_cost, nyc, nxc, res)
+            D, pred = _sp_dijkstra(G, directed=False, indices=start, return_predecessors=True)
+        elif _sp_dijkstra is not None:
             idx = np.arange(N).reshape(nyc, nxc)
             us, vs, ws = [], [], []
             for dy, dx, L in ((0, 1, 1.0), (1, 0, 1.0), (1, 1, math.sqrt(2.0)), (1, -1, math.sqrt(2.0))):
@@ -2015,35 +2261,33 @@ class FollowPlannerNode(Node):
                                 heapq.heappush(hp, (nd, v))
 
         dp = np.hypot(GX - tx, GY - ty).ravel()
-        kfar = self.nav_far_w_moving if moving else self.nav_far_w
-        fd = self.follow_distance if standoff is None else float(standoff)
-        cand = np.isfinite(D) & free & (dp >= fd - 0.3)
-        if not np.any(cand):
-            return None
-        J = np.where(cand, D + kfar * np.maximum(0.0, dp - fd)
-                     + 4.0 * np.maximum(0.0, fd - 0.1 - dp), np.inf)
-        k = int(np.argmin(J))
-        path = []
-        cur = k
-        for _ in range(N):
-            cy_, cx_ = divmod(cur, nxc)
-            path.append((float(xs[cx_]), float(ys[cy_])))
-            if cur == start:
-                break
-            cur = int(pred[cur])
-            if cur < 0:
-                return None
-        path.reverse()
-        path[0] = (0.0, 0.0)
-        tgt_xy = path[-1]
-        hold = math.hypot(*tgt_xy) < self.nav_hold_r
-        out = {"path": path, "target": tgt_xy, "hold": hold, "cost": float(D[k]), "J": float(J[k]),
-               "person_d": float(dp[k])}
-        if _sp_dijkstra is not None:
-            # 05/11: giu luoi + do thi de bo THOAT KET tinh "con bao xa toi dich" tu MOI o (Dijkstra nguoc tu dich)
-            out["grid"] = {"G": G, "k": k, "nxc": nxc, "nyc": nyc, "res": res, "x0": x0, "ey": ey,
-                           "pose": (self.robot_x, self.robot_y, self.robot_yaw)}
-        return out
+        return {"xs": xs, "ys": ys, "GX": GX, "GY": GY, "D": D, "pred": pred, "free": free, "N": N, "nxc": nxc,
+                "nyc": nyc, "start": start, "dp": dp, "G": G, "res": res, "x0": x0, "ey": ey}
+
+    def _nav_graph(self, free: np.ndarray, flat_cost: np.ndarray, nyc: int, nxc: int, res: float):
+        """Do thi luoi cho Dijkstra — DUNG BANG ma tran ban cu dung tu (u, v, w) qua COO -> CSR -> sap chi so (09/11).
+
+        Ban cu: 4 huong (0,1), (1,0), (1,1), (1,-1), moi canh u -> v (v > u) trong so L * res * 0.5 * (cost[u] + cost[v]),
+        roi scipy sap cot tang dan trong tung hang (khong co canh trung). O day: moi o u co 4 'o lan can phia truoc' theo
+        thu tu COT TANG DAN u+1, u+nxc-1, u+nxc, u+nxc+1 (can nxc > 2) -> loc canh hop le theo hang -> ra thang dang CSR
+        da sap: cung indptr / indices / data (float32, cung phep tinh trong so) nhu ban cu, bo buoc sap xep cua scipy."""
+        N = nyc * nxc
+        r = np.arange(nyc)[:, None]
+        c = np.arange(nxc)[None, :]
+        u = np.arange(N)
+        V = np.empty((N, 4), dtype=np.int64)
+        OK = np.empty((N, 4), dtype=bool)
+        W = np.empty((N, 4), dtype=flat_cost.dtype)
+        for k, (dy, dx, L) in enumerate(((0, 1, 1.0), (1, -1, math.sqrt(2.0)), (1, 0, 1.0), (1, 1, math.sqrt(2.0)))):
+            inb = ((r + dy < nyc) & (c + dx >= 0) & (c + dx < nxc)).ravel()
+            v = u + (dy * nxc + dx)
+            vc = np.where(inb, v, 0)
+            V[:, k] = v
+            OK[:, k] = inb & free & free[vc]
+            W[:, k] = L * res * 0.5 * (flat_cost + flat_cost[vc])
+        indptr = np.zeros(N + 1, dtype=np.int64)
+        np.cumsum(OK.sum(axis=1), out=indptr[1:])
+        return _csr_matrix((W[OK], V[OK], indptr), shape=(N, N))
 
     def _nav_lookahead(self, path, tx: float, ty: float) -> Tuple[float, float]:
         """Diem xa nhat tren duong (<= nav_lookahead_m) ma doan thang tu xe toi do khong cham vat."""
@@ -2369,7 +2613,7 @@ class FollowPlannerNode(Node):
             c, s_ = math.cos(self.robot_yaw), math.sin(self.robot_yaw)
             Q = np.stack([self.robot_x + c * KX.ravel() - s_ * KY.ravel(),
                           self.robot_y + s_ * KX.ravel() + c * KY.ravel()], axis=1)
-            kf = self._known_free(Q, trail_sec).reshape(nk, nk)
+            kf = self._known_free_grid(Q, kc, kres, trail_sec).reshape(nk, nk)   # = _known_free(Q, trail_sec)
             # an toan hon: o "da biet trong" chi khi ca 4 o ke cung trong (tam o 4 cm, diem mau co the lech 2.8 cm)
             ke = kf.copy()
             ke[1:, :] &= kf[:-1, :]
@@ -2379,15 +2623,44 @@ class FollowPlannerNode(Node):
             kf = ke
         else:
             kf = np.ones((nk, nk), dtype=bool)
-        return {"L": L, "res": res, "n": n, "dist": dist, "half": half, "kres": kres, "nk": nk, "kf": kf}
+        # 09/11 (mini PC): ban CO VIEN 1 o (khoang cach 0 / chua biet trong) cho _esc_clear / _esc_kfree doc thang, khong
+        # can mat na 'ngoai cua so' — o vien cho dung gia tri ban cu gan cho diem ngoai cua so
+        distp = np.zeros((n + 2, n + 2), dtype=np.float32)
+        distp[1:-1, 1:-1] = dist
+        kfp = np.zeros((nk + 2, nk + 2), dtype=bool)
+        kfp[1:-1, 1:-1] = kf
+        return {"L": L, "res": res, "n": n, "dist": dist, "half": half, "kres": kres, "nk": nk, "kf": kf,
+                "distp": distp, "kfp": kfp}
 
     def _esc_clear(self, f: Dict[str, Any], X: np.ndarray, Y: np.ndarray, TH: np.ndarray):
         """Do thoang (xap xi luoi 1 cm) cua footprint o cac tu the (X, Y, TH) — khung base luc lap ke hoach."""
         T, _rear, _np = self._esc_template()
+        Tx, Ty = self._esc_template_xy()
         c, s_ = np.cos(TH)[:, None], np.sin(TH)[:, None]
-        PX = X[:, None] + c * T[None, :, 0] - s_ * T[None, :, 1]
-        PY = Y[:, None] + s_ * T[None, :, 0] + c * T[None, :, 1]
+        PX = X[:, None] + c * Tx - s_ * Ty
+        PY = Y[:, None] + s_ * Tx + c * Ty
         n, L, res = f["n"], f["L"], f["res"]
+        distp = f.get("distp")
+        if distp is not None:
+            # 09/11 (mini PC): cung phep tinh floor((P + L) / res) nhung lam tai cho; o ngoai cua so -> o VIEN (gia tri 0,
+            # nhu ban cu), trong cua so -> dung o cu; kep [-1, n] bang maximum / minimum (= np.clip voi so nguyen, khong
+            # ton vo Python ~10 us / lan cua np.clip); chi so phang (ri + 1) * (n + 2) + (ci + 1)
+            t = PX + L
+            t /= res
+            np.floor(t, out=t)
+            ci = t.astype(np.int64)
+            t = PY + L
+            t /= res
+            np.floor(t, out=t)
+            ri = t.astype(np.int64)
+            np.maximum(ci, -1, out=ci)
+            np.minimum(ci, n, out=ci)
+            np.maximum(ri, -1, out=ri)
+            np.minimum(ri, n, out=ri)
+            ri *= n + 2
+            ri += ci
+            ri += n + 3
+            return distp.ravel().take(ri).min(axis=1), PX, PY
         ci = np.floor((PX + L) / res).astype(np.int64)
         ri = np.floor((PY + L) / res).astype(np.int64)
         out = (ci < 0) | (ci >= n) | (ri < 0) | (ri >= n)
@@ -2395,12 +2668,41 @@ class FollowPlannerNode(Node):
         d = np.where(out, 0.0, d)                       # ra ngoai cua so = khong cho di (khong biet gi o do)
         return d.min(axis=1), PX, PY
 
+    def _esc_template_xy(self):
+        """Toa do x, y cua diem mau footprint thanh hai hang LIEN TUC (1, M) — cung gia tri voi T[None, :, 0/1] (09/11)."""
+        txy = getattr(self, "_esc_tpl_xy", None)
+        if txy is None:
+            T = self._esc_template()[0]
+            txy = (np.ascontiguousarray(T[:, 0])[None, :], np.ascontiguousarray(T[:, 1])[None, :])
+            self._esc_tpl_xy = txy
+        return txy
+
     def _esc_kfree(self, f: Dict[str, Any], PX: np.ndarray, PY: np.ndarray) -> np.ndarray:
         kres, nk, half = f["kres"], f["nk"], f["half"]
-        ci = np.floor((PX + half) / kres).astype(np.int64)
-        ri = np.floor((PY + half) / kres).astype(np.int64)
-        out = (ci < 0) | (ci >= nk) | (ri < 0) | (ri >= nk)
-        v = f["kf"][np.clip(ri, 0, nk - 1), np.clip(ci, 0, nk - 1)] & ~out
+        kfp = f.get("kfp")
+        if kfp is not None:
+            # 09/11: nhu _esc_clear — o ngoai cua so -> o vien (False = chua biet trong, nhu '& ~out' cua ban cu)
+            t = PX + half
+            t /= kres
+            np.floor(t, out=t)
+            ci = t.astype(np.int64)
+            t = PY + half
+            t /= kres
+            np.floor(t, out=t)
+            ri = t.astype(np.int64)
+            np.maximum(ci, -1, out=ci)
+            np.minimum(ci, nk, out=ci)
+            np.maximum(ri, -1, out=ri)
+            np.minimum(ri, nk, out=ri)
+            ri *= nk + 2
+            ri += ci
+            ri += nk + 3
+            v = kfp.ravel().take(ri)
+        else:
+            ci = np.floor((PX + half) / kres).astype(np.int64)
+            ri = np.floor((PY + half) / kres).astype(np.int64)
+            out = (ci < 0) | (ci >= nk) | (ri < 0) | (ri >= nk)
+            v = f["kf"][np.clip(ri, 0, nk - 1), np.clip(ci, 0, nk - 1)] & ~out
         m_ = 0.01
         ins = (PX < self.front_len - m_) & (PX > -self.rear_len + m_) & (np.abs(PY) < self.half_width - m_)
         return v | ins
@@ -2455,8 +2757,13 @@ class FollowPlannerNode(Node):
         dx, dy = OX - px, OY - py
         cp, sp = math.cos(pyaw), math.sin(pyaw)
         BX, BY = cp * dx + sp * dy, -sp * dx + cp * dy
-        ci = np.clip(np.round((BX - g["x0"]) / g["res"] - 0.5).astype(np.int64), 0, g["nxc"] - 1)
-        ri = np.clip(np.round((BY + g["ey"]) / g["res"] - 0.5).astype(np.int64), 0, g["nyc"] - 1)
+        # 09/11: kep bang maximum / minimum tai cho (= np.clip voi so nguyen, khong ton vo Python cua np.clip)
+        ci = np.round((BX - g["x0"]) / g["res"] - 0.5).astype(np.int64)
+        np.maximum(ci, 0, out=ci)
+        np.minimum(ci, g["nxc"] - 1, out=ci)
+        ri = np.round((BY + g["ey"]) / g["res"] - 0.5).astype(np.int64)
+        np.maximum(ri, 0, out=ri)
+        np.minimum(ri, g["nyc"] - 1, out=ri)
         err = np.abs(wrap_pi_arr(TH + (ryaw - pyaw) - hf["DIR"][ri, ci]))
         return hf["H"][ri, ci], err
 
@@ -2504,34 +2811,70 @@ class FollowPlannerNode(Node):
             ns = 3 if kind != "F" else 4
             samp.append((np.arange(1, ns + 1) / ns) * T)
 
+        # 09/11 (mini PC): hang so cua 12 dong tac tinh SAN mot lan; child_poses tinh ca 12 dong tac trong vai phep numpy
+        # (truoc: vong Python 12 lan moi buoc tim). Tung phan tu van dung cong thuc / thu tu cu: v*t, w*t, v/w tinh san
+        # cho ra dung so nhu luc chay; X = x + (v*t)*cos(th) (di thang), TH = th + w*t, X = x + (v/w)*(sin(TH) - sin(th))
+        # (cung). Cac diem cua dong tac j nam lien doan [p_off[j], p_end[j]) theo thu tu dong tac nhu ban cu.
+        p_off, p_end, s_idx, c_idx, vt_s, wt_c, k_c = [], [], [], [], [], [], []
+        _o = 0
+        for j, (kind, v, w, T, cst) in enumerate(prims):
+            t = samp[j]
+            p_off.append(_o)
+            p_end.append(_o + t.shape[0])
+            if abs(w) < 1e-9:
+                s_idx.append(np.arange(_o, _o + t.shape[0]))
+                vt_s.append(v * t)
+            else:
+                c_idx.append(np.arange(_o, _o + t.shape[0]))
+                wt_c.append(w * t)
+                k_c.append(np.full(t.shape, v / w))
+            _o += t.shape[0]
+        n_all = _o
+        _e = np.zeros(0)
+        s_idx = np.concatenate(s_idx) if s_idx else np.zeros(0, dtype=np.int64)
+        c_idx = np.concatenate(c_idx) if c_idx else np.zeros(0, dtype=np.int64)
+        vt_s = np.concatenate(vt_s) if vt_s else _e
+        wt_c = np.concatenate(wt_c) if wt_c else _e
+        k_c = np.concatenate(k_c) if k_c else _e
+        own_all = np.concatenate([np.full(samp[j].shape, j) for j in range(len(prims))])
+        # 09/11: min do thoang tung dong tac bang MOT phep reduceat (cac doan [p_off[j], p_end[j]) lien nhau, khong rong);
+        # hang cua tung dong tac; cot de hoi 'da biet trong' MOT lan cho ca vien (cung mu) lan phan duoi (dong tac lui)
+        n_pr = len(prims)
+        p_off_a = np.array(p_off, dtype=np.intp)
+        rows_of = [np.arange(p_off[j], p_end[j]) for j in range(n_pr)]
+        cnt_of = [p_end[j] - p_off[j] for j in range(n_pr)]
+        rear_idx = np.flatnonzero(rear)
+        colsU = np.concatenate([np.arange(n_per), rear_idx[rear_idx >= n_per]])
+        pos_rear = np.where(rear_idx < n_per, rear_idx, n_per + np.cumsum(rear_idx >= n_per) - 1)
+
         def child_poses(x, y, th):
-            Xs, Ys, THs, owner = [], [], [], []
-            for j, (kind, v, w, T, cst) in enumerate(prims):
-                t = samp[j]
-                if abs(w) < 1e-9:
-                    X = x + v * t * math.cos(th)
-                    Y = y + v * t * math.sin(th)
-                    TH = np.full(t.shape, th)
-                else:
-                    TH = th + w * t
-                    X = x + (v / w) * (np.sin(TH) - math.sin(th))
-                    Y = y - (v / w) * (np.cos(TH) - math.cos(th))
-                Xs.append(X)
-                Ys.append(Y)
-                THs.append(TH)
-                owner.append(np.full(t.shape, j))
-            return np.concatenate(Xs), np.concatenate(Ys), np.concatenate(THs), np.concatenate(owner)
+            X = np.empty(n_all)
+            Y = np.empty(n_all)
+            TH = np.empty(n_all)
+            cth, sth = math.cos(th), math.sin(th)
+            X[s_idx] = x + vt_s * cth
+            Y[s_idx] = y + vt_s * sth
+            TH[s_idx] = th
+            THc = th + wt_c
+            X[c_idx] = x + k_c * (np.sin(THc) - sth)
+            Y[c_idx] = y - k_c * (np.cos(THc) - cth)
+            TH[c_idx] = THc
+            return X, Y, TH, own_all
 
         def h_of(Hv, err, H0):
             return 0.06 * (err / self._ESC_ROT) + 0.5 * np.maximum(0.0, Hv - H0)
 
-        def is_goal(x, y, th, cn, H0):
+        def is_goal(x, y, th, cn, H0, hv=None):
             if cn < thr:
                 return False
-            Hv, err = look(np.array([x]), np.array([y]), np.array([th]))
+            if hv is None:
+                Hv, err = look(np.array([x]), np.array([y]), np.array([th]))
+                hv = (Hv[0], err[0])
+            # 09/11: nut con mang san (Hv, err) da tinh khi tao nut (cung tu the, phep tinh theo tung phan tu -> cung so)
+            h_, e_ = hv
             if face is not None:
-                return bool(Hv[0] <= 1e-6 and err[0] <= a_tol)
-            if not np.isfinite(Hv[0]) or Hv[0] > H0 + 0.10 or err[0] > a_tol:
+                return bool(h_ <= 1e-6 and e_ <= a_tol)
+            if not np.isfinite(h_) or h_ > H0 + 0.10 or e_ > a_tol:
                 return False
             dd = np.array([0.10, 0.20, 0.30])
             cl, _px, _py = self._esc_clear(f, x + dd * math.cos(th), y + dd * math.sin(th), np.full(3, th))
@@ -2545,8 +2888,8 @@ class FollowPlannerNode(Node):
             return None
         if is_goal(0.0, 0.0, 0.0, c0, H0):
             return []
-        # node: (x, y, th, g, parent, prim, huong tinh tien +1/-1/0, do thoang)
-        nodes = [(0.0, 0.0, 0.0, 0.0, -1, -1, 0, c0)]
+        # node: (x, y, th, g, parent, prim, huong tinh tien +1/-1/0, do thoang, (Hv, err) tai tu the nut — None o goc)
+        nodes = [(0.0, 0.0, 0.0, 0.0, -1, -1, 0, c0, None)]
         heap = [(float(h_of(np.array([H0]), e0a, H0)[0]), 0)]
         closed: Dict[Tuple[int, int, int], float] = {}
         k_th = math.radians(7.5)
@@ -2568,12 +2911,12 @@ class FollowPlannerNode(Node):
                 yield None                              # nhuong nhip dieu khien (xe dung yen), nhip sau tim tiep
                 t_s0 = _perf()
             _fs, ni = heapq.heappop(heap)
-            x, y, th, gc, _par, _pi, dr, cn = nodes[ni]
+            x, y, th, gc, _par, _pi, dr, cn, hv_n = nodes[ni]
             key = (int(round(x / 0.025)), int(round(y / 0.025)), int(round(th / k_th)) % 48)
             if key in closed and closed[key] <= gc + 1e-9:
                 continue
             closed[key] = gc
-            if ni != 0 and is_goal(x, y, th, cn, H0):
+            if ni != 0 and is_goal(x, y, th, cn, H0, hv_n):
                 goal_i = ni
                 break
             if len(nodes) > 40 * max_exp:
@@ -2582,38 +2925,60 @@ class FollowPlannerNode(Node):
             cl, PX, PY = self._esc_clear(f, X, Y, TH)
             # vien footprint roi vao cung MU (nhin tu tu the luc lap ke hoach) ngoai than xe luc dau: phai da biet trong
             per = slice(0, n_per)
-            bl = self._esc_blind(PX[:, per], PY[:, per])
-            okb = ~bl | self._esc_kfree(f, PX[:, per], PY[:, per])
-            blind_ok = okb.all(axis=1)
+            # 09/11 (mini PC): kiem cung mu / 'da biet trong' CHI cho dong tac da qua do thoang — ban cu tinh cho ca 12
+            # dong tac nhung chi DUNG ket qua cua dong tac qua do thoang; hai ham tinh theo TUNG DIEM nen tinh tren tap
+            # con cho dung so nhu cu. Thu tu kiem cua tung dong tac giu nguyen (do thoang -> cung mu -> lui: cho da biet
+            # trong) -> danh sach keep / lasts y het ban cu.
+            # min tung dong tac bang MOT reduceat; .tolist() = float() tung phan tu (float32 -> float dung gia tri)
+            mins = np.minimum.reduceat(cl, p_off_a).tolist()
+            pas = []
+            for j in range(n_pr):
+                mn = mins[j]
+                if mn >= thr or (cn < thr and mn >= max(floor_, cn - 0.005)):
+                    pas.append(j)
             keep, lasts = [], []
-            for j, (kind, v, w, T, cst) in enumerate(prims):
-                sel = own == j
-                mn = float(cl[sel].min())
-                if not (mn >= thr or (cn < thr and mn >= max(floor_, cn - 0.005))):
-                    continue
-                if not bool(blind_ok[sel].all()):
-                    continue
-                if kind == "B":
-                    rx_, ry_ = PX[sel][:, rear], PY[sel][:, rear]
-                    if not bool(self._esc_kfree(f, rx_, ry_).all()):
+            if pas:
+                rows = np.concatenate([rows_of[j] for j in pas]) if len(pas) > 1 else rows_of[pas[0]]
+                PXr, PYr = PX[rows], PY[rows]
+                kfu = self._esc_kfree(f, PXr[:, colsU], PYr[:, colsU])   # vien (cung mu) + phan duoi (lui), mot lan
+                # okb = ~cung_mu | da_biet_trong: chi can tinh cung mu (arctan2) o diem vien CHUA biet trong — lui theo
+                # vet thi phan lon da biet trong (tui U: ~77 % diem vien nam trong cung mu)
+                okb = kfu[:, :n_per].copy()
+                need = ~okb
+                if need.any():
+                    PXp, PYp = PXr[:, per], PYr[:, per]
+                    okb[need] = ~self._esc_blind(PXp[need], PYp[need])
+                # 'ca doan hang cua dong tac deu dat' bang reduceat (= blind_ok[r0:r0 + nr].all() cua ban cu)
+                starts = np.cumsum([0] + [cnt_of[j] for j in pas[:-1]])
+                bo_l = np.logical_and.reduceat(okb.all(axis=1), starts).tolist()
+                if any(prims[j][0] == "B" for j in pas):
+                    ro_l = np.logical_and.reduceat(kfu[:, pos_rear].all(axis=1), starts).tolist()
+                for q, j in enumerate(pas):
+                    if not bo_l[q]:
                         continue
-                keep.append(j)
-                lasts.append(int(np.where(sel)[0][-1]))
+                    if prims[j][0] == "B" and not ro_l[q]:
+                        continue
+                    keep.append(j)
+                    lasts.append(p_end[j] - 1)
             if not keep:
                 continue
             li = np.array(lasts)
             Hv, err = look(X[li], Y[li], TH[li])
             hh = h_of(Hv, err, H0)
+            # so Python mot lan (.tolist() = float() tung phan tu)
+            Hl, El, hl = Hv.tolist(), err.tolist(), hh.tolist()
+            Xl, Yl, THl, cll = X.tolist(), Y.tolist(), TH.tolist(), cl.tolist()
             for q, j in enumerate(keep):
-                if not np.isfinite(Hv[q]):
+                hv_q = Hl[q]
+                if not math.isfinite(hv_q):
                     continue
                 kind, v, w, T, cst = prims[j]
                 last = lasts[q]
                 nd = 1 if kind == "F" else (-1 if kind == "B" else dr)
                 g2 = gc + cst + (0.10 if (kind != "R" and dr != 0 and nd != dr) else 0.0)
-                g2 += 0.5 * max(0.0, float(Hv[q]) - H0)          # di vao sau hon trong ngo cut thi dat
-                nodes.append((float(X[last]), float(Y[last]), float(TH[last]), g2, ni, j, nd, float(cl[last])))
-                heapq.heappush(heap, (g2 + 1.5 * float(hh[q]), len(nodes) - 1))
+                g2 += 0.5 * max(0.0, hv_q - H0)          # di vao sau hon trong ngo cut thi dat
+                nodes.append((Xl[last], Yl[last], THl[last], g2, ni, j, nd, cll[last], (hv_q, El[q])))
+                heapq.heappush(heap, (g2 + 1.5 * hl[q], len(nodes) - 1))
         self.esc_exp = _it + 1 if max_exp > 0 else 0          # so buoc tim (de log / chinh gioi han CPU)
         if goal_i < 0:
             return None
