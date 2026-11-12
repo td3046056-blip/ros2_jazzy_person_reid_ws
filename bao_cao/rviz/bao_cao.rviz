@@ -1,0 +1,126 @@
+Panels:
+  - Class: rviz_common/Displays
+    Name: Displays
+    Property Tree Widget:
+      Expanded: ~
+    Help Height: 0
+    Tree Height: 400
+Visualization Manager:
+  Class: ""
+  Displays:
+    - Class: rviz_default_plugins/Grid
+      Name: Luoi 1 m
+      Enabled: true
+      Reference Frame: odom
+      Plane: XY
+      Plane Cell Count: 20
+      Cell Size: 1
+      Color: 200; 200; 200
+      Alpha: 0.5
+      Line Style:
+        Line Width: 0.01
+        Value: Lines
+      Normal Cell Count: 0
+      Offset:
+        X: 0
+        Y: 0
+        Z: 0
+      Value: true
+    - Class: rviz_default_plugins/LaserScan
+      Name: LiDAR tich luy 20 s
+      Enabled: true
+      Topic:
+        Value: /scan
+        Depth: 5
+        Durability Policy: Volatile
+        History Policy: Keep Last
+        Reliability Policy: Best Effort
+      Style: Points
+      Size (Pixels): 2
+      Size (m): 0.02
+      Decay Time: 20
+      Color Transformer: FlatColor
+      Color: 150; 150; 150
+      Alpha: 0.6
+      Position Transformer: XYZ
+      Use Fixed Frame: true
+      Use rainbow: false
+      Queue Size: 10
+      Value: true
+    - Class: rviz_default_plugins/LaserScan
+      Name: LiDAR vong quet hien tai
+      Enabled: true
+      Topic:
+        Value: /scan
+        Depth: 5
+        Durability Policy: Volatile
+        History Policy: Keep Last
+        Reliability Policy: Best Effort
+      Style: Points
+      Size (Pixels): 4
+      Size (m): 0.03
+      Decay Time: 0
+      Color Transformer: FlatColor
+      Color: 20; 20; 20
+      Alpha: 1
+      Position Transformer: XYZ
+      Use Fixed Frame: true
+      Use rainbow: false
+      Queue Size: 10
+      Value: true
+    - Class: rviz_default_plugins/MarkerArray
+      Name: Xe, nguoi, vet, trang thai
+      Enabled: true
+      Topic:
+        Value: /bao_cao/markers
+        Depth: 10
+        Durability Policy: Volatile
+        History Policy: Keep Last
+        Reliability Policy: Reliable
+      Namespaces:
+        {}
+      Value: true
+    - Class: rviz_default_plugins/TF
+      Name: TF
+      Enabled: false
+      Show Axes: true
+      Show Names: true
+      Marker Scale: 0.5
+      Value: false
+  Enabled: true
+  Global Options:
+    Background Color: 255; 255; 255
+    Fixed Frame: odom
+    Frame Rate: 30
+  Name: root
+  Tools:
+    - Class: rviz_default_plugins/MoveCamera
+    - Class: rviz_default_plugins/Select
+    - Class: rviz_default_plugins/Measure
+      Line color: 128; 128; 0
+  Transformation:
+    Current:
+      Class: rviz_default_plugins/TF
+  Value: true
+  Views:
+    Current:
+      Class: rviz_default_plugins/TopDownOrtho
+      Name: Current View
+      Angle: 0
+      Scale: 120
+      X: 0
+      Y: 0
+      Target Frame: base_link
+      Near Clip Distance: 0.01
+      Invert Z Axis: false
+      Value: TopDownOrtho (rviz_default_plugins)
+    Saved: ~
+Window Geometry:
+  Displays:
+    collapsed: false
+  Height: 900
+  Width: 1400
+  X: 60
+  Y: 60
+  Hide Left Dock: false
+  Hide Right Dock: true
