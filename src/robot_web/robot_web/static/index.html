@@ -414,12 +414,14 @@
         <section class="card fold" id="fSen">
           <button class="fold-head chips-head" type="button" aria-expanded="false" aria-label="Trạng thái cảm biến — chạm để xem chi tiết">
             <span class="chips" id="chips"></span>
-            <span class="more">Chi tiết cảm biến · pin <span class="chev" aria-hidden="true"></span></span>
+            <span class="more">Chi tiết cảm biến · pin · máy <span class="chev" aria-hidden="true"></span></span>
           </button>
           <div class="fold-body">
             <div class="sensors" id="sensors"></div>
             <div class="sec-title">Pin</div>
             <div class="sensors" id="power"></div>
+            <div class="sec-title">Máy tính robot</div>
+            <div class="sensors" id="machine"></div>
           </div>
         </section>
       </div>
@@ -842,6 +844,10 @@ function renderAlerts(s) {
   const ch = P.chassis;
   if (ch && ch.lvl && fresh(ch.age, 2)) out.push([ch.lvl, `Pin khung xe thấp: ${fmt(ch.v, 2)}${ch.unit ? " " + ch.unit : ""}`]);
   if (num(b.free) && b.free < 1e9) out.push(["warn", `Ổ đĩa máy robot còn ${size(b.free)} — ghi bag sẽ tự dừng khi gần đầy`]);
+  const M = s.machine;
+  if (M && M.hot && fresh(M.age, 6))
+    out.push([M.temp >= 90 ? "bad" : "warn", `Máy robot nóng ${fmt(M.temp, 0)} °C` +
+      (M.thr ? " — CPU đang tự hạ xung, xe có thể phản ứng chậm hơn" : "")]);
   const key = JSON.stringify(out);
   if (key === lastAlerts) return;
   lastAlerts = key;
@@ -953,6 +959,12 @@ function renderFollow(s) {
 // ── chip trang thai (luon hien) + chi tiet (cham de mo) ─────────────
 function hzc(v, age, lim) { return age == null ? ["—", ""] : [fmt(v, 0, " Hz"), fresh(age, lim) ? "ok" : "bad"]; }
 function batCls(b) { return b.status !== "Discharging" ? "ok" : b.pct <= 10 ? "bad" : b.pct <= 20 ? "warn" : "ok"; }
+// May tinh robot (10/11): nguong nhu may chu (HOT_WARN 80 kem ha xung / HOT_BAD 90 °C)
+function machCls(m) { return !num(m.temp) ? "" : m.temp >= 90 ? "bad" : (m.hot || m.thr || m.temp >= 80) ? "warn" : "ok"; }
+const NODE_VI = { planner: "Planner (lái xe)", camera: "Camera (nhận người)", tracker: "Tracker (vị trí người)",
+  driver: "Driver khung xe", lidar: "LiDAR", rssi: "RSSI", web: "Trang web", bag: "Ghi bag", launch: "ros2 launch",
+  daemon: "ros2 daemon", tf: "TF" };
+function ghz(mhz) { return fmt(mhz / 1000, 1, " GHz"); }
 function sensorTile(box, name, val, cls, sub) {
   const d = el("div", "sensor" + (cls ? " " + cls : ""));
   d.append(el("div", "name", name), el("div", "val", val));
@@ -969,6 +981,8 @@ function renderSensors(s) {
   if (P.bat) chips.push(["Pin", P.bat.pct + "%", batCls(P.bat)]);
   const ch = P.chassis && fresh(P.chassis.age, 2) ? P.chassis : null;
   if (ch) chips.push(["Pin xe", fmt(ch.v, 1) + (ch.unit ? " " + ch.unit : ""), ch.lvl || ""]);
+  const M = s.machine && fresh(s.machine.age, 6) ? s.machine : null;
+  if (M && num(M.temp)) chips.push(["Máy", fmt(M.temp, 0, " °C"), machCls(M)]);     // chip hep: chi nhiet; % CPU o chi tiet
   const cbox = $("chips");
   cbox.textContent = "";
   for (const [n, val, c] of chips) {
@@ -1006,6 +1020,26 @@ function renderSensors(s) {
       P.chassis.unit ? (fresh(P.chassis.age, 2) ? "trung vị 10 s" : "không có số mới") : "số thô từ driver — chưa rõ đơn vị");
   } else {
     sensorTile(pw, "Pin khung xe", "—", "", "chưa có /bw_dr03/power");
+  }
+  const mb = $("machine");
+  mb.textContent = "";
+  if (!M) {
+    sensorTile(mb, "Máy tính", "—", "", "chưa có số đo");
+  } else {
+    sensorTile(mb, "Nhiệt độ CPU", fmt(M.temp, 0, " °C"), machCls(M),
+      (num(M.temp_max10) ? `cao nhất 10 phút ${fmt(M.temp_max10, 0)} °C` : "") + (M.hot ? " · ĐANG NÓNG" : ""));
+    sensorTile(mb, "CPU toàn máy", num(M.cpu) ? M.cpu + " %" : "—", num(M.cpu) && M.cpu >= 90 ? "warn" : "",
+      `${M.n_cpu || "?"} luồng · trung bình 10 s`);
+    sensorTile(mb, "Xung CPU", num(M.mhz_top) ? ghz(M.mhz_top) : "—", M.thr ? "warn" : "",
+      M.thr ? "đang tự hạ xung vì nóng" : (num(M.mhz_max) ? `nhân nhanh nhất · tối đa ${ghz(M.mhz_max)}` : "nhân nhanh nhất"));
+    sensorTile(mb, "RAM", num(M.ram_mb) && num(M.ram_total_mb) ? `${fmt(M.ram_mb / 1024, 1)} / ${fmt(M.ram_total_mb / 1024, 1)} GB` : "—",
+      num(M.ram_mb) && M.ram_total_mb && M.ram_mb / M.ram_total_mb > 0.9 ? "warn" : "", "đang dùng / tổng");
+    let other = 0;
+    for (const [k, v] of M.nodes || []) {
+      if (v >= 1) sensorTile(mb, NODE_VI[k] || k, fmt(v, 0, " %"), "", "CPU, tính theo 1 nhân");
+      else other += v;
+    }
+    if ((M.nodes || []).length && other > 0) sensorTile(mb, "Phần khác", fmt(other, 0, " %"), "", "dưới 1 % mỗi phần");
   }
   $("vidMeta").textContent = v.viewers ? `${fmt(v.fps, 0)} hình/s · ${v.width || ""} px` : "";
 }
@@ -1133,6 +1167,10 @@ function evView(e) {
       break;
     case "bat":
       text = a.src === "may" ? `Pin máy robot còn ${a.val}` : `Pin khung xe thấp: ${a.val}`;
+      break;
+    case "nong":
+      text = `Máy robot nóng ${fmt(a.t, 0)} °C` + (a.thr ? ", CPU tự hạ xung" : "") + (e.end ? " → hết nóng" : "");
+      sub = e.end && num(a.tmax) ? `cao nhất ${fmt(a.tmax, 0)} °C` : "";
       break;
   }
   let d = "", live = false;

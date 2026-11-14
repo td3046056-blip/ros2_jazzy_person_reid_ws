@@ -17,6 +17,8 @@ Dung mot "robot gia" (topic + service gia) va mot run_full.sh GIA trong thu muc 
     va tu dung SAU khi he thong tat; loi ghi; nhan ra va dung duoc "ros2 bag record" ngoai web
   - dong su kien: he thong, nut bam, xe bat / ngung bam, hoc xong, dot "tim nguoi" (kem thoi gian, gop lap lai),
     cam bien ngung, 2 node ghi /cmd_vel, pin may (sysfs gia) + pin khung xe (/bw_dr03/power); ghi vao file nhat ky
+  - may tinh robot (10/11, sysfs nhiet / xung / bo dem ha xung gia): nhiet, nhan nhanh nhat, % CPU, RAM, % CPU tung
+    phan, "dang ha xung", su kien "may robot nong" mo / dong (cao nhat), dong "may tai" trong file nhat ky
 Ket qua: dong cuoi "=> DAT" hoac "=> LOI".
 
   cd ~/ros2_reid_from_github && source install/setup.bash
@@ -393,6 +395,24 @@ def write_bat(ps: Path, pct: int, status: str) -> None:
     (a / "online").write_text("0\n" if status == "Discharging" else "1\n")
 
 
+def write_machine(th: Path, cpu: Path, temp_c: float, thr: int, mhz: int = 1800) -> None:
+    """sysfs nhiet / xung / bo dem ha xung gia cho tham so thermal_dir, cpu_dir (10/11). cpu0 chay mhz, 3 nhan con
+    lai 800 MHz (nhan ranh) -> trang phai hien nhan nhanh nhat."""
+    z = th / "thermal_zone0"
+    z.mkdir(parents=True, exist_ok=True)
+    (z / "type").write_text("x86_pkg_temp\n")
+    (z / "temp").write_text(f"{int(round(temp_c * 1000))}\n")
+    for i in range(4):
+        c = cpu / f"cpu{i}"
+        (c / "cpufreq").mkdir(parents=True, exist_ok=True)
+        (c / "thermal_throttle").mkdir(parents=True, exist_ok=True)
+        (c / "cpufreq" / "scaling_cur_freq").write_text(f"{(mhz if i == 0 else 800) * 1000}\n")
+        (c / "cpufreq" / "cpuinfo_max_freq").write_text("2100000\n")
+        (c / "thermal_throttle" / "core_throttle_count").write_text(f"{thr}\n")
+        (c / "thermal_throttle" / "package_throttle_count").write_text(f"{thr}\n")
+    (cpu / "cpufreq").mkdir(exist_ok=True)           # thu muc khong phai cpuN -> phai bo qua
+
+
 def group_cpu(pgid: int) -> float:
     """Tong thoi gian CPU (s) cua moi tien trinh trong nhom."""
     tot, hz = 0.0, os.sysconf("SC_CLK_TCK")
@@ -421,6 +441,8 @@ def main() -> int:
     pwf.write_text(json.dumps({"password": PASSWORD}))
     ps = tmp / "power_supply"
     write_bat(ps, 15, "Discharging")              # pin may < 20 % ngay tu dau -> su kien canh bao
+    th, cpud = tmp / "thermal", tmp / "cpu"
+    write_machine(th, cpud, 55.0, 0)
 
     rclpy.init()
     fake = FakeRobot()
@@ -439,7 +461,10 @@ def main() -> int:
                             "-p", f"port:={PORT}", "-p", f"ws_dir:={ws}", "-p", f"password_file:={pwf}",
                             "-p", "stop_wait_sec:=0.5", "-p", f"bag_dir:={ws / 'bags'}",
                             "-p", f"power_supply_dir:={ps}", "-p", "chassis_power_unit:=V",
-                            "-p", "chassis_power_warn:=11.8", "-p", "chassis_power_bad:=11.3"],
+                            "-p", "chassis_power_warn:=11.8", "-p", "chassis_power_bad:=11.3",
+                            "-p", f"thermal_dir:={th}", "-p", f"cpu_dir:={cpud}", "-p", "machine_hot_sec:=2.0",
+                            "-p", "machine_cool_sec:=3.0", "-p", "machine_log_sec:=4.0",
+                            "-p", "machine_log_idle_sec:=4.0"],
                            stdout=log, stderr=subprocess.STDOUT, start_new_session=True)
     h = Http(f"http://127.0.0.1:{PORT}")
     ext = ext_bag = None
@@ -685,6 +710,42 @@ def main() -> int:
         check("pin khung xe <= nguong bad -> su kien", e is not None and e["lvl"] == "bad", str(e))
         fake.power_v = 12.34
         write_bat(ps, 80, "Charging")
+
+        print("\n5b. May tinh robot (sysfs nhiet / xung / ha xung gia; % CPU + RAM + tien trinh that)")
+        m = wait_for(lambda: (lambda x: x if x and x.get("cpu") is not None else None)(h.status().get("machine")),
+                     8.0, 0.3)
+        check("may: 55 C, nhan nhanh nhat 1.8 GHz / toi da 2.1, % CPU va RAM hop ly, chua ha xung",
+              m is not None and m["temp"] == 55.0 and m["mhz_top"] == 1800 and m["mhz_max"] == 2100
+              and 0 <= m["cpu"] <= 100 and 0 < m["ram_mb"] < m["ram_total_mb"] and not m["thr"] and not m["hot"], str(m))
+        check("may: % CPU tung phan co chinh trang web", m is not None and any(k == "web" for k, _ in m["nodes"]),
+              str(m and m["nodes"]))
+        stop_thr, last = threading.Event(), [0]
+
+        def bump() -> None:                          # bo dem ha xung tang lien tuc (CPU dang ha xung vi nong)
+            while not stop_thr.is_set():
+                last[0] += 5
+                write_machine(th, cpud, 60.0, last[0])
+                time.sleep(0.5)
+        tb = threading.Thread(target=bump, daemon=True)
+        tb.start()
+        m = wait_for(lambda: (lambda x: x if x and x["thr"] else None)(h.status()["machine"]), 8.0, 0.3)
+        check("bo dem ha xung tang -> 'dang ha xung'; 60 C thi chua tinh la nong", m is not None and not m["hot"], str(m))
+        stop_thr.set()
+        tb.join(2.0)
+        write_machine(th, cpud, 93.0, last[0])
+        e = wait_for(lambda: find_ev(get_events(h), "nong"), 9.0)
+        check("93 C lien tuc >= 2 s -> su kien 'may robot nong' muc nguy hiem (dang mo)",
+              e is not None and e["lvl"] == "bad" and "end" not in e, str(e))
+        check("trang thai may: dang nong", h.status()["machine"]["hot"] is True)
+        write_machine(th, cpud, 50.0, last[0])
+        e = wait_for(lambda: closed(find_ev(get_events(h), "nong")), 10.0)
+        check("ve 50 C lien tuc >= 3 s -> su kien dong, cao nhat 93 C", e is not None and e["a"].get("tmax") == 93.0,
+              str(e))
+        logs = list((ws / "run_logs").glob("web_*.log"))
+        ml = [ln for ln in (logs[0].read_text().splitlines() if logs else []) if " may " in ln and " tai " in ln]
+        check("nhat ky: dong 'may tai' (nhiet, xung, % CPU tung phan)",
+              len(ml) >= 2 and "nhiet" in ml[-1] and "xung" in ml[-1] and " web " in ml[-1] + " ",
+              ml[-1] if ml else "0 dong")
 
         print("\n6. Anh camera + video truc tiep (MJPEG)")
         # anh chi duoc dang ky khi co nguoi xem -> lan xin dau tra 204, toi da ~1 s sau moi co anh

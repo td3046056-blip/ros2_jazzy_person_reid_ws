@@ -31,8 +31,10 @@ nhom tien trinh rieng: tat web khong dung ghi; bat lai web thi web nhan ra ("ros
 
 Dong su kien (trang web + file nhat ky): he thong bat / tat / loi, xe bat / ngung bam, planner ne / tim nguoi /
 bi chan / dung xe (kem thoi gian), cam bien ngung gui, nhieu node ghi /cmd_vel, mat beacon, hoc xong nguoi,
-ghi bag, pin yeu, nut da bam. Pin: may tinh (power_supply_dir/BAT*) + so doc /bw_dr03/power cua driver khung
-xe ([CAN XAC NHAN] don vi: driver goi la power_v; nguong canh bao chassis_power_* mac dinh tat).
+ghi bag, pin yeu, may robot nong, nut da bam. Pin: may tinh (power_supply_dir/BAT*) + so doc /bw_dr03/power cua
+driver khung xe ([CAN XAC NHAN] don vi: driver goi la power_v; nguong canh bao chassis_power_* mac dinh tat).
+May robot (10/11, lop Machine): nhiet CPU, % CPU, xung, ha xung vi nong, RAM, % CPU tung node; ghi dong "may tai"
+vao nhat ky web moi 10 s khi he thong chay (60 s khi khong chay).
 
 Mat ket noi dien thoai -> xe van bam binh thuong (nguoi dung chon 08/10); trang tu bao "MAT KET NOI".
 
@@ -130,6 +132,12 @@ STALE_TXT = {"scan": "LiDAR /scan", "odom": "khung xe /odom", "cam": "camera /pe
              "planner": "planner /follow/planner_status", "rssi": "RSSI /rssi/bearing"}
 LVL_LOG = {"ok": "OK ", "info": "-  ", "warn": "CB ", "bad": "LOI"}
 BAT_WARN, BAT_BAD = 20, 10            # % pin may tinh khi dang dung pin
+HOT_WARN, HOT_BAD = 80.0, 90.0        # nhiet CPU (C): >= HOT_WARN ma dang ha xung, hoac >= HOT_BAD -> "nong" (Machine)
+# % CPU tung phan he robot: tim chuoi trong dong lenh tien trinh (Machine). Camera: python3 -m person_follow_identity.node
+PROC_LABELS = (("follow_planner", "planner"), ("target_tracker", "tracker"), ("person_follow_identity", "camera"),
+               ("decoded_serial", "driver"), ("sc_mini", "lidar"), ("rssi_scanner", "rssi"), ("rssi_bearing", "rssi"),
+               ("bag record", "bag"), ("web_server", "web"), ("ros2 launch", "launch"), ("_ros2_daemon", "daemon"),
+               ("transform_publisher", "tf"), ("robot_state_publisher", "tf"))
 
 
 def _now() -> float:
@@ -372,6 +380,230 @@ def read_battery(root: Path) -> Optional[Dict[str, Any]]:
             "w": round(p_now / 1e6, 1) if p_now > 0 else None, "h_left": round(h_left, 2) if h_left else None}
 
 
+def proc_label(argv: List[str]) -> Optional[str]:
+    """Ten phan he robot cua mot tien trinh (PROC_LABELS) hoac None."""
+    s = " ".join(argv)
+    for pat, lab in PROC_LABELS:
+        if pat in s:
+            return lab
+    return None
+
+
+class Machine:
+    """Nhiet do / % CPU / xung / RAM cua MAY ROBOT + % CPU tung phan he robot (10/11: nguoi dung muon xem tren
+    dien thoai, thay cho bat_do.sh).
+
+    Doc moi 2 s trong _slow_tick (luong executor), ~1 ms. Container chay --network host nhung /proc/stat,
+    /proc/meminfo va /sys (thermal, cpufreq, thermal_throttle) van la cua MAY THAT; he robot do web bat chay CHUNG
+    container nen /proc thay tung node. % CPU: trung binh 10 s gan nhat. % tung phan tinh theo MOT nhan (camera chay
+    2 luong -> co the > 100 %). "Ha xung vi nong": bo dem thermal_throttle (core + package) tang — mini PC i5-5200U
+    tu ha xung tu ~78-80 C (do 09/11) du nguong to han la 105 C.
+    "Nong" (dong su kien + canh bao tren trang): >= HOT_BAD, hoac >= HOT_WARN ma dang ha xung, lien tuc hot_sec;
+    het nong khi khong con nhu vay lien tuc cool_sec. Ghi mot dong "may tai" vao nhat ky web moi log_sec (he thong
+    dang chay) / log_idle_sec (khong chay) -> phan tich lan chay that sau nay khong can bat_do.sh."""
+
+    def __init__(self, app: "RobotWeb", thermal_dir: Path, cpu_dir: Path, hot_sec: float, cool_sec: float,
+                 log_sec: float, log_idle_sec: float) -> None:
+        self.app = app
+        self.th_dir, self.cpu_dir = thermal_dir, cpu_dir
+        self.hot_sec, self.cool_sec = max(0.0, hot_sec), max(0.0, cool_sec)
+        self.log_sec, self.log_idle_sec = max(1.0, log_sec), max(1.0, log_idle_sec)
+        self.lock = threading.Lock()
+        self.clk = float(os.sysconf("SC_CLK_TCK"))
+        self.cpus: Optional[List[Path]] = None
+        self.temp_file: Optional[Path] = None        # vung nhiet x86_pkg_temp (tim mot lan)
+        self.prev_stat: Optional[Tuple[int, int]] = None
+        self.prev_thr: Optional[int] = None
+        self.prev_proc: Dict[int, Tuple[int, str]] = {}
+        self.t_prev = 0.0
+        self.win: deque = deque(maxlen=5)            # 5 lan doc x 2 s = 10 s
+        self.temps: deque = deque()                  # (luc doc, nhiet) 10 phut gan nhat
+        self.t_thr = 0.0                             # lan cuoi thay bo dem ha xung tang
+        self.hot = False
+        self.t_hot0: Optional[float] = None
+        self.t_cool0: Optional[float] = None
+        self.hot_max = 0.0
+        self.t_log = 0.0
+        self.snap: Dict[str, Any] = {}
+
+    def _temp(self) -> Optional[float]:
+        """Nhiet goi CPU (C): vung x86_pkg_temp; khong co thi vung nong nhat."""
+        if self.temp_file is None:
+            try:
+                zones = sorted(self.th_dir.glob("thermal_zone*"))
+            except OSError:
+                zones = []
+            for z in zones:
+                if _rd(z / "type") == "x86_pkg_temp":
+                    self.temp_file = z / "temp"
+                    break
+            else:
+                vals = [v for v in (_rdn(z / "temp") for z in zones) if v is not None]
+                return max(vals) / 1000.0 if vals else None
+        v = _rdn(self.temp_file)
+        if v is None:
+            self.temp_file = None
+            return None
+        return v / 1000.0
+
+    def _cpufreq(self) -> Tuple[Optional[float], Optional[float], Optional[float], Optional[int]]:
+        """(xung trung binh MHz, xung nhan nhanh nhat MHz, xung toi da MHz, tong bo dem ha xung vi nong).
+        Trung binh bi cac nhan dang ranh (~0.8 GHz) keo xuong -> trang hien nhan nhanh nhat (nhan dang lam viec)."""
+        if self.cpus is None:
+            try:
+                self.cpus = sorted(p for p in self.cpu_dir.glob("cpu[0-9]*") if p.name[3:].isdigit())
+            except OSError:
+                self.cpus = []
+        cur: List[float] = []
+        mx: List[float] = []
+        core, pkg, have = 0, 0, False
+        for c in self.cpus:
+            f = _rdn(c / "cpufreq" / "scaling_cur_freq")
+            if f is not None:
+                cur.append(f / 1000.0)
+            m = _rdn(c / "cpufreq" / "cpuinfo_max_freq")
+            if m is not None:
+                mx.append(m / 1000.0)
+            k = _rdn(c / "thermal_throttle" / "core_throttle_count")
+            if k is not None:
+                core, have = core + int(k), True
+            p = _rdn(c / "thermal_throttle" / "package_throttle_count")
+            if p is not None:                        # bo dem chung ca goi: moi cpu doc ra cung so -> lay max
+                pkg, have = max(pkg, int(p)), True
+        return (sum(cur) / len(cur) if cur else None, max(cur) if cur else None, max(mx) if mx else None,
+                core + pkg if have else None)
+
+    @staticmethod
+    def _stat() -> Optional[Tuple[int, int]]:
+        """(tong tick, tick ranh) cua ca may tu dong dau /proc/stat."""
+        try:
+            with open("/proc/stat", "rb") as f:
+                v = [int(x) for x in f.readline().split()[1:9]]
+            return sum(v), v[3] + v[4]
+        except (OSError, ValueError, IndexError):
+            return None
+
+    @staticmethod
+    def _mem() -> Tuple[Optional[float], Optional[float]]:
+        """(RAM dang dung MB, tong MB)."""
+        tot = av = None
+        try:
+            with open("/proc/meminfo", "rb") as f:
+                for ln in f:
+                    if ln.startswith(b"MemTotal:"):
+                        tot = int(ln.split()[1]) / 1024.0
+                    elif ln.startswith(b"MemAvailable:"):
+                        av = int(ln.split()[1]) / 1024.0
+                    if tot is not None and av is not None:
+                        break
+        except (OSError, ValueError, IndexError):
+            pass
+        return (tot - av if tot is not None and av is not None else None), tot
+
+    def sample(self, cmds: List[Tuple[int, List[str]]], now: float, alive: bool) -> None:
+        st = self._stat()
+        cur: Dict[int, Tuple[int, str]] = {}
+        for pid, argv in cmds:
+            lab = proc_label(argv)
+            if lab is None:
+                continue
+            try:
+                with open(f"/proc/{pid}/stat", "rb") as f:
+                    raw = f.read()
+                fl = raw[raw.rfind(b")") + 2:].split()
+                cur[pid] = (int(fl[11]) + int(fl[12]), lab)       # utime + stime (moi luong cua tien trinh)
+            except (OSError, ValueError, IndexError):
+                continue
+        temp = self._temp()
+        mhz, mhz_top, mhz_max, thr = self._cpufreq()
+        used, total = self._mem()
+        dt = now - self.t_prev if self.t_prev else 0.0
+        per: Dict[str, int] = {}
+        for pid, (ticks, lab) in cur.items():
+            old = self.prev_proc.get(pid)
+            per[lab] = per.get(lab, 0) + (ticks - old[0] if old is not None and old[1] == lab and ticks >= old[0] else 0)
+        if 0.5 < dt < 10.0 and st is not None and self.prev_stat is not None:
+            d_tot = st[0] - self.prev_stat[0]
+            self.win.append((dt, d_tot, d_tot - (st[1] - self.prev_stat[1]), per))
+        elif dt >= 10.0:
+            self.win.clear()                             # lau khong doc (may treo / dong ho nhay): bo cua so cu
+        if thr is not None:
+            if self.prev_thr is not None and thr > self.prev_thr:
+                self.t_thr = now
+            self.prev_thr = thr
+        throttling = self.t_thr > 0.0 and now - self.t_thr < 10.0
+        self.prev_stat, self.prev_proc, self.t_prev = st, cur, now
+        if temp is not None:
+            self.temps.append((now, temp))
+        while self.temps and self.temps[0][0] < now - 600.0:
+            self.temps.popleft()
+        s_dt = sum(w[0] for w in self.win)
+        s_tot = sum(w[1] for w in self.win)
+        cpu = 100.0 * sum(w[2] for w in self.win) / s_tot if s_tot > 0 else None
+        present = {lab for _, lab in cur.values()}
+        tick_sum: Dict[str, int] = {}
+        for w in self.win:
+            for lab, t in w[3].items():
+                tick_sum[lab] = tick_sum.get(lab, 0) + t
+        nodes = sorted(([k, round(100.0 * v / self.clk / s_dt, 1)] for k, v in tick_sum.items()
+                        if k in present and s_dt > 0), key=lambda kv: -kv[1])
+        # nong: lien tuc hot_sec moi bao, het nong lien tuc cool_sec moi dong
+        hot_now = temp is not None and (temp >= HOT_BAD or (temp >= HOT_WARN and throttling))
+        ev = None
+        if hot_now:
+            self.t_cool0 = None
+            if self.t_hot0 is None:
+                self.t_hot0 = now
+            if self.hot:
+                self.hot_max = max(self.hot_max, temp)
+            elif now - self.t_hot0 >= self.hot_sec:
+                self.hot, self.hot_max = True, temp
+                ev = ("begin", "bad" if temp >= HOT_BAD else "warn", {"t": round(temp, 1), "thr": throttling})
+        else:
+            self.t_hot0 = None
+            if self.hot:
+                if temp is not None:
+                    self.hot_max = max(self.hot_max, temp)
+                if self.t_cool0 is None:
+                    self.t_cool0 = now
+                if now - self.t_cool0 >= self.cool_sec:
+                    self.hot, self.t_cool0 = False, None
+                    ev = ("end", "", {"tmax": round(self.hot_max, 1)})
+        tmax10 = max((t for _, t in self.temps), default=None)
+        snap = {"t": round(now, 2), "temp": None if temp is None else round(temp, 1),
+                "temp_max10": None if tmax10 is None else round(tmax10, 1),
+                "cpu": None if cpu is None else int(round(cpu)), "n_cpu": os.cpu_count(),
+                "mhz": None if mhz is None else int(round(mhz)), "mhz_top": None if mhz_top is None else int(round(mhz_top)),
+                "mhz_max": None if mhz_max is None else int(round(mhz_max)),
+                "thr": throttling, "hot": self.hot,
+                "ram_mb": None if used is None else int(round(used)), "ram_total_mb": None if total is None else int(round(total)),
+                "nodes": nodes}
+        with self.lock:
+            self.snap = snap
+        if ev is not None:
+            if ev[0] == "begin":
+                self.app.events.begin("nong", "nong", ev[1], ev[2])
+            else:
+                self.app.events.end("nong", ev[2])
+        if cpu is not None and now - self.t_log >= (self.log_sec if alive else self.log_idle_sec):
+            self.t_log = now
+            self.app._write_log(
+                f"{time.strftime('%H:%M:%S')} {'may':15s} {'tai':15s} {'-  '} cpu {cpu:.0f}% nhiet "
+                f"{'?' if temp is None else f'{temp:.1f}'}C xung {'?' if mhz is None else f'{mhz:.0f}'}/"
+                f"{'?' if mhz_top is None else f'{mhz_top:.0f}'}/{'?' if mhz_max is None else f'{mhz_max:.0f}'}MHz "
+                f"ha_xung {1 if throttling else 0} ram "
+                f"{'?' if used is None else f'{used:.0f}'}/{'?' if total is None else f'{total:.0f}'}MB | "
+                + " ".join(f"{k} {v:.0f}" for k, v in nodes) + "\n")
+
+    def snapshot(self, now: float) -> Optional[Dict[str, Any]]:
+        with self.lock:
+            s = dict(self.snap)
+        if not s:
+            return None
+        s["age"] = round(now - s.pop("t"), 1)
+        return s
+
+
 def _fmt_dur(d: Any) -> str:
     if d is None:
         return "?"
@@ -418,6 +650,10 @@ def ev_text(ev: Dict[str, Any], phase: str = "") -> str:
         return f"ghi bag loi (ma {a.get('code')}): {a.get('last', '')}"
     if c == "bat":
         return f"pin {'may tinh' if a.get('src') == 'may' else 'khung xe'} con {a.get('val')}"
+    if c == "nong":
+        if phase == "end":
+            return f"het nong{dur} (cao nhat {a.get('tmax')} C)"
+        return f"may robot nong {a.get('t')} C" + (" — CPU tu ha xung" if a.get("thr") else "")
     return c
 
 
@@ -1032,6 +1268,12 @@ class RobotWeb(Node):
             "chassis_power_unit": "",            # [CAN XAC NHAN] don vi /bw_dr03/power (driver goi la power_v)
             "chassis_power_warn": 0.0,           # nguong canh bao pin khung xe (0 = tat, chua biet loai pin)
             "chassis_power_bad": 0.0,
+            "thermal_dir": "/sys/class/thermal",     # (10/11) nhiet CPU — test dung thu muc gia
+            "cpu_dir": "/sys/devices/system/cpu",    # xung + bo dem ha xung vi nong
+            "machine_hot_sec": 10.0,             # nong lien tuc bay nhieu giay moi bao (su kien + canh bao tren trang)
+            "machine_cool_sec": 20.0,            # het nong lien tuc bay nhieu giay moi dong su kien
+            "machine_log_sec": 10.0,             # ghi dong "may tai" vao nhat ky web khi he thong dang chay
+            "machine_log_idle_sec": 60.0,        # ... khi he thong khong chay
         }
         dyn = ParameterDescriptor(dynamic_typing=True)
         for k, v in defaults.items():
@@ -1062,6 +1304,9 @@ class RobotWeb(Node):
         self.ch_unit = str(g("chassis_power_unit"))
         self.ch_warn = float(g("chassis_power_warn"))
         self.ch_bad = float(g("chassis_power_bad"))
+        self.machine = Machine(self, Path(str(g("thermal_dir"))), Path(str(g("cpu_dir"))),
+                               float(g("machine_hot_sec")), float(g("machine_cool_sec")),
+                               float(g("machine_log_sec")), float(g("machine_log_idle_sec")))
 
         self.lock = threading.Lock()
         self.rates = {k: Rate() for k in ("scan", "odom", "cmd", "planner", "identity", "image")}
@@ -1233,6 +1478,12 @@ class RobotWeb(Node):
         self.stack.scan_external(cmds)
         self.bag.scan_external(cmds)
         self.bag.refresh()
+        try:                                         # nhiet / CPU may (doc /proc + /sys, ~1 ms)
+            with self.stack.lock:
+                alive = self.stack.alive()
+            self.machine.sample(cmds, _now(), alive)
+        except Exception as exc:  # doc may loi khong duoc lam chet nhip theo doi he thong
+            self.get_logger().warn(f"may: {exc!r}")
 
     def _chassis_now(self, now: float) -> Optional[Dict[str, Any]]:
         """So doc /bw_dr03/power: trung vi 10 s (ap tut luc dong co keo). Goi duoi self.lock."""
@@ -1421,6 +1672,7 @@ class RobotWeb(Node):
                 "power": {"bat": dict(self.bat) if self.bat else None, "chassis": self._chassis_now(now)},
             }
         out["bag"] = self.bag.snapshot()
+        out["machine"] = self.machine.snapshot(now)
         out["ev"] = self.events.meta()
         sysd = self.stack.snapshot()
         out["system"] = {k: sysd[k] for k in ("state", "detail", "since", "alive", "external", "mode", "rssi", "exit_code")}

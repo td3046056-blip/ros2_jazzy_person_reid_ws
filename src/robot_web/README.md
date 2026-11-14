@@ -30,10 +30,10 @@ Tắt node web (Ctrl-C) **không** tắt hệ thống robot và **không** dừn
 
 Từ trên xuống:
 - **Thanh trên cùng:** tên trang, **REC 3:12** đỏ khi đang ghi bag (chạm để tới thẻ ghi bag), trạng thái kết nối. Mạng chậm (> 400 ms) thì báo vàng; mất kết nối quá 1.5 s thì hiện bảng đỏ.
-- **Cảnh báo quan trọng** (chỉ hiện khi có): 2 node cùng ghi `/cmd_vel`, pin máy ≤ 20 %, pin khung xe dưới ngưỡng, ổ đĩa < 1 GB.
+- **Cảnh báo quan trọng** (chỉ hiện khi có): 2 node cùng ghi `/cmd_vel`, pin máy ≤ 20 %, pin khung xe dưới ngưỡng, ổ đĩa < 1 GB, máy robot nóng.
 - **Thẻ "bước tiếp theo":** một câu trạng thái + **một nút lớn** cho việc cần làm bây giờ: Khởi động → Học người → Xong → Bắt đầu bám → Tạm dừng bám. Nút bị khoá thì ghi lý do ngay dưới. Khi hệ thống đang tắt, hai tuỳ chọn "Dùng RSSI" và "Tự ghi bag" nằm ngay dưới nút Khởi động.
 - **Camera trực tiếp:** video kèm nhãn trạng thái và % học. Nút ⤢ phóng to video kín màn hình mà **vẫn để nút DỪNG** ở đáy. Camera mất tín hiệu thì khung cũ bị che mờ, ghi "Chưa có ảnh camera".
-- **Ô trạng thái nhanh:** LiDAR, Xe, Camera, Lệnh, Beacon, Pin, Pin xe — chấm màu + số. Chạm để sổ ra chi tiết: tần số từng cảm biến, 3 board RSSI, video, pin.
+- **Ô trạng thái nhanh:** LiDAR, Xe, Camera, Lệnh, Beacon, Pin, Pin xe, Máy (nhiệt độ CPU · % CPU) — chấm màu + số. Chạm để sổ ra chi tiết: tần số từng cảm biến, 3 board RSSI, video, pin, máy tính robot.
 - **Ba bước ①②③ dạng gập / mở:** chạm tiêu đề để mở. Tiêu đề luôn hiện trạng thái. Bước xong có dấu ✓, bước hiện tại tô xanh và tự mở một lần khi vừa chuyển bước. Kết quả kiểm tra, nhật ký hệ thống và hướng dẫn nằm trong mục sổ xuống riêng. Trạng thái gập / mở được nhớ trên từng máy.
 - **Ghi dữ liệu (bag):** một nút **Ghi / Dừng ghi**, thời gian, dung lượng, số topic. "Chi tiết · bag gần đây" sổ xuống.
 - **Sự kiện:** 3 sự kiện mới nhất, "Xem tất cả" để sổ cả danh sách.
@@ -75,6 +75,20 @@ Nút **Ghi** chạy đúng lệnh `run_full.sh --bag` như khi ghi tay ở termi
 
 - **Pin máy robot:** đọc từ `/sys/class/power_supply/BAT*` mỗi 5 s: %, đang sạc / dùng pin / cắm điện không sạc, công suất, thời gian còn lại ước tính. Pin ≤ 20 % (vàng) hoặc ≤ 10 % (đỏ) khi đang dùng pin thì có cảnh báo trên cùng và một dòng sự kiện. Mini PC không có pin thì ghi "không có pin".
 - **Pin khung xe:** số `/bw_dr03/power` do driver BW-DR03 phát, lấy trung vị 10 s vì điện áp tụt khi động cơ kéo. Driver đặt tên trường này là `power_v` nhưng **[CẦN XÁC NHẬN]** đơn vị và loại pin. Vì vậy trang chỉ hiện **số thô** và mặc định **không cảnh báo**. Biết đơn vị và ngưỡng rồi thì thêm tham số, ví dụ pin 12 V: `-p chassis_power_unit:=V -p chassis_power_warn:=11.8 -p chassis_power_bad:=11.3`.
+
+## Máy tính robot (10/11)
+
+Đọc mỗi 2 s từ `/proc` và `/sys` của máy thật (web chạy trong container nhưng các file này vẫn là của máy thật; các node của hệ robot chạy chung container nên đọc được từng node):
+- **Nhiệt độ CPU** (vùng `x86_pkg_temp`), kèm mức cao nhất trong 10 phút.
+- **% CPU toàn máy**, trung bình 10 s.
+- **Xung của nhân nhanh nhất**, kèm xung tối đa. Không dùng xung trung bình vì các nhân đang rảnh (~0.8 GHz) kéo số đó xuống.
+- **Hạ xung vì nóng:** bộ đếm `thermal_throttle` tăng. Mini PC i5-5200U tự hạ xung từ ~78–80 °C, dù ngưỡng tới hạn là 105 °C.
+- **RAM** đang dùng / tổng.
+- **% CPU từng node**, tính theo **1 nhân**: camera chạy 2 luồng nên có thể > 100 %.
+
+**Nóng** = ≥ 90 °C, hoặc ≥ 80 °C mà CPU đang hạ xung, kéo dài liên tục 10 s (`machine_hot_sec`). Khi đó trang hiện cảnh báo trên cùng và thêm một dòng sự kiện. Hết nóng liên tục 20 s (`machine_cool_sec`) thì dòng sự kiện đóng lại, kèm mức nóng cao nhất.
+
+Mỗi 10 s khi hệ thống chạy (60 s khi không chạy), web ghi một dòng `may tai` vào `run_logs/web_<thángngày>.log`, ví dụ `cpu 72% nhiet 76.0C xung 1500/2050/2100MHz ha_xung 0 ram 3100/7867MB | camera 160 planner 28 …` (xung TB / nhân nhanh nhất / tối đa). Nhờ đó phân tích lần chạy thật (`~/kiem_tra_gop_0811/phan_tich.py`, tự tìm log web theo ngày của bag) không cần chạy `bat_do.sh`.
 
 ## Dòng sự kiện
 
@@ -136,6 +150,9 @@ Góc trên ảnh có **nhãn chữ to** báo trạng thái camera:
 | `power_supply_dir` | `/sys/class/power_supply` | nơi đọc pin máy tính |
 | `chassis_power_unit` | (trống) | đơn vị số `/bw_dr03/power`, ví dụ `V` — **[CẦN XÁC NHẬN]** |
 | `chassis_power_warn` / `chassis_power_bad` | 0 (tắt) | ngưỡng cảnh báo / nguy hiểm pin khung xe |
+| `thermal_dir` / `cpu_dir` | `/sys/class/thermal` / `/sys/devices/system/cpu` | nơi đọc nhiệt độ / xung + bộ đếm hạ xung (test dùng thư mục giả) |
+| `machine_hot_sec` / `machine_cool_sec` | 10 / 20 | nóng liên tục bao lâu thì báo / hết nóng bao lâu thì đóng sự kiện |
+| `machine_log_sec` / `machine_log_idle_sec` | 10 / 60 | chu kỳ ghi dòng `may tai` vào nhật ký web khi hệ thống chạy / không chạy |
 
 ## CPU
 
@@ -171,6 +188,7 @@ Bài kiểm chạy node web thật trong miền ROS riêng (`ROS_DOMAIN_ID` 77, 
 - ghi bag: bị chặn khi hệ thống chưa chạy; ghi 1 nút, đọc tên bag + 3/4 topic, dung lượng tăng dần; dừng ghi đọc được `metadata.yaml`; tự ghi khi Khởi động và tự dừng **2.5 s sau** khi hệ thống tắt; lỗi ghi; nhận ra và dừng được ghi ngoài web;
 - dòng sự kiện: thứ tự trạng thái hệ thống, nút bấm (tên, kết quả, IP), học xong, bắt đầu / ngừng bám, đợt "tìm người" 2.5 s (gộp khi lặp lại), LiDAR ngừng 2 s, 2 node ghi `/cmd_vel`, ghi vào file nhật ký;
 - pin máy 15 % → 8 % (cảnh báo rồi nguy hiểm, không báo lặp), pin khung xe 12.34 → 11.0 (dưới ngưỡng);
+- máy tính robot (sysfs nhiệt / xung giả): 55 °C, nhân nhanh nhất 1.8 GHz, % CPU + RAM, % CPU của chính web; bộ đếm hạ xung tăng → "đang hạ xung"; 93 °C → sự kiện "máy robot nóng" (nguy hiểm) mở, về 50 °C → đóng, kèm cao nhất 93 °C; dòng `may tai` trong file nhật ký;
 - ảnh camera và video: ≥ 12 hình/s, rộng 480 px, tối đa 3 người xem, đóng trang thì thôi nhận ảnh;
 - nút DỪNG khi mất service;
 - cả 3 node (`robot_web`, `robot_web_probe`, `robot_web_video`) không publish topic nào;
