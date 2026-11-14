@@ -1,0 +1,10 @@
+19:16:52 10.42.0.1       login           LOI sai mat khau
+19:16:54 10.42.0.1       login           LOI sai mat khau
+19:17:00 10.42.0.1       login           LOI sai mat khau
+19:17:02 10.42.0.1       login           LOI sai mat khau
+19:17:08 10.42.0.1       login           LOI sai mat khau
+19:17:09 10.42.0.1       login           LOI sai mat khau
+19:17:12 10.42.0.1       login           OK  dang nhap
+19:17:17 su_kien         sys             -   he thong STOPPED -> CHECKING: dang kiem tra thiet bi
+19:17:17 10.42.0.1       check           OK  dang kiem tra
+19:17:20 su_kien         sys             -   he thong CHECKING -> STOPPED: kiem tra: 7 muc HONG, 0 canh bao — sua truoc khi chay

@@ -1,0 +1,541 @@
+[INFO] [launch]: All log files can be found below /home/xiaoqiang/.ros/log/2026-11-10-12-29-24-393306-xiaoqiang-desktop-1712
+[INFO] [launch]: Default logging verbosity is set to INFO
+[INFO] [launch.user]: ==================================================================
+[INFO] [launch.user]:  BAM NGUOI + NE VAT CAN — BW-DR03
+[INFO] [launch.user]:    1) ros2 service call /person_reid/start_enroll  std_srvs/srv/Trigger {}
+[INFO] [launch.user]:    2) ros2 service call /person_reid/finish_enroll std_srvs/srv/Trigger {}
+[INFO] [launch.user]:    3) ros2 service call /follow/enable             std_srvs/srv/Trigger {}
+[INFO] [launch.user]:    DUNG: ros2 service call /follow/stop            std_srvs/srv/Trigger {}
+[INFO] [launch.user]:  Theo doi: ros2 topic echo /follow/planner_status
+[INFO] [launch.user]:  RSSI (start_rssi:=true): chi dung khi MAT NGUOI — xe xoay ~1 vong do huong beacon
+[INFO] [launch.user]: ==================================================================
+[INFO] [sc_mini-1]: process started with pid [1719]
+[INFO] [static_transform_publisher-2]: process started with pid [1720]
+[INFO] [decoded_serial_node-3]: process started with pid [1721]
+[INFO] [python3-4]: process started with pid [1722]
+[INFO] [rssi_scanner-5]: process started with pid [1723]
+[INFO] [rssi_bearing-6]: process started with pid [1724]
+[INFO] [target_tracker-7]: process started with pid [1725]
+[INFO] [follow_planner-8]: process started with pid [1728]
+[static_transform_publisher-2] [WARN] [1794288564.620943074] []: Old-style arguments are deprecated; see --help for new-style arguments
+[static_transform_publisher-2] [INFO] [1794288564.714747848] [base_to_laser]: Spinning until stopped - publishing transform
+[static_transform_publisher-2] translation: ('0.100000', '0.000000', '0.180000')
+[static_transform_publisher-2] rotation: ('0.000000', '0.000000', '0.000000', '1.000000')
+[static_transform_publisher-2] from 'base_link' to 'laser'
+[rssi_scanner-5] [INFO] [1794288566.673015761] [rssi_scanner_node]: /dev/serial/by-path/pci-0000:00:14.0-usb-0:3.1:1.0-port0: da mo
+[rssi_scanner-5] [INFO] [1794288566.674931474] [rssi_scanner_node]: rssi_scanner: doc 3 cong @ 115200 baud -> /rssi/raw
+[rssi_scanner-5] [INFO] [1794288566.676393185] [rssi_scanner_node]: /dev/serial/by-path/pci-0000:00:14.0-usb-0:3.3:1.0-port0: da mo
+[rssi_scanner-5] [INFO] [1794288566.677719073] [rssi_scanner_node]: /dev/serial/by-path/pci-0000:00:14.0-usb-0:3.2:1.0-port0: da mo
+[rssi_bearing-6] [INFO] [1794288567.345346735] [rssi_bearing_node]: rssi_bearing: mau ['A', 'B', 'C'], can xoay >= 250 do trong 14 s, corr >= 0.45 & margin >= 0.1 (hoac corr >= 0.35 & margin >= 0.25)
+[rssi_bearing-6] [INFO] [1794288567.497240420] [rssi_bearing_node]: chua co huong hop le: chua du du lieu
+[target_tracker-7] [INFO] [1794288567.768970100] [target_tracker_node]: target_tracker_node san sang | lidar_yaw_offset=-90.0 deg sign=1 | fuse_lidar_distance=True | predict_max=2.5s
+[target_tracker-7] [INFO] [1794288567.772344691] [target_tracker_node]: muc tieu: wait_odom
+[decoded_serial_node-3] [INFO] [1794288567.824509507] [bw_dr03_decoded_serial_node]: BW-DR03 decoder connected on /dev/stm32Car at 115200
+[follow_planner-8] [INFO] [1794288567.825713516] [follow_planner_node]: follow_planner_node san sang | footprint 0.47x0.60m | v_max=0.22 w_max=1.00 | khoang cach bam=1.00m | margin mem=0.15 cung=0.06 | enabled=False
+[decoded_serial_node-3] [INFO] [1794288567.826386436] [bw_dr03_decoded_serial_node]: Params: max_linear=0.49, max_angular=2.46, max_percent=60, cmd_timeout=1.0
+[follow_planner-8] [INFO] [1794288567.828093056] [follow_planner_node]: Bat bam: ros2 service call /follow/enable std_srvs/srv/Trigger {}
+[decoded_serial_node-3] [INFO] [1794288567.830734372] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[follow_planner-8] [INFO] [1794288567.831268911] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-
+[follow_planner-8] [INFO] [1794288567.834117491] [follow_planner_node]: self-filter: bo 24/134 tia dap vao than xe
+[rssi_scanner-5] [INFO] [1794288567.972952798] [rssi_scanner_node]: /dev/serial/by-path/pci-0000:00:14.0-usb-0:3.1:1.0-port0: board A khoi dong
+[rssi_scanner-5] [INFO] [1794288568.399998141] [rssi_scanner_node]: /dev/serial/by-path/pci-0000:00:14.0-usb-0:3.2:1.0-port0: board B khoi dong
+[rssi_scanner-5] [INFO] [1794288568.473733629] [rssi_scanner_node]: /dev/serial/by-path/pci-0000:00:14.0-usb-0:3.3:1.0-port0: board C khoi dong
+[target_tracker-7] [INFO] [1794288568.782492524] [target_tracker_node]: muc tieu: no_target_yet
+[decoded_serial_node-3] [INFO] [1794288568.864050622] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[follow_planner-8] [INFO] [1794288568.864219530] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-
+[sc_mini-1] sc_mini start
+[target_tracker-7] [INFO] [1794288569.832278058] [target_tracker_node]: muc tieu: no_target_yet
+[decoded_serial_node-3] [INFO] [1794288569.929541100] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[follow_planner-8] [INFO] [1794288569.931780045] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-
+[target_tracker-7] [INFO] [1794288570.882239263] [target_tracker_node]: muc tieu: no_target_yet
+[decoded_serial_node-3] [INFO] [1794288570.929971787] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[follow_planner-8] [INFO] [1794288570.996547992] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-
+[python3-4] [INFO] [1794288571.340731924] [identity_lock_node]: Loading detector/tracker/identity lock...
+[python3-4] [INFO] [1794288571.514707036] [identity_lock_node]: Models loaded; torch cuda/rocm backend not available; using CPU; detector=yolo26n_416x320.onnx (onnxruntime), reid=osnet_x0_5_msmt17.onnx (onnxruntime), ort_threads=2, torch_threads=2
+[python3-4] [WARN] [1794288571.636489207] [identity_lock_node]: v4l2-ctl -c backlight_compensation=0,exposure_dynamic_framerate=0,power_line_frequency=1 loi: unknown control 'exposure_dynamic_framerate'
+[python3-4] [ WARN:0@6.095] global ./modules/videoio/src/cap_gstreamer.cpp (862) isPipelinePlaying OpenCV | GStreamer warning: GStreamer: pipeline have not been created
+[python3-4] [ERROR:0@6.095] global ./modules/videoio/src/cap.cpp (164) open VIDEOIO(GSTREAMER): raised OpenCV exception:
+[python3-4] 
+[python3-4] OpenCV(4.6.0) ./modules/videoio/src/cap_gstreamer.cpp:1159: error: (-215:Assertion failed) uridecodebin in function 'open'
+[python3-4] 
+[python3-4] 
+[python3-4] [INFO] [1794288571.769238814] [identity_lock_node]: camera: MJPG 640x480 25 fps, phoi sang fixed_fps 30 ms
+[decoded_serial_node-3] [INFO] [1794288571.930775312] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[target_tracker-7] [INFO] [1794288571.935265848] [target_tracker_node]: muc tieu: no_target_yet
+[follow_planner-8] [INFO] [1794288571.998317802] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-
+[python3-4] QStandardPaths: XDG_RUNTIME_DIR not set, defaulting to '/tmp/runtime-xiaoqiang'
+[decoded_serial_node-3] [INFO] [1794288572.935405325] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[target_tracker-7] [INFO] [1794288572.938581436] [target_tracker_node]: muc tieu: no_target_yet
+[follow_planner-8] [INFO] [1794288573.063379711] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-
+[target_tracker-7] [INFO] [1794288573.981299595] [target_tracker_node]: muc tieu: no_target_yet
+[decoded_serial_node-3] [INFO] [1794288574.214904690] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[follow_planner-8] [INFO] [1794288574.215999977] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-
+[target_tracker-7] [INFO] [1794288575.033344141] [target_tracker_node]: muc tieu: no_target_yet
+[decoded_serial_node-3] [INFO] [1794288575.264301744] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[follow_planner-8] [INFO] [1794288575.264424957] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-
+[target_tracker-7] [INFO] [1794288576.033721852] [target_tracker_node]: muc tieu: no_target_yet
+[decoded_serial_node-3] [INFO] [1794288576.265731428] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[follow_planner-8] [INFO] [1794288576.330024202] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-
+[target_tracker-7] [INFO] [1794288577.082630757] [target_tracker_node]: muc tieu: no_target_yet
+[decoded_serial_node-3] [INFO] [1794288577.329798337] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[follow_planner-8] [INFO] [1794288577.397080608] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-
+[follow_planner-8] [INFO] [1794288577.843588401] [follow_planner_node]: self-filter: bo 22/132 tia dap vao than xe
+[target_tracker-7] [INFO] [1794288578.132101750] [target_tracker_node]: muc tieu: no_target_yet
+[decoded_serial_node-3] [INFO] [1794288578.330091702] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[follow_planner-8] [INFO] [1794288578.397146639] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-
+[target_tracker-7] [INFO] [1794288579.135952222] [target_tracker_node]: muc tieu: no_target_yet
+[decoded_serial_node-3] [INFO] [1794288579.335508910] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[follow_planner-8] [INFO] [1794288579.396440483] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-
+[target_tracker-7] [INFO] [1794288580.135479787] [target_tracker_node]: muc tieu: no_target_yet
+[decoded_serial_node-3] [INFO] [1794288580.397064844] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[follow_planner-8] [INFO] [1794288580.463297141] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-
+[target_tracker-7] [INFO] [1794288581.182143013] [target_tracker_node]: muc tieu: no_target_yet
+[decoded_serial_node-3] [INFO] [1794288581.462996021] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[follow_planner-8] [INFO] [1794288581.532563445] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-
+[python3-4] [INFO] [1794288581.899256339] [identity_lock_node]: camera: nhan nan fps (phoi sang 30 ms, do sang 87), xu ly 3.5 Hz, TB 262 ms/khung, tre tu luc chup 321.8 ms, 3 nguoi, status WAITING_FOR_ENROLLMENT
+[target_tracker-7] [INFO] [1794288582.231761887] [target_tracker_node]: muc tieu: no_target_yet
+[decoded_serial_node-3] [INFO] [1794288582.463098458] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[follow_planner-8] [INFO] [1794288582.596538942] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-
+[target_tracker-7] [INFO] [1794288583.231859478] [target_tracker_node]: muc tieu: no_target_yet
+[decoded_serial_node-3] [INFO] [1794288583.463299081] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[follow_planner-8] [INFO] [1794288583.596275306] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-
+[target_tracker-7] [INFO] [1794288584.281729984] [target_tracker_node]: muc tieu: no_target_yet
+[decoded_serial_node-3] [INFO] [1794288584.529537707] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[follow_planner-8] [INFO] [1794288584.600809030] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-
+[target_tracker-7] [INFO] [1794288585.338120786] [target_tracker_node]: muc tieu: no_target_yet
+[decoded_serial_node-3] [INFO] [1794288585.529696041] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[follow_planner-8] [INFO] [1794288585.597122251] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-
+[target_tracker-7] [INFO] [1794288586.381762190] [target_tracker_node]: muc tieu: no_target_yet
+[decoded_serial_node-3] [INFO] [1794288586.596313718] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[follow_planner-8] [INFO] [1794288586.662819560] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-
+[target_tracker-7] [INFO] [1794288587.382194806] [target_tracker_node]: muc tieu: no_target_yet
+[decoded_serial_node-3] [INFO] [1794288587.596364888] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[follow_planner-8] [INFO] [1794288587.665388166] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-
+[follow_planner-8] [INFO] [1794288587.886092180] [follow_planner_node]: self-filter: bo 25/134 tia dap vao than xe
+[target_tracker-7] [INFO] [1794288588.431570605] [target_tracker_node]: muc tieu: no_target_yet
+[decoded_serial_node-3] [INFO] [1794288588.663097271] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[follow_planner-8] [INFO] [1794288588.663544593] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-
+[target_tracker-7] [INFO] [1794288589.483067848] [target_tracker_node]: muc tieu: no_target_yet
+[decoded_serial_node-3] [INFO] [1794288589.663321661] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[follow_planner-8] [INFO] [1794288589.729801617] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-
+[target_tracker-7] [INFO] [1794288590.531187632] [target_tracker_node]: muc tieu: no_target_yet
+[decoded_serial_node-3] [INFO] [1794288590.664736708] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[follow_planner-8] [INFO] [1794288590.796757355] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-
+[target_tracker-7] [INFO] [1794288591.532811646] [target_tracker_node]: muc tieu: no_target_yet
+[decoded_serial_node-3] [INFO] [1794288591.729667972] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[follow_planner-8] [INFO] [1794288591.798068178] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-
+[python3-4] [INFO] [1794288592.047359230] [identity_lock_node]: camera: nhan 12.7 fps (phoi sang 30 ms, do sang 162), xu ly 3.9 Hz, TB 246 ms/khung, tre tu luc chup 310.4 ms, 3 nguoi, status ENROLLING
+[target_tracker-7] [INFO] [1794288592.532721893] [target_tracker_node]: muc tieu: no_target_yet
+[decoded_serial_node-3] [INFO] [1794288592.729808675] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[follow_planner-8] [INFO] [1794288592.862830030] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-
+[target_tracker-7] [INFO] [1794288593.581852823] [target_tracker_node]: muc tieu: no_target_yet
+[decoded_serial_node-3] [INFO] [1794288593.795979501] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[follow_planner-8] [INFO] [1794288593.863278280] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-
+[target_tracker-7] [INFO] [1794288594.581397402] [target_tracker_node]: muc tieu: no_target_yet
+[decoded_serial_node-3] [INFO] [1794288594.797318858] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[follow_planner-8] [INFO] [1794288594.930500169] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-
+[target_tracker-7] [INFO] [1794288595.630813615] [target_tracker_node]: muc tieu: no_target_yet
+[decoded_serial_node-3] [INFO] [1794288595.863138884] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[follow_planner-8] [INFO] [1794288595.996444352] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-
+[target_tracker-7] [INFO] [1794288596.631896012] [target_tracker_node]: muc tieu: no_target_yet
+[decoded_serial_node-3] [INFO] [1794288596.863443938] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[follow_planner-8] [INFO] [1794288596.996370724] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-
+[target_tracker-7] [INFO] [1794288597.632169500] [target_tracker_node]: muc tieu: no_target_yet
+[decoded_serial_node-3] [INFO] [1794288597.864699748] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[follow_planner-8] [INFO] [1794288597.973733103] [follow_planner_node]: self-filter: bo 23/134 tia dap vao than xe
+[follow_planner-8] [INFO] [1794288598.063219728] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-
+[target_tracker-7] [INFO] [1794288598.683602556] [target_tracker_node]: muc tieu: no_target_yet
+[decoded_serial_node-3] [INFO] [1794288598.932996221] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[follow_planner-8] [INFO] [1794288599.129798486] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-
+[target_tracker-7] [INFO] [1794288599.739508181] [target_tracker_node]: muc tieu: no_target_yet
+[decoded_serial_node-3] [INFO] [1794288599.999581024] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[follow_planner-8] [INFO] [1794288600.199975783] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-
+[target_tracker-7] [INFO] [1794288600.782904390] [target_tracker_node]: muc tieu: no_target_yet
+[decoded_serial_node-3] [INFO] [1794288601.063327151] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[follow_planner-8] [INFO] [1794288601.196314929] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-
+[target_tracker-7] [INFO] [1794288601.832235689] [target_tracker_node]: muc tieu: no_target_yet
+[python3-4] [INFO] [1794288602.108249518] [identity_lock_node]: camera: nhan 12.7 fps (phoi sang 30 ms, do sang 158), xu ly 3.9 Hz, TB 251 ms/khung, tre tu luc chup 291.1 ms, 3 nguoi, status ENROLLING
+[decoded_serial_node-3] [INFO] [1794288602.130922257] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[follow_planner-8] [INFO] [1794288602.263669450] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-
+[target_tracker-7] [INFO] [1794288602.834820832] [target_tracker_node]: muc tieu: no_target_yet
+[decoded_serial_node-3] [INFO] [1794288603.134582420] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[follow_planner-8] [INFO] [1794288603.263048350] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-
+[target_tracker-7] [INFO] [1794288603.882152537] [target_tracker_node]: muc tieu: no_target_yet
+[decoded_serial_node-3] [INFO] [1794288604.196197562] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[follow_planner-8] [INFO] [1794288604.262980378] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-
+[target_tracker-7] [INFO] [1794288604.883394561] [target_tracker_node]: muc tieu: no_target_yet
+[decoded_serial_node-3] [INFO] [1794288605.196856977] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[follow_planner-8] [INFO] [1794288605.263217396] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-
+[target_tracker-7] [INFO] [1794288605.931901876] [target_tracker_node]: muc tieu: no_target_yet
+[decoded_serial_node-3] [INFO] [1794288606.197053759] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[follow_planner-8] [INFO] [1794288606.263561819] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-
+[target_tracker-7] [INFO] [1794288606.932042831] [target_tracker_node]: muc tieu: no_target_yet
+[decoded_serial_node-3] [INFO] [1794288607.197127188] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[follow_planner-8] [INFO] [1794288607.329606933] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-
+[target_tracker-7] [INFO] [1794288607.938084782] [target_tracker_node]: muc tieu: no_target_yet
+[follow_planner-8] [INFO] [1794288608.069836891] [follow_planner_node]: self-filter: bo 21/137 tia dap vao than xe
+[decoded_serial_node-3] [INFO] [1794288608.197226202] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[follow_planner-8] [INFO] [1794288608.329726433] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-
+[target_tracker-7] [INFO] [1794288608.939527567] [target_tracker_node]: muc tieu: no_target_yet
+[decoded_serial_node-3] [INFO] [1794288609.262703610] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[follow_planner-8] [INFO] [1794288609.396165286] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-
+[target_tracker-7] [INFO] [1794288609.982229040] [target_tracker_node]: muc tieu: no_target_yet
+[decoded_serial_node-3] [INFO] [1794288610.264013487] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[follow_planner-8] [INFO] [1794288610.463397338] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-
+[target_tracker-7] [INFO] [1794288610.982812976] [target_tracker_node]: muc tieu: no_target_yet
+[decoded_serial_node-3] [INFO] [1794288611.329345917] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[follow_planner-8] [INFO] [1794288611.529580180] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-
+[target_tracker-7] [INFO] [1794288612.031479546] [target_tracker_node]: muc tieu: no_target_yet
+[python3-4] [INFO] [1794288612.301761984] [identity_lock_node]: camera: nhan 13.9 fps (phoi sang 30 ms, do sang 170), xu ly 3.9 Hz, TB 247 ms/khung, tre tu luc chup 286.2 ms, 3 nguoi, status ENROLLING
+[decoded_serial_node-3] [INFO] [1794288612.330881290] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[follow_planner-8] [INFO] [1794288612.596483269] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-
+[target_tracker-7] [INFO] [1794288613.031624871] [target_tracker_node]: muc tieu: no_target_yet
+[decoded_serial_node-3] [INFO] [1794288613.396902720] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[follow_planner-8] [INFO] [1794288613.663220802] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-
+[target_tracker-7] [INFO] [1794288614.081235642] [target_tracker_node]: muc tieu: no_target_yet
+[decoded_serial_node-3] [INFO] [1794288614.463468920] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[follow_planner-8] [INFO] [1794288614.662959196] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-
+[target_tracker-7] [INFO] [1794288615.081611731] [target_tracker_node]: muc tieu: no_target_yet
+[decoded_serial_node-3] [INFO] [1794288615.529729357] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[follow_planner-8] [INFO] [1794288615.735121219] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-
+[target_tracker-7] [INFO] [1794288616.131985280] [target_tracker_node]: muc tieu: no_target_yet
+[decoded_serial_node-3] [INFO] [1794288616.532065568] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[follow_planner-8] [INFO] [1794288616.797324645] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-
+[target_tracker-7] [INFO] [1794288617.134685365] [target_tracker_node]: muc tieu: no_target_yet
+[decoded_serial_node-3] [INFO] [1794288617.597392906] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[follow_planner-8] [INFO] [1794288617.863340127] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-
+[follow_planner-8] [INFO] [1794288618.119179537] [follow_planner_node]: self-filter: bo 21/135 tia dap vao than xe
+[target_tracker-7] [INFO] [1794288618.133910731] [target_tracker_node]: muc tieu: no_target_yet
+[decoded_serial_node-3] [INFO] [1794288618.598757883] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[follow_planner-8] [INFO] [1794288618.866477684] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-
+[target_tracker-7] [INFO] [1794288619.182104667] [target_tracker_node]: muc tieu: no_target_yet
+[decoded_serial_node-3] [INFO] [1794288619.664022166] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[follow_planner-8] [INFO] [1794288619.863228393] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-
+[target_tracker-7] [INFO] [1794288620.231865283] [target_tracker_node]: muc tieu: no_target_yet
+[decoded_serial_node-3] [INFO] [1794288620.729719102] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[follow_planner-8] [INFO] [1794288620.863692074] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-
+[target_tracker-7] [INFO] [1794288621.282031189] [target_tracker_node]: muc tieu: no_target_yet
+[decoded_serial_node-3] [INFO] [1794288621.797948819] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[follow_planner-8] [INFO] [1794288621.930148921] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-
+[target_tracker-7] [INFO] [1794288622.331963498] [target_tracker_node]: muc tieu: no_target_yet
+[python3-4] [INFO] [1794288622.410769679] [identity_lock_node]: camera: nhan 14.2 fps (phoi sang 30 ms, do sang 166), xu ly 3.9 Hz, TB 252 ms/khung, tre tu luc chup 273.2 ms, 3 nguoi, status ENROLLING
+[decoded_serial_node-3] [INFO] [1794288622.862976053] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[follow_planner-8] [INFO] [1794288622.930072164] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-
+[target_tracker-7] [INFO] [1794288623.332193905] [target_tracker_node]: muc tieu: no_target_yet
+[decoded_serial_node-3] [INFO] [1794288623.863426834] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[follow_planner-8] [INFO] [1794288623.999413501] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-
+[target_tracker-7] [INFO] [1794288624.382228789] [target_tracker_node]: muc tieu: no_target_yet
+[decoded_serial_node-3] [INFO] [1794288624.863551798] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[follow_planner-8] [INFO] [1794288625.063576172] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-
+[target_tracker-7] [INFO] [1794288625.432293248] [target_tracker_node]: muc tieu: no_target_yet
+[decoded_serial_node-3] [INFO] [1794288625.864132461] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[follow_planner-8] [INFO] [1794288626.063330629] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-
+[target_tracker-7] [INFO] [1794288626.431591848] [target_tracker_node]: muc tieu: no_target_yet
+[decoded_serial_node-3] [INFO] [1794288626.930447206] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[follow_planner-8] [INFO] [1794288627.063533413] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-
+[target_tracker-7] [INFO] [1794288627.432371917] [target_tracker_node]: muc tieu: no_target_yet
+[decoded_serial_node-3] [INFO] [1794288627.996015929] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[follow_planner-8] [INFO] [1794288628.064636947] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-
+[follow_planner-8] [INFO] [1794288628.162517830] [follow_planner_node]: self-filter: bo 23/142 tia dap vao than xe
+[target_tracker-7] [INFO] [1794288628.482216459] [target_tracker_node]: muc tieu: no_target_yet
+[decoded_serial_node-3] [INFO] [1794288628.996315860] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[follow_planner-8] [INFO] [1794288629.131188430] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-
+[target_tracker-7] [INFO] [1794288629.532860235] [target_tracker_node]: muc tieu: no_target_yet
+[decoded_serial_node-3] [INFO] [1794288629.996835938] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[follow_planner-8] [INFO] [1794288630.195618121] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-
+[target_tracker-7] [INFO] [1794288630.582338012] [target_tracker_node]: muc tieu: no_target_yet
+[decoded_serial_node-3] [INFO] [1794288631.063091076] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[follow_planner-8] [INFO] [1794288631.196767672] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-
+[target_tracker-7] [INFO] [1794288631.633300988] [target_tracker_node]: muc tieu: no_target_yet
+[decoded_serial_node-3] [INFO] [1794288632.063100257] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[follow_planner-8] [INFO] [1794288632.263729908] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-
+[python3-4] [INFO] [1794288632.530376428] [identity_lock_node]: camera: nhan 13.1 fps (phoi sang 30 ms, do sang 149), xu ly 3.9 Hz, TB 253 ms/khung, tre tu luc chup 269.5 ms, 3 nguoi, status ENROLLING
+[target_tracker-7] [INFO] [1794288632.682327386] [target_tracker_node]: muc tieu: no_target_yet
+[decoded_serial_node-3] [INFO] [1794288633.063616887] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[follow_planner-8] [INFO] [1794288633.332481543] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-
+[target_tracker-7] [INFO] [1794288633.731990360] [target_tracker_node]: muc tieu: no_target_yet
+[decoded_serial_node-3] [INFO] [1794288634.129540523] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[follow_planner-8] [INFO] [1794288634.396344865] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-
+[target_tracker-7] [INFO] [1794288634.783140820] [target_tracker_node]: muc tieu: no_target_yet
+[decoded_serial_node-3] [INFO] [1794288635.130334987] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[follow_planner-8] [INFO] [1794288635.396627781] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-
+[target_tracker-7] [INFO] [1794288635.784494939] [target_tracker_node]: muc tieu: no_target_yet
+[decoded_serial_node-3] [INFO] [1794288636.198067361] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[follow_planner-8] [INFO] [1794288636.398126224] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-
+[target_tracker-7] [INFO] [1794288636.832107828] [target_tracker_node]: muc tieu: no_target_yet
+[decoded_serial_node-3] [INFO] [1794288637.198438112] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[follow_planner-8] [INFO] [1794288637.399361011] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-
+[target_tracker-7] [INFO] [1794288637.881603818] [target_tracker_node]: muc tieu: no_target_yet
+[follow_planner-8] [INFO] [1794288638.252419863] [follow_planner_node]: self-filter: bo 21/136 tia dap vao than xe
+[decoded_serial_node-3] [INFO] [1794288638.263244826] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[follow_planner-8] [INFO] [1794288638.463029219] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-
+[target_tracker-7] [INFO] [1794288638.881695924] [target_tracker_node]: muc tieu: no_target_yet
+[decoded_serial_node-3] [INFO] [1794288639.264442597] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[follow_planner-8] [INFO] [1794288639.464787475] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-
+[target_tracker-7] [INFO] [1794288639.882050890] [target_tracker_node]: muc tieu: no_target_yet
+[decoded_serial_node-3] [INFO] [1794288640.329981511] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[follow_planner-8] [INFO] [1794288640.530391966] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-
+[target_tracker-7] [INFO] [1794288640.932686904] [target_tracker_node]: muc tieu: no_target_yet
+[decoded_serial_node-3] [INFO] [1794288641.331071038] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[follow_planner-8] [INFO] [1794288641.596801411] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-
+[target_tracker-7] [INFO] [1794288641.981940177] [target_tracker_node]: muc tieu: no_target_yet
+[decoded_serial_node-3] [INFO] [1794288642.332990706] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[python3-4] [INFO] [1794288642.592140306] [identity_lock_node]: camera: nhan 12.1 fps (phoi sang 30 ms, do sang 168), xu ly 3.9 Hz, TB 251 ms/khung, tre tu luc chup 333.5 ms, 3 nguoi, status ENROLLING
+[follow_planner-8] [INFO] [1794288642.597200211] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-
+[target_tracker-7] [INFO] [1794288643.031675060] [target_tracker_node]: muc tieu: no_target_yet
+[decoded_serial_node-3] [INFO] [1794288643.398229048] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[follow_planner-8] [INFO] [1794288643.664968303] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-
+[target_tracker-7] [INFO] [1794288644.031867282] [target_tracker_node]: muc tieu: no_target_yet
+[decoded_serial_node-3] [INFO] [1794288644.398359320] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[follow_planner-8] [INFO] [1794288644.663645182] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-
+[target_tracker-7] [INFO] [1794288645.081528055] [target_tracker_node]: muc tieu: no_target_yet
+[decoded_serial_node-3] [INFO] [1794288645.464547719] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[follow_planner-8] [INFO] [1794288645.731164589] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-
+[target_tracker-7] [INFO] [1794288646.082286756] [target_tracker_node]: muc tieu: no_target_yet
+[decoded_serial_node-3] [INFO] [1794288646.529987405] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[follow_planner-8] [INFO] [1794288646.732277509] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-
+[target_tracker-7] [INFO] [1794288647.083369387] [target_tracker_node]: muc tieu: d=1.69m goc=13.1deg nguon=camera+lidar conf=1.00 v=0.72m/s 
+[decoded_serial_node-3] [INFO] [1794288647.530379634] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[follow_planner-8] [INFO] [1794288647.796389449] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-
+[target_tracker-7] [INFO] [1794288648.135332155] [target_tracker_node]: muc tieu: d=1.95m goc=5.5deg nguon=camera+lidar conf=1.00 v=0.15m/s 
+[follow_planner-8] [INFO] [1794288648.292998520] [follow_planner_node]: self-filter: bo 22/132 tia dap vao than xe
+[target_tracker-7] [INFO] [1794288648.531955453] [target_tracker_node]: Hinh hoc camera khop LiDAR: lech goc ngua -3.6 do (12 mau)
+[decoded_serial_node-3] [INFO] [1794288648.597921711] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[follow_planner-8] [INFO] [1794288648.798220473] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-
+[target_tracker-7] [INFO] [1794288649.183457004] [target_tracker_node]: muc tieu: d=1.60m goc=-5.8deg nguon=camera+lidar conf=0.98 v=0.14m/s 
+[decoded_serial_node-3] [INFO] [1794288649.664495551] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[follow_planner-8] [INFO] [1794288649.863484388] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-
+[target_tracker-7] [INFO] [1794288650.182711235] [target_tracker_node]: muc tieu: d=1.74m goc=-15.6deg nguon=camera+lidar conf=0.98 v=0.04m/s 
+[decoded_serial_node-3] [INFO] [1794288650.730597914] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[follow_planner-8] [INFO] [1794288650.929921295] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-
+[target_tracker-7] [INFO] [1794288651.231757442] [target_tracker_node]: muc tieu: d=1.63m goc=5.6deg nguon=camera+lidar conf=1.00 v=0.62m/s 
+[decoded_serial_node-3] [INFO] [1794288651.797922813] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[follow_planner-8] [INFO] [1794288651.929576615] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-
+[target_tracker-7] [INFO] [1794288652.281031703] [target_tracker_node]: muc tieu: d=1.63m goc=6.6deg nguon=camera+lidar conf=0.98 v=0.13m/s 
+[python3-4] [INFO] [1794288652.826876287] [identity_lock_node]: camera: nhan 12.1 fps (phoi sang 30 ms, do sang 148), xu ly 3.8 Hz, TB 255 ms/khung, tre tu luc chup 327.0 ms, 3 nguoi, status TRACKING
+[decoded_serial_node-3] [INFO] [1794288652.863538755] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[follow_planner-8] [INFO] [1794288652.929653295] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-
+[target_tracker-7] [INFO] [1794288653.283686842] [target_tracker_node]: muc tieu: d=1.26m goc=9.2deg nguon=lidar_track conf=0.90 v=0.91m/s 
+[decoded_serial_node-3] [INFO] [1794288653.864227861] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[follow_planner-8] [INFO] [1794288653.929736653] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-
+[target_tracker-7] [INFO] [1794288654.282331094] [target_tracker_node]: muc tieu: d=1.10m goc=8.2deg nguon=camera+lidar conf=1.00 v=0.20m/s 
+[decoded_serial_node-3] [INFO] [1794288654.930023270] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[follow_planner-8] [INFO] [1794288654.930061088] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-
+[target_tracker-7] [INFO] [1794288655.333135477] [target_tracker_node]: muc tieu: d=0.77m goc=-29.9deg nguon=lidar_track conf=0.75 v=0.40m/s 
+[decoded_serial_node-3] [INFO] [1794288655.996454363] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[follow_planner-8] [INFO] [1794288655.996638224] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-
+[target_tracker-7] [INFO] [1794288656.332547394] [target_tracker_node]: muc tieu: d=1.10m goc=-47.0deg nguon=predicted conf=0.68 v=0.87m/s [NGOAI KHUNG HINH]
+[follow_planner-8] [INFO] [1794288657.063645552] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-
+[decoded_serial_node-3] [INFO] [1794288657.064197217] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[target_tracker-7] [INFO] [1794288657.383191461] [target_tracker_node]: muc tieu: d=1.53m goc=-49.1deg nguon=lidar_track conf=0.75 v=0.07m/s [NGOAI KHUNG HINH]
+[decoded_serial_node-3] [INFO] [1794288658.129096565] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[follow_planner-8] [INFO] [1794288658.133080739] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-
+[follow_planner-8] [INFO] [1794288658.378569166] [follow_planner_node]: self-filter: bo 21/139 tia dap vao than xe
+[target_tracker-7] [INFO] [1794288658.382866698] [target_tracker_node]: muc tieu: d=1.53m goc=-48.5deg nguon=lidar_track conf=0.75 v=0.02m/s [NGOAI KHUNG HINH]
+[follow_planner-8] [INFO] [1794288659.130012898] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-
+[decoded_serial_node-3] [INFO] [1794288659.130836052] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[target_tracker-7] [INFO] [1794288659.382556719] [target_tracker_node]: muc tieu: d=1.52m goc=-49.3deg nguon=predicted conf=0.75 v=0.02m/s [NGOAI KHUNG HINH]
+[follow_planner-8] [INFO] [1794288660.130105282] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-
+[decoded_serial_node-3] [INFO] [1794288660.199243899] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[target_tracker-7] [INFO] [1794288660.382347811] [target_tracker_node]: muc tieu: d=1.52m goc=-49.8deg nguon=predicted conf=0.42 v=0.01m/s [NGOAI KHUNG HINH]
+[follow_planner-8] [INFO] [1794288661.142456261] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-
+[decoded_serial_node-3] [INFO] [1794288661.263958759] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[target_tracker-7] [INFO] [1794288661.432589405] [target_tracker_node]: muc tieu: d=1.52m goc=-50.0deg nguon=predicted conf=0.00 v=0.00m/s [NGOAI KHUNG HINH]
+[follow_planner-8] [INFO] [1794288662.133061993] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-
+[decoded_serial_node-3] [INFO] [1794288662.330622094] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[target_tracker-7] [INFO] [1794288662.481735200] [target_tracker_node]: muc tieu: d=1.52m goc=-50.0deg nguon=predicted conf=0.00 v=0.00m/s [NGOAI KHUNG HINH]
+[python3-4] [INFO] [1794288662.958710592] [identity_lock_node]: camera: nhan 12.2 fps (phoi sang 30 ms, do sang 162), xu ly 4.8 Hz, TB 200 ms/khung, tre tu luc chup 218.0 ms, 2 nguoi, status LOST_REJECTED_CANDIDATE
+[follow_planner-8] [INFO] [1794288663.196125696] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-
+[decoded_serial_node-3] [INFO] [1794288663.396300535] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[target_tracker-7] [INFO] [1794288663.481961102] [target_tracker_node]: muc tieu: d=1.52m goc=-50.1deg nguon=predicted conf=0.00 v=0.00m/s [NGOAI KHUNG HINH]
+[follow_planner-8] [INFO] [1794288664.263515262] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-
+[decoded_serial_node-3] [INFO] [1794288664.463426177] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[target_tracker-7] [INFO] [1794288664.481956842] [target_tracker_node]: muc tieu: no_target_yet
+[follow_planner-8] [INFO] [1794288665.331259927] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-
+[target_tracker-7] [INFO] [1794288665.483792621] [target_tracker_node]: muc tieu: no_target_yet
+[decoded_serial_node-3] [INFO] [1794288665.529797846] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[follow_planner-8] [INFO] [1794288666.396563742] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-
+[decoded_serial_node-3] [INFO] [1794288666.530117347] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[target_tracker-7] [INFO] [1794288666.532453558] [target_tracker_node]: muc tieu: no_target_yet
+[follow_planner-8] [INFO] [1794288667.398336013] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-
+[target_tracker-7] [INFO] [1794288667.582235831] [target_tracker_node]: muc tieu: no_target_yet
+[decoded_serial_node-3] [INFO] [1794288667.596336520] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[follow_planner-8] [INFO] [1794288668.462541925] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-
+[follow_planner-8] [INFO] [1794288668.477131521] [follow_planner_node]: self-filter: bo 25/140 tia dap vao than xe
+[target_tracker-7] [INFO] [1794288668.582264707] [target_tracker_node]: muc tieu: no_target_yet
+[decoded_serial_node-3] [INFO] [1794288668.662965716] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[follow_planner-8] [INFO] [1794288669.463353481] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-
+[target_tracker-7] [INFO] [1794288669.632619308] [target_tracker_node]: muc tieu: no_target_yet
+[decoded_serial_node-3] [INFO] [1794288669.663457224] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[follow_planner-8] [INFO] [1794288670.464836065] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-
+[decoded_serial_node-3] [INFO] [1794288670.663972242] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[target_tracker-7] [INFO] [1794288670.682065625] [target_tracker_node]: muc tieu: no_target_yet
+[follow_planner-8] [INFO] [1794288671.531529380] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-
+[decoded_serial_node-3] [INFO] [1794288671.664352705] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[target_tracker-7] [INFO] [1794288671.683749857] [target_tracker_node]: muc tieu: no_target_yet
+[follow_planner-8] [INFO] [1794288672.530097618] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-
+[decoded_serial_node-3] [INFO] [1794288672.729150082] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[target_tracker-7] [INFO] [1794288672.732042802] [target_tracker_node]: muc tieu: no_target_yet
+[python3-4] [INFO] [1794288673.080170025] [identity_lock_node]: camera: nhan 12.3 fps (phoi sang 30 ms, do sang 169), xu ly 5.2 Hz, TB 185 ms/khung, tre tu luc chup 259.9 ms, 2 nguoi, status LOST_REJECTED_CANDIDATE
+[follow_planner-8] [INFO] [1794288673.598580893] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-
+[decoded_serial_node-3] [INFO] [1794288673.729572604] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[target_tracker-7] [INFO] [1794288673.782637499] [target_tracker_node]: muc tieu: no_target_yet
+[follow_planner-8] [INFO] [1794288674.596754209] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-
+[decoded_serial_node-3] [INFO] [1794288674.729757961] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[target_tracker-7] [INFO] [1794288674.832705193] [target_tracker_node]: muc tieu: no_target_yet
+[follow_planner-8] [INFO] [1794288675.663164669] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-
+[decoded_serial_node-3] [INFO] [1794288675.729835723] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[target_tracker-7] [INFO] [1794288675.832374621] [target_tracker_node]: muc tieu: no_target_yet
+[follow_planner-8] [INFO] [1794288676.731327369] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-
+[decoded_serial_node-3] [INFO] [1794288676.732930286] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[target_tracker-7] [INFO] [1794288676.832456528] [target_tracker_node]: muc tieu: no_target_yet
+[follow_planner-8] [INFO] [1794288677.732877440] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-
+[decoded_serial_node-3] [INFO] [1794288677.797417371] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[target_tracker-7] [INFO] [1794288677.882514961] [target_tracker_node]: muc tieu: no_target_yet
+[follow_planner-8] [INFO] [1794288678.513470599] [follow_planner_node]: self-filter: bo 19/140 tia dap vao than xe
+[follow_planner-8] [INFO] [1794288678.797170677] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-
+[decoded_serial_node-3] [INFO] [1794288678.863749595] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[target_tracker-7] [INFO] [1794288678.932133386] [target_tracker_node]: muc tieu: no_target_yet
+[follow_planner-8] [INFO] [1794288679.862683258] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-
+[decoded_serial_node-3] [INFO] [1794288679.932730304] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[target_tracker-7] [INFO] [1794288679.981802862] [target_tracker_node]: muc tieu: no_target_yet
+[follow_planner-8] [INFO] [1794288680.930038715] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-
+[decoded_serial_node-3] [INFO] [1794288680.997767901] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[target_tracker-7] [INFO] [1794288681.031655663] [target_tracker_node]: muc tieu: no_target_yet
+[follow_planner-8] [INFO] [1794288681.997323701] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-
+[decoded_serial_node-3] [INFO] [1794288682.000375308] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[target_tracker-7] [INFO] [1794288682.032133529] [target_tracker_node]: muc tieu: no_target_yet
+[follow_planner-8] [INFO] [1794288682.996346321] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-
+[decoded_serial_node-3] [INFO] [1794288683.063432517] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[target_tracker-7] [INFO] [1794288683.081808085] [target_tracker_node]: muc tieu: no_target_yet
+[python3-4] [INFO] [1794288683.121365578] [identity_lock_node]: camera: nhan 12.2 fps (phoi sang 30 ms, do sang 152), xu ly 5.3 Hz, TB 183 ms/khung, tre tu luc chup 222.0 ms, 2 nguoi, status LOST_REJECTED_CANDIDATE
+[follow_planner-8] [INFO] [1794288684.065315587] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-
+[target_tracker-7] [INFO] [1794288684.082751270] [target_tracker_node]: muc tieu: no_target_yet
+[decoded_serial_node-3] [INFO] [1794288684.131892562] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[follow_planner-8] [INFO] [1794288685.063466791] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-
+[target_tracker-7] [INFO] [1794288685.082412738] [target_tracker_node]: muc tieu: no_target_yet
+[decoded_serial_node-3] [INFO] [1794288685.196448689] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[follow_planner-8] [INFO] [1794288686.129845285] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-
+[target_tracker-7] [INFO] [1794288686.134483587] [target_tracker_node]: muc tieu: no_target_yet
+[decoded_serial_node-3] [INFO] [1794288686.196531327] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[follow_planner-8] [INFO] [1794288687.129513686] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-
+[target_tracker-7] [INFO] [1794288687.182988556] [target_tracker_node]: muc tieu: no_target_yet
+[decoded_serial_node-3] [INFO] [1794288687.196870888] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[follow_planner-8] [INFO] [1794288688.130229591] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-
+[target_tracker-7] [INFO] [1794288688.182483801] [target_tracker_node]: muc tieu: no_target_yet
+[decoded_serial_node-3] [INFO] [1794288688.263563242] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[follow_planner-8] [INFO] [1794288688.560537657] [follow_planner_node]: self-filter: bo 21/136 tia dap vao than xe
+[follow_planner-8] [INFO] [1794288689.196490829] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-
+[target_tracker-7] [INFO] [1794288689.231910457] [target_tracker_node]: muc tieu: no_target_yet
+[decoded_serial_node-3] [INFO] [1794288689.329363759] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[follow_planner-8] [INFO] [1794288690.197348240] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-
+[target_tracker-7] [INFO] [1794288690.281634422] [target_tracker_node]: muc tieu: no_target_yet
+[decoded_serial_node-3] [INFO] [1794288690.329634222] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[follow_planner-8] [INFO] [1794288691.263408273] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-
+[target_tracker-7] [INFO] [1794288691.281991638] [target_tracker_node]: muc tieu: no_target_yet
+[decoded_serial_node-3] [INFO] [1794288691.330163551] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[follow_planner-8] [INFO] [1794288692.263981247] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-
+[target_tracker-7] [INFO] [1794288692.282562107] [target_tracker_node]: muc tieu: no_target_yet
+[decoded_serial_node-3] [INFO] [1794288692.396175640] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[python3-4] [INFO] [1794288693.220532391] [identity_lock_node]: camera: nhan 12.3 fps (phoi sang 30 ms, do sang 149), xu ly 5.2 Hz, TB 184 ms/khung, tre tu luc chup 241.0 ms, 2 nguoi, status LOST_REJECTED_CANDIDATE
+[follow_planner-8] [INFO] [1794288693.263831178] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-
+[target_tracker-7] [INFO] [1794288693.332616591] [target_tracker_node]: muc tieu: no_target_yet
+[decoded_serial_node-3] [INFO] [1794288693.396483127] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[follow_planner-8] [INFO] [1794288694.329602339] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-
+[target_tracker-7] [INFO] [1794288694.382507775] [target_tracker_node]: muc tieu: no_target_yet
+[decoded_serial_node-3] [INFO] [1794288694.396614430] [bw_dr03_decoded_serial_node]: RECEIVED /cmd_vel: linear.x=0.0, angular.z=0.0
+[follow_planner-8] [WARN] [1794288694.881089324] [follow_planner_node]: DUNG KHAN CAP
+[follow_planner-8] [INFO] [1794288695.329887607] [follow_planner_node]: [IDLE] disabled | d=- goc=- | v=0.000 w=0.000 | thoang=-
+[target_tracker-7] [INFO] [1794288695.382965453] [target_tracker_node]: muc tieu: no_target_yet
+[WARNING] [launch]: user interrupted with ctrl-c (SIGINT)
+[INFO] [follow_planner-8]: sending signal 'SIGINT' to process[follow_planner-8]
+[INFO] [target_tracker-7]: sending signal 'SIGINT' to process[target_tracker-7]
+[INFO] [rssi_bearing-6]: sending signal 'SIGINT' to process[rssi_bearing-6]
+[INFO] [rssi_scanner-5]: sending signal 'SIGINT' to process[rssi_scanner-5]
+[INFO] [python3-4]: sending signal 'SIGINT' to process[python3-4]
+[INFO] [decoded_serial_node-3]: sending signal 'SIGINT' to process[decoded_serial_node-3]
+[INFO] [static_transform_publisher-2]: sending signal 'SIGINT' to process[static_transform_publisher-2]
+[ERROR] [rssi_bearing-6]: process has died [pid 1724, exit code -2, cmd '/home/xiaoqiang/ros2_ws/ros2_jazzy_person_reid_ws/install/person_follow_nav/lib/person_follow_nav/rssi_bearing --ros-args -r __node:=rssi_bearing_node --params-file /home/xiaoqiang/ros2_ws/ros2_jazzy_person_reid_ws/install/person_follow_nav/share/person_follow_nav/config/rssi.yaml --params-file /tmp/launch_params_8rbz77ch'].
+[INFO] [sc_mini-1]: sending signal 'SIGINT' to process[sc_mini-1]
+[ERROR] [static_transform_publisher-2]: process has died [pid 1720, exit code -2, cmd '/opt/ros/jazzy/lib/tf2_ros/static_transform_publisher 0.10 0.00 0.18 0 0 0 base_link laser --ros-args -r __node:=base_to_laser'].
+[ERROR] [decoded_serial_node-3]: process has died [pid 1721, exit code -2, cmd '/home/xiaoqiang/ros2_ws/ros2_jazzy_person_reid_ws/install/bw_dr03_ros2/lib/bw_dr03_ros2/decoded_serial_node --ros-args -r __node:=bw_dr03_decoded_serial_node --params-file /tmp/launch_params_l_gdcuip'].
+[static_transform_publisher-2] [INFO] [1794288695.396009258] [rclcpp]: signal_handler(SIGINT/SIGTERM)
+[sc_mini-1] [INFO] [1794288695.397215634] [rclcpp]: signal_handler(SIGINT/SIGTERM)
+[decoded_serial_node-3] [INFO] [1794288695.406073169] [bw_dr03_decoded_serial_node]: SEND MOTOR CMD: cd eb d7 09 74 53 53 53 53 1e 1e 00 00
+[decoded_serial_node-3] Failed to publish log message to rosout: publisher's context is invalid, at ./src/rcl/publisher.c:423
+[follow_planner-8] Traceback (most recent call last):
+[follow_planner-8]   File "/home/xiaoqiang/ros2_ws/ros2_jazzy_person_reid_ws/install/person_follow_nav/lib/person_follow_nav/follow_planner", line 33, in <module>
+[follow_planner-8]     sys.exit(load_entry_point('person-follow-nav', 'console_scripts', 'follow_planner')())
+[follow_planner-8]              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[follow_planner-8]   File "/home/xiaoqiang/ros2_ws/ros2_jazzy_person_reid_ws/build/person_follow_nav/person_follow_nav/follow_planner_node.py", line 4442, in main
+[rssi_scanner-5] Traceback (most recent call last):
+[rssi_scanner-5]   File "/home/xiaoqiang/ros2_ws/ros2_jazzy_person_reid_ws/install/person_follow_nav/lib/person_follow_nav/rssi_scanner", line 33, in <module>
+[rssi_scanner-5]     sys.exit(load_entry_point('person-follow-nav', 'console_scripts', 'rssi_scanner')())
+[rssi_scanner-5]              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[rssi_scanner-5]   File "/home/xiaoqiang/ros2_ws/ros2_jazzy_person_reid_ws/build/person_follow_nav/person_follow_nav/rssi_scanner_node.py", line 167, in main
+[target_tracker-7] Traceback (most recent call last):
+[target_tracker-7]   File "/home/xiaoqiang/ros2_ws/ros2_jazzy_person_reid_ws/install/person_follow_nav/lib/person_follow_nav/target_tracker", line 33, in <module>
+[rssi_scanner-5]     node.destroy_node()
+[rssi_scanner-5]   File "/home/xiaoqiang/ros2_ws/ros2_jazzy_person_reid_ws/build/person_follow_nav/person_follow_nav/rssi_scanner_node.py", line 156, in destroy_node
+[rssi_scanner-5]     super().destroy_node()
+[rssi_scanner-5]   File "/opt/ros/jazzy/lib/python3.12/site-packages/rclpy/node.py", line 1969, in destroy_node
+[rssi_scanner-5]     self._wake_executor()
+[rssi_scanner-5]   File "/opt/ros/jazzy/lib/python3.12/site-packages/rclpy/node.py", line 304, in _wake_executor
+[rssi_scanner-5]     def _wake_executor(self):
+[rssi_scanner-5] 
+[rssi_scanner-5] KeyboardInterrupt
+[target_tracker-7]     sys.exit(load_entry_point('person-follow-nav', 'console_scripts', 'target_tracker')())
+[target_tracker-7]              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[target_tracker-7]   File "/home/xiaoqiang/ros2_ws/ros2_jazzy_person_reid_ws/build/person_follow_nav/person_follow_nav/target_tracker_node.py", line 945, in main
+[target_tracker-7]     node.destroy_node()
+[target_tracker-7]   File "/opt/ros/jazzy/lib/python3.12/site-packages/rclpy/node.py", line 1962, in destroy_node
+[target_tracker-7]     self.destroy_service(self._services[0])
+[target_tracker-7]   File "/opt/ros/jazzy/lib/python3.12/site-packages/rclpy/node.py", line 1886, in destroy_service
+[target_tracker-7]     service.destroy()
+[target_tracker-7]   File "/opt/ros/jazzy/lib/python3.12/site-packages/rclpy/service.py", line 123, in destroy
+[target_tracker-7]     self.__service.destroy_when_not_in_use()
+[target_tracker-7] KeyboardInterrupt
+[follow_planner-8]     node.destroy_node()
+[follow_planner-8]   File "/home/xiaoqiang/ros2_ws/ros2_jazzy_person_reid_ws/build/person_follow_nav/person_follow_nav/follow_planner_node.py", line 4427, in destroy_node
+[follow_planner-8]     return super().destroy_node()
+[follow_planner-8]            ^^^^^^^^^^^^^^^^^^^^^^
+[follow_planner-8]   File "/opt/ros/jazzy/lib/python3.12/site-packages/rclpy/node.py", line 1968, in destroy_node
+[follow_planner-8]     self.__node.destroy_when_not_in_use()
+[python3-4] Traceback (most recent call last):
+[python3-4]   File "<frozen runpy>", line 198, in _run_module_as_main
+[python3-4]   File "<frozen runpy>", line 88, in _run_code
+[python3-4]   File "/home/xiaoqiang/ros2_ws/ros2_jazzy_person_reid_ws/build/person_follow_identity/person_follow_identity/node.py", line 509, in <module>
+[python3-4]     main()
+[python3-4]   File "/home/xiaoqiang/ros2_ws/ros2_jazzy_person_reid_ws/build/person_follow_identity/person_follow_identity/node.py", line 503, in main
+[python3-4]     node.destroy_node()
+[python3-4]   File "/home/xiaoqiang/ros2_ws/ros2_jazzy_person_reid_ws/build/person_follow_identity/person_follow_identity/node.py", line 487, in destroy_node
+[python3-4]     self.grabber.stop()
+[python3-4]   File "/home/xiaoqiang/ros2_ws/ros2_jazzy_person_reid_ws/build/person_follow_identity/person_follow_identity/node.py", line 150, in stop
+[python3-4]     self._thread.join(timeout=1.0)
+[python3-4]   File "/usr/lib/python3.12/threading.py", line 1151, in join
+[python3-4]     self._wait_for_tstate_lock(timeout=max(timeout, 0))
+[python3-4]   File "/usr/lib/python3.12/threading.py", line 1167, in _wait_for_tstate_lock
+[python3-4]     if lock.acquire(block, timeout):
+[python3-4]        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[python3-4] KeyboardInterrupt
+[decoded_serial_node-3] Traceback (most recent call last):
+[decoded_serial_node-3]   File "/home/xiaoqiang/ros2_ws/ros2_jazzy_person_reid_ws/install/bw_dr03_ros2/lib/bw_dr03_ros2/decoded_serial_node", line 33, in <module>
+[decoded_serial_node-3]     sys.exit(load_entry_point('bw-dr03-ros2', 'console_scripts', 'decoded_serial_node')())
+[decoded_serial_node-3]              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[decoded_serial_node-3]   File "/home/xiaoqiang/ros2_ws/ros2_jazzy_person_reid_ws/build/bw_dr03_ros2/bw_dr03_ros2/decoded_serial_node.py", line 567, in main
+[decoded_serial_node-3]     rclpy.shutdown()
+[decoded_serial_node-3]   File "/opt/ros/jazzy/lib/python3.12/site-packages/rclpy/__init__.py", line 134, in shutdown
+[decoded_serial_node-3]     _shutdown(context=context)
+[decoded_serial_node-3]   File "/opt/ros/jazzy/lib/python3.12/site-packages/rclpy/utilities.py", line 82, in shutdown
+[decoded_serial_node-3]     context.shutdown()
+[decoded_serial_node-3]   File "/opt/ros/jazzy/lib/python3.12/site-packages/rclpy/context.py", line 129, in shutdown
+[decoded_serial_node-3]     self.__context.shutdown()
+[decoded_serial_node-3] rclpy._rclpy_pybind11.RCLError: failed to shutdown: rcl_shutdown already called on the given context, at ./src/rcl/init.c:333
+[follow_planner-8] KeyboardInterrupt
+[sc_mini-1] [INFO] [1794288695.521310077] [rclcpp]: signal_handler(SIGINT/SIGTERM)
+[python3-4] FATAL: exception not rethrown
+[INFO] [sc_mini-1]: process has finished cleanly [pid 1719]
+[ERROR] [rssi_scanner-5]: process has died [pid 1723, exit code -2, cmd '/home/xiaoqiang/ros2_ws/ros2_jazzy_person_reid_ws/install/person_follow_nav/lib/person_follow_nav/rssi_scanner --ros-args -r __node:=rssi_scanner_node --params-file /home/xiaoqiang/ros2_ws/ros2_jazzy_person_reid_ws/install/person_follow_nav/share/person_follow_nav/config/rssi.yaml --params-file /tmp/launch_params_hfnipp02'].
+[ERROR] [target_tracker-7]: process has died [pid 1725, exit code -2, cmd '/home/xiaoqiang/ros2_ws/ros2_jazzy_person_reid_ws/install/person_follow_nav/lib/person_follow_nav/target_tracker --ros-args -r __node:=target_tracker_node --params-file /home/xiaoqiang/ros2_ws/ros2_jazzy_person_reid_ws/install/person_follow_nav/share/person_follow_nav/config/follow_nav.yaml'].
+[ERROR] [follow_planner-8]: process has died [pid 1728, exit code -2, cmd '/home/xiaoqiang/ros2_ws/ros2_jazzy_person_reid_ws/install/person_follow_nav/lib/person_follow_nav/follow_planner --ros-args -r __node:=follow_planner_node --params-file /home/xiaoqiang/ros2_ws/ros2_jazzy_person_reid_ws/install/person_follow_nav/share/person_follow_nav/config/follow_nav.yaml --params-file /tmp/launch_params_5yr13rhu'].
+[ERROR] [python3-4]: process has died [pid 1722, exit code -6, cmd '/usr/bin/python3 -m person_follow_identity.node --ros-args -r __node:=identity_lock_node --params-file /home/xiaoqiang/ros2_ws/ros2_jazzy_person_reid_ws/install/person_follow_robot/share/person_follow_robot/config/identity_lock_kingsen.yaml -p camera_source:=/dev/v4l/by-id/usb-Generic_KINGSEN_CAMERA_200901010001-video-index0'].

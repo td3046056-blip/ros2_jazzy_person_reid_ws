@@ -1,0 +1,528 @@
+10:25:55 192.168.1.101   login           OK  dang nhap
+10:25:59 su_kien         sys             -   he thong STOPPED -> CHECKING: dang kiem tra thiet bi truoc khi chay
+10:25:59 192.168.1.101   start           OK  dang kiem tra roi khoi dong
+10:26:02 su_kien         sys             LOI he thong CHECKING -> FAILED: kiem tra co 2 muc HONG — khong khoi dong (xem ket qua)
+10:26:54 su_kien         sys             -   he thong FAILED -> CHECKING: dang kiem tra thiet bi truoc khi chay
+10:26:54 192.168.1.101   start           OK  dang kiem tra roi khoi dong
+10:27:02 su_kien         sys             -   he thong CHECKING -> STARTING: dang khoi dong cac node
+10:27:07 su_kien         sys             OK  he thong STARTING -> RUNNING
+10:27:07 su_kien         beacon          CB  mat tin hieu beacon
+10:27:50 su_kien         sys             -   he thong RUNNING -> STOPPING: dung xe roi tat cac node
+10:27:50 192.168.1.101   shutdown        OK  dang tat he thong (dung xe truoc)
+10:27:50 -               shutdown        OK  /follow/stop: DUNG KHAN CAP
+10:27:51 su_kien         beacon          CB  mat beacon sau 44.0 s — khong con du lieu RSSI
+10:27:52 su_kien         sys             -   he thong STOPPING -> STOPPED: da tat
+10:27:59 su_kien         sys             -   he thong STOPPED -> CHECKING: dang kiem tra thiet bi truoc khi chay
+10:27:59 192.168.1.101   start           OK  dang kiem tra roi khoi dong
+10:28:07 su_kien         sys             -   he thong CHECKING -> STARTING: dang khoi dong cac node
+10:28:13 su_kien         sys             OK  he thong STARTING -> RUNNING
+10:28:13 su_kien         beacon          CB  mat tin hieu beacon
+10:28:32 su_kien         beacon          CB  mat beacon sau 19.0 s — co lai
+10:29:01 192.168.1.101   enroll_start    OK  Enrollment started. Stand the target person near the camera center.
+10:29:34 su_kien         enroll          OK  hoc xong nguoi (80 mau)
+10:30:26 192.168.1.101   follow_enable   OK  Bam nguoi: BAT
+10:30:26 su_kien         follow          OK  xe bat dau bam
+10:30:35 su_kien         plan            -   nguoi khuat camera: nguoi ra khoi camera — xoay ve huong nho cuoi
+10:30:37 su_kien         plan            -   het nguoi khuat camera sau 2.0 s -> FOLLOW
+10:30:38 su_kien         plan            -   nguoi khuat camera: nguoi ra khoi camera — xoay ve huong nho cuoi
+10:30:40 su_kien         plan            -   het nguoi khuat camera sau 5.0 s -> SEARCH (gop 2 lan)
+10:30:40 su_kien         plan            CB  tim nguoi: mat nguoi — chui khe hep — vao truc giua khe (lech 0.31m)
+10:30:54 su_kien         plan            CB  het tim nguoi sau 14.0 s -> FOLLOW
+10:31:09 su_kien         plan            -   ne vat can: chui khe hep — vao truc giua khe (lech 1.52m)
+10:31:23 su_kien         plan            -   het ne vat can sau 14.0 s -> FOLLOW
+10:31:27 su_kien         plan            -   ne vat can: chui khe hep — vao truc giua khe (lech 1.52m)
+10:31:37 su_kien         plan            -   het ne vat can sau 27.5 s -> FOLLOW (gop 2 lan)
+10:31:38 su_kien         plan            -   ne vat can: chui khe hep — vao truc giua khe (lech 1.52m)
+10:31:40 su_kien         plan            -   het ne vat can sau 31.0 s -> FOLLOW (gop 3 lan)
+10:31:49 su_kien         plan            -   nguoi khuat camera: nguoi ra khoi camera — xoay ve huong nho cuoi
+10:31:52 su_kien         plan            -   het nguoi khuat camera sau 2.5 s -> SEARCH
+10:31:52 su_kien         plan            CB  tim nguoi: mat nguoi — xoay do huong beacon (0 do)
+10:31:59 su_kien         plan            CB  het tim nguoi sau 7.0 s -> FOLLOW
+10:32:09 su_kien         plan            -   ne vat can: chui khe hep — qua khe theo truc (lech 1 do)
+10:32:17 su_kien         plan            -   het ne vat can sau 8.5 s -> FOLLOW
+10:32:19 su_kien         plan            -   ne vat can: chui khe hep — qua khe theo truc (lech 1 do)
+10:32:19 192.168.1.101   estop           OK  DUNG KHAN CAP
+10:32:20 su_kien         follow          -   xe ngung bam
+10:32:20 su_kien         plan            -   het ne vat can sau 11.5 s -> OFF (gop 2 lan)
+10:32:23 192.168.1.101   follow_enable   OK  Bam nguoi: BAT
+10:32:23 su_kien         follow          OK  xe bat dau bam
+10:32:24 su_kien         plan            -   ne vat can: chui khe hep — sat khung cua 5cm, xoay nhe ve phia rong
+10:32:29 su_kien         plan            -   het ne vat can sau 5.5 s -> FOLLOW
+10:32:36 su_kien         plan            -   ne vat can: di vong theo ban do (phai, 1.1m duong)
+10:32:38 su_kien         plan            -   het ne vat can sau 2.0 s -> FOLLOW
+10:32:45 su_kien         plan            -   ne vat can: thoat ket — xoay trai (1/2)
+10:33:01 su_kien         plan            -   het ne vat can sau 16.0 s -> FOLLOW
+10:33:07 su_kien         plan            -   ne vat can: chui khe hep — lui ve truc khe (lech 0.24m)
+10:33:13 su_kien         plan            -   het ne vat can sau 6.0 s -> FOLLOW
+10:33:15 su_kien         plan            -   ne vat can: chui khe hep — lui ve truc khe (lech 0.24m)
+10:33:16 su_kien         plan            -   het ne vat can sau 9.5 s -> FOLLOW (gop 2 lan)
+10:33:17 su_kien         plan            -   ne vat can: chui khe hep — lui ve truc khe (lech 0.24m)
+10:33:23 su_kien         plan            -   het ne vat can sau 16.5 s -> OCCLUDED (gop 3 lan)
+10:33:23 su_kien         plan            -   nguoi khuat camera: chui khe hep — qua khe theo truc (lech 1 do)
+10:33:25 su_kien         plan            -   het nguoi khuat camera sau 1.5 s -> SEARCH
+10:33:25 su_kien         plan            CB  tim nguoi: mat nguoi — thoat ket — lui (1/2)
+10:33:28 su_kien         plan            CB  het tim nguoi sau 3.5 s -> FOLLOW
+10:33:35 su_kien         plan            -   ne vat can: ne vat can (phai)
+10:33:36 su_kien         plan            -   het ne vat can sau 1.0 s -> FOLLOW
+10:33:46 su_kien         plan            -   ne vat can: chui khe hep — lui ve truc khe (lech 0.17m)
+10:33:57 su_kien         plan            -   het ne vat can sau 11.0 s -> SEARCH
+10:33:57 su_kien         plan            CB  tim nguoi: mat nguoi — lai toi cho thay lan cuoi (di vong theo ban do (phai, 1.6m duong))
+10:34:02 su_kien         plan            CB  het tim nguoi sau 4.5 s -> AVOID
+10:34:02 su_kien         plan            -   ne vat can: ne vat can (phai)
+10:34:03 su_kien         plan            -   het ne vat can sau 1.0 s -> FOLLOW
+10:34:04 su_kien         plan            -   ne vat can: ne vat can (phai)
+10:34:16 su_kien         plan            -   het ne vat can sau 14.5 s -> FOLLOW (gop 2 lan)
+10:34:22 su_kien         plan            -   ne vat can: chui khe hep — vao truc giua khe (lech 0.83m)
+10:34:48 192.168.1.101   bag_start       OK  bat dau ghi bag
+10:34:48 su_kien         plan            -   het ne vat can sau 26.0 s -> FOLLOW
+10:34:48 su_kien         bag             -   bat dau ghi follow_1110_103448
+10:35:02 su_kien         plan            -   nguoi khuat camera: nguoi ra khoi camera — xoay ve huong nho cuoi
+10:35:05 su_kien         plan            -   het nguoi khuat camera sau 3.0 s -> SEARCH
+10:35:05 su_kien         plan            CB  tim nguoi: mat nguoi — chui khe hep — vao truc giua khe (lech 0.59m)
+10:35:06 su_kien         plan            CB  het tim nguoi sau 1.0 s -> FOLLOW
+10:35:18 su_kien         plan            -   ne vat can: chui khe hep — qua khe theo truc (lech -0 do)
+10:35:21 su_kien         plan            -   het ne vat can sau 2.5 s -> FOLLOW
+10:35:27 su_kien         plan            -   ne vat can: di vong theo ban do (phai, 1.4m duong)
+10:35:31 su_kien         plan            -   het ne vat can sau 4.5 s -> FOLLOW
+10:35:47 su_kien         plan            -   nguoi khuat camera: nguoi ra khoi camera — xoay ve huong nho cuoi
+10:35:48 su_kien         plan            -   het nguoi khuat camera sau 1.5 s -> AVOID
+10:35:48 su_kien         plan            -   ne vat can: di vong theo ban do (phai, 3.5m duong)
+10:35:50 su_kien         plan            -   het ne vat can sau 1.5 s -> SEARCH
+10:35:50 su_kien         plan            CB  tim nguoi: mat nguoi — lai toi cho thay lan cuoi (di vong theo ban do (phai, 3.5m duong))
+10:35:52 192.168.1.101   follow_disable  OK  Bam nguoi: TAT
+10:35:52 su_kien         follow          -   xe ngung bam
+10:35:52 su_kien         plan            CB  het tim nguoi sau 2.5 s -> OFF
+10:36:14 192.168.1.101   follow_enable   OK  Bam nguoi: BAT
+10:36:14 su_kien         follow          OK  xe bat dau bam
+10:36:14 su_kien         plan            CB  dung cho (khong thay nguoi): cho tin hieu muc tieu
+10:36:24 192.168.1.101   follow_disable  OK  Bam nguoi: TAT
+10:36:24 su_kien         follow          -   xe ngung bam
+10:36:24 su_kien         plan            CB  het dung cho (khong thay nguoi) sau 10.0 s -> OFF
+10:36:31 192.168.1.101   follow_enable   OK  Bam nguoi: BAT
+10:36:31 su_kien         follow          OK  xe bat dau bam
+10:36:32 su_kien         plan            -   ne vat can: chui khe hep — xoay vuong mat cua (lech 27 do)
+10:36:33 su_kien         plan            -   het ne vat can sau 1.0 s -> FOLLOW
+10:36:37 su_kien         plan            -   nguoi khuat camera: nguoi ra khoi camera — xoay ve huong nho cuoi
+10:36:42 su_kien         plan            -   het nguoi khuat camera sau 5.0 s -> SEARCH
+10:36:42 su_kien         plan            CB  tim nguoi: mat nguoi — lai toi cho thay lan cuoi (di vong theo ban do (phai, 0.6m duong))
+10:36:54 su_kien         plan            CB  het tim nguoi sau 11.5 s -> FOLLOW
+10:37:16 su_kien         plan            -   ne vat can: chui khe hep — vao truc giua khe (lech 0.02m)
+10:37:22 su_kien         plan            -   het ne vat can sau 6.0 s -> FOLLOW
+10:37:28 su_kien         plan            -   ne vat can: di vong theo ban do (trai, 1.6m duong)
+10:37:30 su_kien         plan            -   het ne vat can sau 2.0 s -> FOLLOW
+10:37:37 su_kien         plan            -   nguoi khuat camera: canh huong tai cho
+10:37:39 su_kien         plan            -   het nguoi khuat camera sau 1.5 s -> SEARCH
+10:37:39 su_kien         plan            CB  tim nguoi: mat nguoi — chui khe hep — vao truc giua khe (lech 0.10m)
+10:37:41 su_kien         plan            CB  het tim nguoi sau 2.0 s -> FOLLOW
+10:37:41 192.168.1.101   estop           OK  DUNG KHAN CAP
+10:37:41 su_kien         follow          -   xe ngung bam
+10:37:43 192.168.1.101   follow_enable   OK  Bam nguoi: BAT
+10:37:43 su_kien         follow          OK  xe bat dau bam
+10:37:53 su_kien         plan            -   ne vat can: chui khe hep — vao truc giua khe (lech 0.92m)
+10:37:59 su_kien         plan            -   het ne vat can sau 6.0 s -> FOLLOW
+10:38:01 su_kien         plan            -   ne vat can: chui khe hep — vao truc giua khe (lech 0.92m)
+10:38:08 su_kien         plan            -   het ne vat can sau 14.5 s -> SEARCH (gop 2 lan)
+10:38:08 su_kien         plan            CB  tim nguoi: mat nguoi — chui khe hep — qua khe theo truc (lech -1 do)
+10:38:18 su_kien         plan            CB  het tim nguoi sau 10.0 s -> AVOID
+10:38:18 su_kien         plan            -   ne vat can: di vong theo ban do (trai, 2.0m duong)
+10:38:29 su_kien         plan            -   het ne vat can sau 11.5 s -> SEARCH
+10:38:29 su_kien         plan            CB  tim nguoi: mat nguoi — lai toi cho thay lan cuoi (thoat ket — dang tim duong (150 buoc))
+10:38:42 su_kien         plan            CB  het tim nguoi sau 13.0 s -> FOLLOW
+10:38:46 su_kien         plan            -   ne vat can: thoat ket — lui (1/6)
+10:38:48 su_kien         plan            -   het ne vat can sau 1.5 s -> SEARCH
+10:38:48 su_kien         plan            CB  tim nguoi: mat nguoi — thoat ket — lui (2/6)
+10:39:10 su_kien         plan            CB  het tim nguoi sau 22.5 s -> AVOID
+10:39:10 su_kien         plan            -   ne vat can: di vong theo ban do (phai, 2.0m duong)
+10:39:15 su_kien         plan            -   het ne vat can sau 5.0 s -> FOLLOW
+10:39:21 192.168.1.101   follow_disable  OK  Bam nguoi: TAT
+10:39:21 su_kien         follow          -   xe ngung bam
+10:39:24 192.168.1.101   bag_stop        OK  dang dung ghi bag
+10:39:25 su_kien         bag             OK  da luu follow_1110_103448: 4:34, 29.5 MB (bam Dung ghi)
+10:39:29 su_kien         sys             -   he thong RUNNING -> STOPPING: dung xe roi tat cac node
+10:39:29 192.168.1.101   shutdown        OK  dang tat he thong (dung xe truoc)
+10:39:29 -               shutdown        OK  /follow/stop: DUNG KHAN CAP
+10:39:31 su_kien         sys             -   he thong STOPPING -> STOPPED: da tat
+11:40:25 su_kien         sys             -   he thong STOPPED -> STARTING: he thong dang chay (bat ngoai web)
+11:40:27 su_kien         sys             -   he thong STARTING -> STOPPED: he thong da tat (ngoai web)
+11:46:37 su_kien         sys             -   he thong STOPPED -> STARTING: he thong dang chay (bat ngoai web)
+11:46:39 su_kien         sys             -   he thong STARTING -> STOPPED: he thong da tat (ngoai web)
+11:47:01 su_kien         bag             -   bat dau ghi ngoai_web (ngoai web)
+11:47:03 su_kien         bag             CB  da luu ngoai_web: ?, 0.0 MB — THIEU metadata.yaml
+11:48:13 su_kien         sys             -   he thong STOPPED -> STARTING: he thong dang chay (bat ngoai web)
+11:48:15 su_kien         sys             -   he thong STARTING -> STOPPED: he thong da tat (ngoai web)
+11:48:37 su_kien         bag             -   bat dau ghi ngoai_web (ngoai web)
+11:48:39 su_kien         bag             CB  da luu ngoai_web: ?, 0.0 MB — THIEU metadata.yaml
+11:50:20 may             tai             -   cpu 1% nhiet 46.0C xung 799/799/2100MHz ha_xung 0 ram 2070/7867MB | web 2
+11:50:24 127.0.0.1       login           OK  dang nhap
+11:51:20 may             tai             -   cpu 3% nhiet 46.0C xung 799/799/2100MHz ha_xung 0 ram 2104/7867MB | web 1
+11:51:32 127.0.0.1       login           OK  dang nhap
+11:52:22 may             tai             -   cpu 2% nhiet 46.0C xung 859/1042/2100MHz ha_xung 0 ram 2205/7867MB | web 1
+11:53:24 may             tai             -   cpu 1% nhiet 46.0C xung 812/834/2100MHz ha_xung 0 ram 2212/7867MB | web 1
+11:54:24 may             tai             -   cpu 2% nhiet 46.0C xung 821/875/2100MHz ha_xung 0 ram 2162/7867MB | web 2
+11:54:29 10.42.0.1       login           OK  dang nhap
+11:55:26 may             tai             -   cpu 1% nhiet 46.0C xung 896/997/2100MHz ha_xung 0 ram 2121/7867MB | web 2
+11:56:26 may             tai             -   cpu 2% nhiet 46.0C xung 855/894/2100MHz ha_xung 0 ram 2143/7867MB | web 2
+11:57:26 may             tai             -   cpu 2% nhiet 46.0C xung 940/1141/2100MHz ha_xung 0 ram 2125/7867MB | web 2
+11:58:28 may             tai             -   cpu 1% nhiet 46.0C xung 814/822/2100MHz ha_xung 0 ram 2128/7867MB | web 2
+11:59:30 may             tai             -   cpu 3% nhiet 46.0C xung 800/811/2100MHz ha_xung 0 ram 2123/7867MB | web 2
+12:00:32 may             tai             -   cpu 2% nhiet 46.0C xung 829/879/2100MHz ha_xung 0 ram 2124/7867MB | web 2
+12:01:34 may             tai             -   cpu 2% nhiet 46.0C xung 863/986/2100MHz ha_xung 0 ram 2140/7867MB | web 2
+12:02:36 may             tai             -   cpu 48% nhiet 66.0C xung 2081/2095/2100MHz ha_xung 0 ram 2572/7867MB | web 1
+12:03:38 may             tai             -   cpu 46% nhiet 61.0C xung 2083/2095/2100MHz ha_xung 0 ram 2577/7867MB | web 1
+12:04:38 may             tai             -   cpu 31% nhiet 60.0C xung 2069/2095/2100MHz ha_xung 0 ram 2562/7867MB | web 1
+12:05:40 may             tai             -   cpu 50% nhiet 62.0C xung 2021/2095/2100MHz ha_xung 0 ram 2565/7867MB | web 1
+12:06:42 may             tai             -   cpu 49% nhiet 70.0C xung 2095/2095/2100MHz ha_xung 0 ram 2565/7867MB | web 1
+12:07:44 may             tai             -   cpu 26% nhiet 60.0C xung 2095/2096/2100MHz ha_xung 0 ram 2299/7867MB | web 1
+12:08:44 may             tai             -   cpu 83% nhiet 50.0C xung 809/839/2100MHz ha_xung 0 ram 2166/7867MB | web 2
+12:09:46 may             tai             -   cpu 22% nhiet 57.0C xung 2095/2096/2100MHz ha_xung 0 ram 2249/7867MB | web 1
+12:10:46 may             tai             -   cpu 1% nhiet 48.0C xung 826/871/2100MHz ha_xung 0 ram 2179/7867MB | web 2
+12:11:47 may             tai             -   cpu 30% nhiet 60.0C xung 2089/2091/2100MHz ha_xung 0 ram 1951/7867MB | web 1
+12:14:42 may             tai             -   cpu 3% nhiet 48.0C xung 832/936/2100MHz ha_xung 0 ram 996/7867MB | web 1
+12:14:44 192.168.1.101   login           OK  dang nhap
+12:14:48 su_kien         sys             -   he thong STOPPED -> CHECKING: dang kiem tra thiet bi truoc khi chay
+12:14:48 192.168.1.101   start           OK  dang kiem tra roi khoi dong
+12:14:52 may             tai             -   cpu 5% nhiet 49.0C xung 813/859/2100MHz ha_xung 0 ram 1007/7867MB | web 2
+12:14:58 su_kien         sys             -   he thong CHECKING -> STARTING: dang khoi dong cac node
+12:15:02 su_kien         sys             OK  he thong STARTING -> RUNNING
+12:15:04 may             tai             -   cpu 44% nhiet 54.0C xung 1579/1650/2100MHz ha_xung 0 ram 1415/7867MB | camera 26 rssi 22 planner 19 tracker 16 driver 16 web 2 lidar 1 tf 1 launch 0
+12:15:16 may             tai             -   cpu 48% nhiet 66.0C xung 2038/2095/2100MHz ha_xung 0 ram 1663/7867MB | camera 117 planner 18 rssi 16 tracker 16 driver 13 web 5 lidar 1 launch 0 tf 0
+12:15:18 su_kien         sys             -   he thong RUNNING -> STOPPING: dung xe roi tat cac node
+12:15:18 192.168.1.101   shutdown        OK  dang tat he thong (dung xe truoc)
+12:15:18 -               shutdown        OK  /follow/stop: DUNG KHAN CAP
+12:15:24 su_kien         sys             -   he thong STOPPING -> STOPPED: da tat
+12:15:26 su_kien         sys             -   he thong STOPPED -> CHECKING: dang kiem tra thiet bi truoc khi chay
+12:15:26 192.168.1.101   start           OK  dang kiem tra roi khoi dong
+12:15:28 may             tai             -   cpu 13% nhiet 49.0C xung 916/971/2100MHz ha_xung 0 ram 1060/7867MB | web 3
+12:15:35 su_kien         sys             -   he thong CHECKING -> STARTING: dang khoi dong cac node
+12:15:38 may             tai             -   cpu 34% nhiet 67.0C xung 2095/2095/2100MHz ha_xung 0 ram 1315/7867MB | driver 11 camera 9 web 2 lidar 1 tf 1 launch 0 rssi 0 tracker 0 planner 0
+12:15:41 su_kien         sys             OK  he thong STARTING -> RUNNING
+12:15:48 may             tai             -   cpu 69% nhiet 67.0C xung 2095/2095/2100MHz ha_xung 0 ram 1728/7867MB | camera 83 rssi 24 tracker 21 planner 21 driver 17 web 4 lidar 1 tf 1 launch 0
+12:16:00 may             tai             -   cpu 61% nhiet 65.0C xung 2047/2095/2100MHz ha_xung 0 ram 1683/7867MB | camera 168 planner 17 rssi 16 tracker 16 driver 12 web 7 lidar 0 launch 0 tf 0
+12:16:05 su_kien         sys             -   he thong RUNNING -> STOPPING: dung xe roi tat cac node
+12:16:05 192.168.1.101   shutdown        OK  dang tat he thong (dung xe truoc)
+12:16:05 -               shutdown        OK  /follow/stop: DUNG KHAN CAP
+12:16:07 su_kien         sys             -   he thong STOPPING -> STOPPED: da tat
+12:16:21 su_kien         sys             -   he thong STOPPED -> CHECKING: dang kiem tra thiet bi truoc khi chay
+12:16:21 192.168.1.101   start           OK  dang kiem tra roi khoi dong
+12:16:22 may             tai             -   cpu 2% nhiet 55.0C xung 1878/2095/2100MHz ha_xung 0 ram 1082/7867MB | web 2
+12:16:30 su_kien         sys             -   he thong CHECKING -> STARTING: dang khoi dong cac node
+12:16:32 may             tai             -   cpu 19% nhiet 67.0C xung 2095/2095/2100MHz ha_xung 0 ram 1226/7867MB | web 2 launch 0 lidar 0 tf 0 driver 0 camera 0 rssi 0 tracker 0 planner 0
+12:16:35 su_kien         sys             OK  he thong STARTING -> RUNNING
+12:16:44 may             tai             -   cpu 50% nhiet 67.0C xung 2067/2095/2100MHz ha_xung 0 ram 1669/7867MB | camera 127 planner 17 rssi 16 tracker 16 driver 12 web 5 lidar 1 tf 0 launch 0
+12:16:54 may             tai             -   cpu 50% nhiet 57.0C xung 1764/2095/2100MHz ha_xung 0 ram 1672/7867MB | camera 118 tracker 19 planner 19 rssi 18 driver 14 web 8 lidar 0 launch 0 tf 0
+12:17:06 may             tai             -   cpu 51% nhiet 70.0C xung 1904/2095/2100MHz ha_xung 0 ram 1674/7867MB | camera 122 tracker 19 planner 19 rssi 18 driver 14 web 8 lidar 0 launch 0 tf 0
+12:17:16 may             tai             -   cpu 52% nhiet 57.0C xung 1801/2095/2100MHz ha_xung 0 ram 1676/7867MB | camera 125 tracker 19 planner 18 rssi 18 driver 14 web 8 launch 0 lidar 0 tf 0
+12:17:22 su_kien         beacon          CB  mat tin hieu beacon
+12:17:23 su_kien         beacon          CB  mat beacon sau 1.0 s — co lai
+12:17:28 may             tai             -   cpu 55% nhiet 57.0C xung 1660/2092/2100MHz ha_xung 0 ram 1685/7867MB | camera 124 tracker 19 planner 18 rssi 16 driver 14 web 8 launch 0 lidar 0 tf 0
+12:17:32 su_kien         sys             -   he thong RUNNING -> STOPPING: dung xe roi tat cac node
+12:17:32 192.168.1.101   shutdown        OK  dang tat he thong (dung xe truoc)
+12:17:32 -               shutdown        OK  /follow/stop: DUNG KHAN CAP
+12:17:34 su_kien         sys             -   he thong STOPPING -> STOPPED: da tat
+12:17:41 su_kien         sys             -   he thong STOPPED -> CHECKING: dang kiem tra thiet bi truoc khi chay
+12:17:41 192.168.1.101   start           OK  dang kiem tra roi khoi dong
+12:17:42 may             tai             -   cpu 14% nhiet 57.0C xung 1699/2038/2100MHz ha_xung 0 ram 1077/7867MB | web 3
+12:17:49 su_kien         sys             LOI he thong CHECKING -> FAILED: kiem tra co 1 muc HONG — khong khoi dong (xem ket qua)
+12:18:12 192.168.1.101   estop           LOI KHONG DUNG DUOC QUA WEB (/follow/stop chua san sang; /follow/disable chua san sang) — dung cong tac nguon dong co
+12:18:13 192.168.1.101   estop           LOI KHONG DUNG DUOC QUA WEB (/follow/stop chua san sang; /follow/disable chua san sang) — dung cong tac nguon dong co
+12:18:13 192.168.1.101   estop           LOI KHONG DUNG DUOC QUA WEB (/follow/stop chua san sang; /follow/disable chua san sang) — dung cong tac nguon dong co
+12:18:19 su_kien         sys             -   he thong FAILED -> CHECKING: dang kiem tra thiet bi
+12:18:19 192.168.1.101   check           OK  dang kiem tra
+12:18:20 may             tai             -   cpu 2% nhiet 55.0C xung 2095/2096/2100MHz ha_xung 0 ram 1069/7867MB | web 2
+12:18:28 su_kien         sys             -   he thong CHECKING -> STOPPED: kiem tra dat (1 canh bao) — bam Khoi dong
+12:18:35 su_kien         sys             -   he thong STOPPED -> CHECKING: dang kiem tra thiet bi
+12:18:35 192.168.1.101   check           OK  dang kiem tra
+12:18:36 may             tai             -   cpu 7% nhiet 56.0C xung 1720/2066/2100MHz ha_xung 0 ram 1059/7867MB | web 2
+12:18:43 su_kien         sys             -   he thong CHECKING -> STOPPED: kiem tra dat (1 canh bao) — bam Khoi dong
+12:18:57 su_kien         sys             -   he thong STOPPED -> CHECKING: dang kiem tra thiet bi truoc khi chay
+12:18:57 192.168.1.101   start           OK  dang kiem tra roi khoi dong
+12:18:58 may             tai             -   cpu 3% nhiet 54.0C xung 1917/2086/2100MHz ha_xung 0 ram 1068/7867MB | web 2
+12:19:05 su_kien         sys             -   he thong CHECKING -> STARTING: dang khoi dong cac node
+12:19:08 may             tai             -   cpu 23% nhiet 68.0C xung 2095/2095/2100MHz ha_xung 0 ram 1272/7867MB | launch 4 web 2 lidar 0 tf 0 driver 0 camera 0 rssi 0 tracker 0 planner 0
+12:19:11 su_kien         sys             OK  he thong STARTING -> RUNNING
+12:19:18 may             tai             -   cpu 51% nhiet 67.0C xung 1979/2068/2100MHz ha_xung 0 ram 1656/7867MB | camera 99 planner 26 rssi 24 tracker 22 driver 21 web 5 lidar 1 tf 1 launch 0
+12:20:11 may             tai             -   cpu 2% nhiet 48.0C xung 843/978/2100MHz ha_xung 0 ram 985/7867MB | web 1
+12:20:11 192.168.1.101   login           OK  dang nhap
+12:20:14 su_kien         sys             -   he thong STOPPED -> CHECKING: dang kiem tra thiet bi truoc khi chay
+12:20:14 192.168.1.101   start           OK  dang kiem tra roi khoi dong
+12:20:21 may             tai             -   cpu 22% nhiet 49.0C xung 860/1045/2100MHz ha_xung 0 ram 983/7867MB | web 2
+12:20:24 su_kien         sys             -   he thong CHECKING -> STARTING: dang khoi dong cac node
+12:20:28 su_kien         sys             OK  he thong STARTING -> RUNNING
+12:20:33 may             tai             -   cpu 54% nhiet 55.0C xung 1787/1840/2100MHz ha_xung 0 ram 1517/7867MB | camera 60 rssi 29 planner 26 tracker 22 driver 21 web 3 lidar 1 tf 1 launch 0
+12:20:43 may             tai             -   cpu 51% nhiet 63.0C xung 1997/2095/2100MHz ha_xung 0 ram 1673/7867MB | camera 119 planner 19 rssi 17 tracker 17 driver 13 web 7 lidar 1 tf 0 launch 0
+12:20:55 may             tai             -   cpu 61% nhiet 64.0C xung 2052/2095/2100MHz ha_xung 0 ram 1678/7867MB | camera 173 planner 17 rssi 16 tracker 15 driver 12 web 7 launch 0 lidar 0 tf 0
+12:21:05 su_kien         sys             -   he thong RUNNING -> STOPPING: dung xe roi tat cac node
+12:21:05 192.168.1.101   shutdown        OK  dang tat he thong (dung xe truoc)
+12:21:05 -               shutdown        OK  /follow/stop: DUNG KHAN CAP
+12:21:07 may             tai             -   cpu 60% nhiet 59.0C xung 2059/2096/2100MHz ha_xung 0 ram 1435/7867MB | camera 149 web 6 launch 1
+12:21:10 su_kien         sys             -   he thong STOPPING -> STOPPED: da tat
+12:21:20 su_kien         sys             -   he thong STOPPED -> CHECKING: dang kiem tra thiet bi truoc khi chay
+12:21:20 192.168.1.101   start           OK  dang kiem tra roi khoi dong
+12:21:21 may             tai             -   cpu 23% nhiet 50.0C xung 816/868/2100MHz ha_xung 0 ram 1087/7867MB | web 2
+12:21:28 su_kien         sys             -   he thong CHECKING -> STARTING: dang khoi dong cac node
+12:21:31 may             tai             -   cpu 30% nhiet 68.0C xung 2095/2095/2100MHz ha_xung 0 ram 1329/7867MB | rssi 23 camera 15 planner 14 driver 13 tracker 12 web 2 lidar 0 tf 0 launch 0
+12:21:32 su_kien         sys             OK  he thong STARTING -> RUNNING
+12:21:41 may             tai             -   cpu 49% nhiet 63.0C xung 1809/2061/2100MHz ha_xung 0 ram 1666/7867MB | camera 102 planner 25 tracker 21 rssi 17 driver 15 web 5 lidar 1 tf 1 launch 0
+12:21:52 192.168.1.101   enroll_start    OK  Enrollment started. Stand the target person near the camera center.
+12:21:53 may             tai             -   cpu 61% nhiet 65.0C xung 2056/2095/2100MHz ha_xung 0 ram 1676/7867MB | camera 167 planner 21 tracker 17 rssi 15 driver 13 web 7 lidar 1 launch 0 tf 0
+12:22:03 may             tai             -   cpu 62% nhiet 67.0C xung 2054/2095/2100MHz ha_xung 0 ram 1681/7867MB | camera 173 planner 20 tracker 17 rssi 15 driver 12 web 7 lidar 1 launch 0 tf 0
+12:22:15 may             tai             -   cpu 63% nhiet 67.0C xung 2016/2095/2100MHz ha_xung 0 ram 1685/7867MB | camera 173 planner 20 tracker 17 rssi 15 driver 12 web 7 lidar 1 launch 0 tf 0
+12:22:25 su_kien         enroll          OK  hoc xong nguoi (80 mau)
+12:22:27 may             tai             -   cpu 62% nhiet 66.0C xung 2095/2095/2100MHz ha_xung 0 ram 1682/7867MB | camera 173 planner 20 tracker 17 rssi 15 driver 12 web 7 lidar 1 launch 0 tf 0
+12:22:39 may             tai             -   cpu 63% nhiet 69.0C xung 2064/2095/2100MHz ha_xung 0 ram 1685/7867MB | camera 172 planner 21 tracker 18 rssi 15 driver 12 web 7 lidar 1 launch 0 tf 0
+12:22:51 may             tai             -   cpu 63% nhiet 68.0C xung 2047/2095/2100MHz ha_xung 0 ram 1699/7867MB | camera 175 planner 20 tracker 18 rssi 15 driver 12 web 7 lidar 1 launch 0 tf 0
+12:23:01 may             tai             -   cpu 62% nhiet 70.0C xung 2095/2095/2100MHz ha_xung 0 ram 1703/7867MB | camera 173 planner 21 tracker 18 rssi 15 driver 12 web 7 lidar 0 launch 0 tf 0
+12:23:11 may             tai             -   cpu 62% nhiet 67.0C xung 2079/2095/2100MHz ha_xung 0 ram 1703/7867MB | camera 171 planner 21 tracker 18 rssi 15 driver 12 web 7 lidar 1 launch 0 tf 0
+12:23:23 may             tai             -   cpu 62% nhiet 67.0C xung 2035/2095/2100MHz ha_xung 0 ram 1709/7867MB | camera 171 planner 20 tracker 18 rssi 15 driver 12 web 7 lidar 1 launch 0 tf 0
+12:23:33 may             tai             -   cpu 62% nhiet 68.0C xung 2095/2095/2100MHz ha_xung 0 ram 1710/7867MB | camera 172 planner 20 tracker 18 rssi 15 driver 12 web 7 lidar 0 launch 0 tf 0
+12:23:41 192.168.1.101   follow_enable   OK  Bam nguoi: BAT
+12:23:41 su_kien         follow          OK  xe bat dau bam
+12:23:45 may             tai             -   cpu 65% nhiet 71.0C xung 2076/2095/2100MHz ha_xung 0 ram 1709/7867MB | camera 171 planner 31 tracker 18 rssi 15 driver 13 web 7 lidar 0 launch 0 tf 0
+12:23:57 may             tai             -   cpu 69% nhiet 68.0C xung 2042/2095/2100MHz ha_xung 0 ram 1712/7867MB | camera 169 planner 48 tracker 18 rssi 15 driver 14 web 7 lidar 1 launch 0 tf 0
+12:24:06 su_kien         plan            -   ne vat can: di vong theo ban do (phai, 1.3m duong)
+12:24:07 may             tai             -   cpu 71% nhiet 70.0C xung 2082/2095/2100MHz ha_xung 0 ram 1718/7867MB | camera 175 planner 52 tracker 17 rssi 14 driver 14 web 7 lidar 0 launch 0 tf 0
+12:24:17 may             tai             -   cpu 67% nhiet 72.0C xung 2089/2095/2100MHz ha_xung 0 ram 1715/7867MB | camera 170 planner 41 tracker 18 rssi 14 driver 14 web 7 lidar 1 launch 0 tf 0
+12:24:26 su_kien         plan            -   het ne vat can sau 20.0 s -> FOLLOW
+12:24:29 su_kien         plan            -   ne vat can: di vong theo ban do (phai, 1.3m duong)
+12:24:29 may             tai             -   cpu 65% nhiet 69.0C xung 2095/2095/2100MHz ha_xung 0 ram 1714/7867MB | camera 169 planner 33 tracker 18 rssi 15 driver 14 web 7 lidar 1 launch 0 tf 0
+12:24:33 su_kien         plan            -   het ne vat can sau 26.5 s -> FOLLOW (gop 2 lan)
+12:24:41 may             tai             -   cpu 66% nhiet 70.0C xung 2042/2095/2100MHz ha_xung 0 ram 1710/7867MB | camera 171 planner 38 tracker 18 rssi 14 driver 14 web 7 lidar 1 launch 0 tf 0
+12:24:45 su_kien         plan            -   nguoi khuat camera: chui khe hep — vao truc giua khe (lech 0.63m)
+12:24:46 su_kien         plan            -   het nguoi khuat camera sau 1.0 s -> FOLLOW
+12:24:47 su_kien         plan            -   nguoi khuat camera: chui khe hep — vao truc giua khe (lech 0.63m)
+12:24:49 su_kien         plan            -   het nguoi khuat camera sau 4.0 s -> SEARCH (gop 2 lan)
+12:24:49 su_kien         plan            CB  tim nguoi: mat nguoi — nhin ve cho thay lan cuoi
+12:24:51 may             tai             -   cpu 56% nhiet 65.0C xung 1874/2095/2100MHz ha_xung 0 ram 1710/7867MB | camera 128 planner 30 tracker 20 rssi 17 driver 16 web 8 lidar 1 launch 0 tf 0
+12:24:55 su_kien         plan            CB  het tim nguoi sau 6.0 s -> AVOID
+12:24:55 su_kien         plan            -   ne vat can: thoat ket — tien (1/1)
+12:24:56 su_kien         plan            -   het ne vat can sau 1.5 s -> FOLLOW
+12:24:59 su_kien         plan            -   ne vat can: thoat ket — tien (1/1)
+12:25:03 may             tai             -   cpu 68% nhiet 70.0C xung 2095/2095/2100MHz ha_xung 0 ram 1714/7867MB | camera 169 planner 44 tracker 18 rssi 15 driver 14 web 7 lidar 1 launch 0 tf 0
+12:25:05 su_kien         plan            -   het ne vat can sau 10.5 s -> FOLLOW (gop 2 lan)
+12:25:06 su_kien         plan            -   ne vat can: thoat ket — tien (1/1)
+12:25:13 may             tai             -   cpu 66% nhiet 70.0C xung 2095/2095/2100MHz ha_xung 0 ram 1713/7867MB | camera 177 planner 34 tracker 17 rssi 14 driver 14 web 7 lidar 0 launch 0 tf 0
+12:25:18 su_kien         plan            -   het ne vat can sau 23.5 s -> SEARCH (gop 3 lan)
+12:25:18 su_kien         plan            CB  tim nguoi: mat nguoi — lai toi cho thay lan cuoi (di vong theo ban do (trai, 1.7m duong))
+12:25:22 su_kien         plan            CB  het tim nguoi sau 4.0 s -> FOLLOW
+12:25:23 may             tai             -   cpu 69% nhiet 68.0C xung 2076/2095/2100MHz ha_xung 0 ram 1710/7867MB | camera 176 planner 44 tracker 17 driver 14 rssi 14 web 7 lidar 1 launch 0 tf 0
+12:25:33 may             tai             -   cpu 70% nhiet 70.0C xung 2043/2095/2100MHz ha_xung 0 ram 1716/7867MB | camera 168 planner 50 tracker 18 rssi 14 driver 14 web 7 lidar 1 launch 0 tf 0
+12:25:45 may             tai             -   cpu 64% nhiet 71.0C xung 2035/2095/2100MHz ha_xung 0 ram 1715/7867MB | camera 170 planner 28 tracker 18 rssi 15 driver 13 web 7 lidar 1 launch 0 tf 0
+12:25:55 may             tai             -   cpu 65% nhiet 74.0C xung 2089/2095/2100MHz ha_xung 0 ram 1715/7867MB | camera 179 planner 26 tracker 17 rssi 14 driver 13 web 4 lidar 1 launch 0 tf 0
+12:26:03 su_kien         plan            -   nguoi khuat camera: nguoi ra khoi camera — xoay ve huong nho cuoi
+12:26:04 su_kien         plan            -   het nguoi khuat camera sau 1.5 s -> ARRIVED
+12:26:07 may             tai             -   cpu 64% nhiet 74.0C xung 2095/2095/2100MHz ha_xung 0 ram 1715/7867MB | camera 181 planner 24 tracker 17 rssi 15 driver 13 web 3 lidar 1 launch 0 tf 0
+12:26:09 192.168.1.101   follow_disable  OK  Bam nguoi: TAT
+12:26:09 su_kien         follow          -   xe ngung bam
+12:26:14 192.168.1.101   reset_identity  OK  Target identity reset
+12:26:14 su_kien         enroll          -   khong con nguoi da hoc
+12:26:19 may             tai             -   cpu 64% nhiet 71.0C xung 2095/2095/2100MHz ha_xung 0 ram 1712/7867MB | camera 182 planner 20 tracker 16 rssi 15 driver 12 web 6 lidar 1 launch 0 tf 0
+12:26:22 su_kien         sys             -   he thong RUNNING -> STOPPING: dung xe roi tat cac node
+12:26:22 192.168.1.101   shutdown        OK  dang tat he thong (dung xe truoc)
+12:26:22 -               shutdown        OK  /follow/stop: DUNG KHAN CAP
+12:26:23 su_kien         sys             -   he thong STOPPING -> STOPPED: da tat
+12:27:21 may             tai             -   cpu 1% nhiet 52.0C xung 833/898/2100MHz ha_xung 0 ram 1074/7867MB | web 1
+12:28:23 may             tai             -   cpu 1% nhiet 51.0C xung 855/1025/2100MHz ha_xung 0 ram 1075/7867MB | web 2
+12:29:11 192.168.1.102   login           OK  dang nhap
+12:29:15 su_kien         sys             -   he thong STOPPED -> CHECKING: dang kiem tra thiet bi truoc khi chay
+12:29:15 192.168.1.102   start           OK  dang kiem tra roi khoi dong
+12:29:15 may             tai             -   cpu 2% nhiet 58.0C xung 1894/2095/2100MHz ha_xung 0 ram 1073/7867MB | web 2
+12:29:23 su_kien         sys             -   he thong CHECKING -> STARTING: dang khoi dong cac node
+12:29:25 may             tai             -   cpu 20% nhiet 71.0C xung 2095/2095/2100MHz ha_xung 0 ram 1225/7867MB | web 2 launch 0 lidar 0 tf 0 driver 0 camera 0 rssi 0 tracker 0 planner 0
+12:29:28 su_kien         sys             OK  he thong STARTING -> RUNNING
+12:29:35 may             tai             -   cpu 57% nhiet 70.0C xung 2085/2095/2100MHz ha_xung 0 ram 1691/7867MB | camera 110 rssi 28 planner 28 tracker 26 driver 20 web 5 lidar 2 tf 1 launch 0
+12:29:44 192.168.1.102   enroll_start    OK  Enrollment started. Stand the target person near the camera center.
+12:29:45 may             tai             -   cpu 67% nhiet 68.0C xung 2055/2095/2100MHz ha_xung 0 ram 1695/7867MB | camera 183 planner 19 tracker 16 rssi 14 driver 12 web 6 lidar 1 launch 0 tf 0
+12:29:57 may             tai             -   cpu 67% nhiet 73.0C xung 1994/2095/2100MHz ha_xung 0 ram 1690/7867MB | camera 184 planner 19 tracker 16 rssi 14 driver 12 web 6 lidar 1 launch 0 tf 0
+12:30:09 may             tai             -   cpu 67% nhiet 71.0C xung 2037/2095/2100MHz ha_xung 0 ram 1696/7867MB | camera 183 planner 20 tracker 16 rssi 15 driver 12 web 6 lidar 1 launch 0 tf 0
+12:30:19 may             tai             -   cpu 64% nhiet 69.0C xung 2095/2095/2100MHz ha_xung 0 ram 1702/7867MB | camera 183 planner 19 tracker 16 rssi 15 driver 12 web 4 lidar 0 launch 0 tf 0
+12:30:29 may             tai             -   cpu 65% nhiet 66.0C xung 2008/2095/2100MHz ha_xung 0 ram 1704/7867MB | camera 184 planner 19 tracker 16 rssi 15 driver 12 web 4 lidar 1 launch 0 tf 0
+12:30:41 may             tai             -   cpu 64% nhiet 71.0C xung 2095/2095/2100MHz ha_xung 0 ram 1705/7867MB | camera 184 planner 19 tracker 16 rssi 14 driver 12 web 3 lidar 1 launch 0 tf 0
+12:30:47 su_kien         enroll          OK  hoc xong nguoi (80 mau)
+12:30:51 may             tai             -   cpu 63% nhiet 70.0C xung 2095/2095/2100MHz ha_xung 0 ram 1705/7867MB | camera 184 planner 19 tracker 16 rssi 14 driver 12 web 3 lidar 1 launch 0 tf 0
+12:31:03 may             tai             -   cpu 63% nhiet 72.0C xung 2095/2095/2100MHz ha_xung 0 ram 1705/7867MB | camera 182 planner 20 tracker 16 rssi 14 driver 12 web 3 lidar 1 launch 0 tf 0
+12:31:15 may             tai             -   cpu 63% nhiet 72.0C xung 2093/2095/2100MHz ha_xung 0 ram 1705/7867MB | camera 180 planner 20 tracker 16 rssi 15 driver 12 web 3 lidar 0 launch 0 tf 0
+12:31:27 may             tai             -   cpu 63% nhiet 71.0C xung 2095/2095/2100MHz ha_xung 0 ram 1707/7867MB | camera 181 planner 20 tracker 16 rssi 15 driver 12 web 5 lidar 1 launch 0 tf 0
+12:31:34 su_kien         sys             -   he thong RUNNING -> STOPPING: dung xe roi tat cac node
+12:31:34 192.168.1.102   shutdown        OK  dang tat he thong (dung xe truoc)
+12:31:34 -               shutdown        OK  /follow/stop: DUNG KHAN CAP
+12:31:36 su_kien         sys             -   he thong STOPPING -> STOPPED: da tat
+12:31:57 su_kien         sys             -   he thong STOPPED -> CHECKING: dang kiem tra thiet bi truoc khi chay
+12:31:57 192.168.1.102   start           OK  dang kiem tra roi khoi dong
+12:31:59 may             tai             -   cpu 4% nhiet 54.0C xung 834/943/2100MHz ha_xung 0 ram 1080/7867MB | web 2
+12:32:06 su_kien         sys             -   he thong CHECKING -> STARTING: dang khoi dong cac node
+12:32:10 su_kien         sys             OK  he thong STARTING -> RUNNING
+12:32:11 may             tai             -   cpu 41% nhiet 66.0C xung 2032/2095/2100MHz ha_xung 0 ram 1476/7867MB | camera 35 rssi 22 planner 18 tracker 16 driver 13 web 3 tf 1 lidar 1 launch 0
+12:32:15 su_kien         enroll          -   khong con nguoi da hoc
+12:32:21 may             tai             -   cpu 54% nhiet 71.0C xung 2040/2083/2100MHz ha_xung 0 ram 1687/7867MB | camera 145 planner 17 rssi 16 tracker 15 driver 12 web 5 lidar 1 launch 0 tf 0
+12:32:23 su_kien         sys             -   he thong RUNNING -> STOPPING: dung xe roi tat cac node
+12:32:23 192.168.1.102   shutdown        OK  dang tat he thong (dung xe truoc)
+12:32:23 -               shutdown        OK  /follow/stop: DUNG KHAN CAP
+12:32:25 192.168.1.102   estop           LOI KHONG DUNG DUOC QUA WEB (/follow/stop chua san sang; /follow/disable chua san sang) — dung cong tac nguon dong co
+12:32:25 192.168.1.102   estop           LOI KHONG DUNG DUOC QUA WEB (/follow/stop chua san sang; /follow/disable chua san sang) — dung cong tac nguon dong co
+12:32:29 su_kien         sys             -   he thong STOPPING -> STOPPED: da tat
+12:32:55 su_kien         sys             -   he thong STOPPED -> CHECKING: dang kiem tra thiet bi truoc khi chay
+12:32:55 192.168.1.102   start           OK  dang kiem tra roi khoi dong
+12:32:55 may             tai             -   cpu 3% nhiet 58.0C xung 2095/2096/2100MHz ha_xung 0 ram 1075/7867MB | web 2
+12:33:04 su_kien         sys             -   he thong CHECKING -> STARTING: dang khoi dong cac node
+12:33:05 may             tai             -   cpu 18% nhiet 73.0C xung 2095/2095/2100MHz ha_xung 0 ram 1203/7867MB | web 2 launch 0 lidar 0 tf 0 driver 0 camera 0 rssi 0 tracker 0 planner 0
+12:33:09 su_kien         sys             OK  he thong STARTING -> RUNNING
+12:33:17 may             tai             -   cpu 54% nhiet 69.0C xung 2030/2095/2100MHz ha_xung 0 ram 1698/7867MB | camera 133 planner 22 rssi 17 tracker 17 driver 14 web 4 lidar 1 tf 0 launch 0
+12:33:27 may             tai             -   cpu 65% nhiet 70.0C xung 2090/2095/2100MHz ha_xung 0 ram 1700/7867MB | camera 182 planner 20 tracker 16 rssi 16 driver 12 web 7 lidar 1 launch 0 tf 0
+12:33:34 su_kien         sys             -   he thong RUNNING -> STOPPING: dung xe roi tat cac node
+12:33:34 192.168.1.102   shutdown        OK  dang tat he thong (dung xe truoc)
+12:33:34 -               shutdown        OK  /follow/stop: DUNG KHAN CAP
+12:33:35 su_kien         sys             -   he thong STOPPING -> STOPPED: da tat
+12:33:57 su_kien         sys             -   he thong STOPPED -> CHECKING: dang kiem tra thiet bi truoc khi chay
+12:33:57 192.168.1.102   start           OK  dang kiem tra roi khoi dong
+12:33:57 may             tai             -   cpu 2% nhiet 63.0C xung 2083/2095/2100MHz ha_xung 0 ram 1065/7867MB | web 2
+12:34:05 su_kien         sys             -   he thong CHECKING -> STARTING: dang khoi dong cac node
+12:34:07 may             tai             -   cpu 21% nhiet 73.0C xung 2095/2095/2100MHz ha_xung 0 ram 1243/7867MB | web 2 launch 0 lidar 0 tf 0 driver 0 camera 0 rssi 0 tracker 0 planner 0
+12:34:09 su_kien         sys             OK  he thong STARTING -> RUNNING
+12:34:18 192.168.1.102   enroll_start    OK  Enrollment started. Stand the target person near the camera center.
+12:34:19 may             tai             -   cpu 53% nhiet 71.0C xung 2083/2095/2100MHz ha_xung 0 ram 1681/7867MB | camera 136 planner 21 tracker 17 rssi 16 driver 12 web 5 lidar 1 launch 0 tf 0
+12:34:29 may             tai             -   cpu 65% nhiet 71.0C xung 2095/2095/2100MHz ha_xung 0 ram 1686/7867MB | camera 184 planner 20 tracker 17 rssi 16 driver 12 web 6 lidar 0 launch 0 tf 0
+12:34:41 may             tai             -   cpu 65% nhiet 71.0C xung 2095/2095/2100MHz ha_xung 0 ram 1686/7867MB | camera 183 planner 20 tracker 17 rssi 16 driver 12 web 6 lidar 0 launch 0 tf 0
+12:34:51 may             tai             -   cpu 64% nhiet 70.0C xung 2075/2095/2100MHz ha_xung 0 ram 1691/7867MB | camera 184 planner 20 tracker 16 rssi 15 driver 12 web 6 lidar 1 launch 0 tf 0
+12:35:03 may             tai             -   cpu 64% nhiet 70.0C xung 2080/2095/2100MHz ha_xung 0 ram 1699/7867MB | camera 183 planner 20 tracker 16 rssi 15 driver 12 web 6 lidar 1 launch 0 tf 0
+12:35:15 may             tai             -   cpu 65% nhiet 73.0C xung 2095/2095/2100MHz ha_xung 0 ram 1699/7867MB | camera 183 planner 20 tracker 17 rssi 15 driver 12 web 7 lidar 1 launch 0 tf 0
+12:35:22 su_kien         enroll          OK  hoc xong nguoi (80 mau)
+12:35:25 may             tai             -   cpu 65% nhiet 73.0C xung 2095/2095/2100MHz ha_xung 0 ram 1698/7867MB | camera 183 planner 20 tracker 17 rssi 16 driver 12 web 6 lidar 0 launch 0 tf 0
+12:35:35 may             tai             -   cpu 65% nhiet 70.0C xung 2050/2095/2100MHz ha_xung 0 ram 1697/7867MB | camera 182 planner 20 tracker 18 rssi 15 driver 12 web 6 lidar 1 launch 0 tf 0
+12:35:47 may             tai             -   cpu 65% nhiet 71.0C xung 2059/2095/2100MHz ha_xung 0 ram 1697/7867MB | camera 182 planner 20 tracker 18 rssi 15 driver 12 web 6 lidar 1 launch 0 tf 0
+12:35:57 may             tai             -   cpu 65% nhiet 74.0C xung 2095/2095/2100MHz ha_xung 0 ram 1698/7867MB | camera 181 planner 21 tracker 18 rssi 15 driver 12 web 6 lidar 1 launch 0 tf 0
+12:36:09 may             tai             -   cpu 65% nhiet 75.0C xung 2095/2095/2100MHz ha_xung 0 ram 1695/7867MB | camera 182 planner 20 tracker 18 rssi 15 driver 12 web 6 lidar 1 launch 0 tf 0
+12:36:19 may             tai             -   cpu 65% nhiet 74.0C xung 2089/2095/2100MHz ha_xung 0 ram 1697/7867MB | camera 181 planner 20 tracker 18 rssi 15 driver 12 web 6 lidar 0 launch 0 tf 0
+12:36:29 may             tai             -   cpu 64% nhiet 75.0C xung 2070/2090/2100MHz ha_xung 0 ram 1701/7867MB | camera 181 planner 20 tracker 18 rssi 15 driver 12 web 6 lidar 1 launch 0 tf 0
+12:36:41 may             tai             -   cpu 65% nhiet 76.0C xung 2095/2095/2100MHz ha_xung 0 ram 1702/7867MB | camera 181 planner 20 tracker 18 rssi 16 driver 12 web 6 lidar 0 launch 0 tf 0
+12:36:51 may             tai             -   cpu 64% nhiet 74.0C xung 2095/2095/2100MHz ha_xung 1 ram 1698/7867MB | camera 182 planner 20 tracker 18 rssi 15 driver 12 web 6 lidar 1 launch 0 tf 0
+12:37:03 may             tai             -   cpu 65% nhiet 73.0C xung 2095/2095/2100MHz ha_xung 1 ram 1700/7867MB | camera 182 planner 20 tracker 18 rssi 16 driver 12 web 6 lidar 1 launch 0 tf 0
+12:37:13 may             tai             -   cpu 64% nhiet 73.0C xung 2090/2095/2100MHz ha_xung 0 ram 1701/7867MB | camera 182 planner 20 tracker 17 rssi 15 driver 12 web 6 lidar 1 launch 0 tf 0
+12:37:25 may             tai             -   cpu 64% nhiet 74.0C xung 2087/2095/2100MHz ha_xung 1 ram 1703/7867MB | camera 182 planner 20 tracker 17 rssi 15 driver 12 web 6 lidar 0 launch 0 tf 0
+12:37:35 may             tai             -   cpu 64% nhiet 74.0C xung 2086/2095/2100MHz ha_xung 1 ram 1699/7867MB | camera 181 planner 20 tracker 18 rssi 15 driver 12 web 6 lidar 1 launch 0 tf 0
+12:37:37 192.168.1.102   follow_enable   OK  Bam nguoi: BAT
+12:37:38 su_kien         follow          OK  xe bat dau bam
+12:37:45 may             tai             -   cpu 70% nhiet 78.0C xung 2095/2095/2100MHz ha_xung 1 ram 1700/7867MB | camera 178 planner 43 tracker 18 rssi 15 driver 14 web 6 lidar 1 launch 0 tf 0
+12:37:48 su_kien         plan            -   ne vat can: chui khe hep — vao truc giua khe (lech 0.94m)
+12:37:57 may             tai             -   cpu 67% nhiet 75.0C xung 2031/2095/2100MHz ha_xung 1 ram 1707/7867MB | camera 170 planner 38 tracker 18 rssi 15 driver 14 web 7 lidar 1 launch 0 tf 0
+12:38:05 su_kien         plan            -   het ne vat can sau 16.5 s -> FOLLOW
+12:38:07 may             tai             -   cpu 66% nhiet 75.0C xung 2095/2095/2100MHz ha_xung 1 ram 1711/7867MB | camera 170 planner 33 tracker 18 rssi 15 driver 14 web 7 lidar 1 launch 0 tf 0
+12:38:16 192.168.1.102   follow_disable  OK  Bam nguoi: TAT
+12:38:16 su_kien         follow          -   xe ngung bam
+12:38:19 may             tai             -   cpu 68% nhiet 73.0C xung 1965/2095/2100MHz ha_xung 1 ram 1713/7867MB | camera 169 planner 41 tracker 19 rssi 16 driver 14 web 7 lidar 1 launch 0 tf 0
+12:38:29 may             tai             -   cpu 63% nhiet 74.0C xung 2035/2095/2100MHz ha_xung 1 ram 1713/7867MB | camera 172 planner 21 tracker 18 rssi 16 driver 12 web 7 lidar 1 launch 0 tf 0
+12:38:34 192.168.1.102   follow_enable   OK  Bam nguoi: BAT
+12:38:34 su_kien         follow          OK  xe bat dau bam
+12:38:38 su_kien         plan            -   nguoi khuat camera: nguoi ra khoi camera — xoay ve huong nho cuoi
+12:38:41 may             tai             -   cpu 65% nhiet 72.0C xung 2095/2095/2100MHz ha_xung 1 ram 1709/7867MB | camera 168 planner 30 tracker 18 rssi 16 driver 14 web 8 lidar 1 launch 0 tf 0
+12:38:43 su_kien         plan            -   het nguoi khuat camera sau 5.0 s -> SEARCH
+12:38:43 su_kien         plan            CB  tim nguoi: mat nguoi — nhin ve cho thay lan cuoi
+12:38:52 su_kien         plan            CB  het tim nguoi sau 9.0 s -> FOLLOW
+12:38:53 may             tai             -   cpu 64% nhiet 76.0C xung 2074/2095/2100MHz ha_xung 1 ram 1707/7867MB | camera 163 planner 31 tracker 19 rssi 17 driver 15 web 7 lidar 1 launch 0 tf 0
+12:39:02 su_kien         plan            -   ne vat can: chui khe hep — lui ve truc khe (lech 0.07m)
+12:39:05 may             tai             -   cpu 66% nhiet 74.0C xung 2052/2095/2100MHz ha_xung 1 ram 1715/7867MB | camera 173 planner 32 tracker 18 rssi 15 driver 14 web 7 lidar 1 launch 0 tf 0
+12:39:15 su_kien         plan            -   het ne vat can sau 13.0 s -> FOLLOW
+12:39:17 may             tai             -   cpu 70% nhiet 75.0C xung 2095/2095/2100MHz ha_xung 1 ram 1716/7867MB | camera 176 planner 45 tracker 18 rssi 15 driver 14 web 7 lidar 1 launch 0 tf 0
+12:39:19 su_kien         plan            -   ne vat can: di vong theo ban do (phai, 2.0m duong)
+12:39:23 su_kien         plan            -   het ne vat can sau 3.5 s -> OCCLUDED
+12:39:23 su_kien         plan            -   nguoi khuat camera: nguoi ra khoi camera — xoay ve huong nho cuoi
+12:39:24 su_kien         plan            -   het nguoi khuat camera sau 1.0 s -> FOLLOW
+12:39:27 may             tai             -   cpu 72% nhiet 77.0C xung 2095/2095/2100MHz ha_xung 1 ram 1713/7867MB | camera 171 planner 55 tracker 20 rssi 16 driver 15 web 8 lidar 1 launch 0 tf 0
+12:39:31 192.168.1.102   follow_disable  OK  Bam nguoi: TAT
+12:39:31 su_kien         follow          -   xe ngung bam
+12:39:39 may             tai             -   cpu 64% nhiet 75.0C xung 2012/2095/2100MHz ha_xung 1 ram 1714/7867MB | camera 171 planner 26 tracker 19 rssi 16 driver 13 web 7 lidar 1 launch 0 tf 0
+12:39:43 192.168.1.102   estop           OK  DUNG KHAN CAP
+12:39:45 su_kien         sys             -   he thong RUNNING -> STOPPING: dung xe roi tat cac node
+12:39:45 192.168.1.102   shutdown        OK  dang tat he thong (dung xe truoc)
+12:39:45 -               shutdown        OK  /follow/stop: DUNG KHAN CAP
+12:39:47 su_kien         sys             -   he thong STOPPING -> STOPPED: da tat
+12:40:41 may             tai             -   cpu 1% nhiet 56.0C xung 1186/1497/2100MHz ha_xung 0 ram 1083/7867MB | web 2
+12:41:41 may             tai             -   cpu 1% nhiet 55.0C xung 832/933/2100MHz ha_xung 0 ram 1083/7867MB | web 1
+12:42:43 may             tai             -   cpu 1% nhiet 55.0C xung 837/954/2100MHz ha_xung 0 ram 1086/7867MB | web 2
+12:43:15 su_kien         sys             -   he thong STOPPED -> CHECKING: dang kiem tra thiet bi truoc khi chay
+12:43:15 192.168.1.102   start           OK  dang kiem tra roi khoi dong
+12:43:15 may             tai             -   cpu 1% nhiet 63.0C xung 1870/2095/2100MHz ha_xung 0 ram 1075/7867MB | web 2
+12:43:24 su_kien         sys             -   he thong CHECKING -> STARTING: dang khoi dong cac node
+12:43:25 may             tai             -   cpu 17% nhiet 76.0C xung 2095/2095/2100MHz ha_xung 0 ram 1199/7867MB | web 2 launch 0 lidar 0 tf 0 driver 0 camera 0 rssi 0 tracker 0 planner 0
+12:43:29 su_kien         sys             OK  he thong STARTING -> RUNNING
+12:43:30 su_kien         beacon          CB  mat tin hieu beacon
+12:43:33 su_kien         enroll          -   khong con nguoi da hoc
+12:43:35 may             tai             -   cpu 56% nhiet 74.0C xung 2095/2095/2100MHz ha_xung 0 ram 1684/7867MB | camera 104 planner 29 rssi 29 tracker 26 driver 23 web 4 lidar 1 tf 1 launch 0
+12:43:38 192.168.1.102   enroll_start    OK  Enrollment started. Stand the target person near the camera center.
+12:43:45 may             tai             -   cpu 63% nhiet 73.0C xung 2095/2095/2100MHz ha_xung 0 ram 1689/7867MB | camera 182 planner 20 tracker 17 driver 13 rssi 11 web 6 lidar 1 launch 0 tf 0
+12:43:57 may             tai             -   cpu 64% nhiet 77.0C xung 2095/2095/2100MHz ha_xung 1 ram 1696/7867MB | camera 183 planner 21 tracker 17 driver 13 rssi 12 web 6 lidar 1 launch 0 tf 0
+12:44:07 may             tai             -   cpu 64% nhiet 73.0C xung 2095/2095/2100MHz ha_xung 1 ram 1696/7867MB | camera 183 planner 20 tracker 17 driver 13 rssi 11 web 6 lidar 1 launch 0 tf 0
+12:44:19 may             tai             -   cpu 63% nhiet 75.0C xung 2030/2095/2100MHz ha_xung 1 ram 1697/7867MB | camera 182 planner 20 tracker 17 driver 12 rssi 11 web 6 lidar 1 launch 0 tf 0
+12:44:29 may             tai             -   cpu 64% nhiet 76.0C xung 2095/2095/2100MHz ha_xung 1 ram 1698/7867MB | camera 183 planner 20 tracker 17 driver 12 rssi 11 web 6 lidar 1 launch 0 tf 0
+12:44:41 may             tai             -   cpu 63% nhiet 75.0C xung 2067/2095/2100MHz ha_xung 1 ram 1691/7867MB | camera 182 planner 21 tracker 17 driver 13 rssi 11 web 6 lidar 1 launch 0 tf 0
+12:44:42 su_kien         enroll          OK  hoc xong nguoi (80 mau)
+12:44:51 may             tai             -   cpu 64% nhiet 73.0C xung 2007/2066/2100MHz ha_xung 1 ram 1696/7867MB | camera 182 planner 21 tracker 18 driver 13 rssi 12 web 6 lidar 1 launch 0 tf 0
+12:45:03 may             tai             -   cpu 63% nhiet 77.0C xung 2056/2095/2100MHz ha_xung 1 ram 1697/7867MB | camera 181 planner 21 tracker 18 driver 13 rssi 11 web 6 lidar 0 launch 0 tf 0
+12:45:15 may             tai             -   cpu 63% nhiet 75.0C xung 2095/2095/2100MHz ha_xung 1 ram 1697/7867MB | camera 180 planner 21 tracker 18 driver 13 rssi 12 web 6 lidar 1 launch 0 tf 0
+12:45:25 may             tai             -   cpu 63% nhiet 73.0C xung 2095/2095/2100MHz ha_xung 1 ram 1698/7867MB | camera 180 planner 21 tracker 18 driver 13 rssi 11 web 6 lidar 1 launch 0 tf 0
+12:45:37 may             tai             -   cpu 64% nhiet 76.0C xung 2046/2080/2100MHz ha_xung 1 ram 1696/7867MB | camera 180 planner 21 tracker 18 driver 13 rssi 11 web 6 lidar 1 launch 0 tf 0
+12:45:45 su_kien         beacon          CB  mat beacon sau 135.5 s — co lai
+12:45:49 may             tai             -   cpu 64% nhiet 75.0C xung 2082/2095/2100MHz ha_xung 1 ram 1698/7867MB | camera 180 planner 21 tracker 18 rssi 13 driver 13 web 6 lidar 1 launch 0 tf 0
+12:45:57 su_kien         beacon          CB  mat tin hieu beacon
+12:46:01 may             tai             -   cpu 64% nhiet 75.0C xung 2025/2095/2100MHz ha_xung 1 ram 1699/7867MB | camera 180 planner 21 tracker 18 driver 13 rssi 13 web 6 lidar 1 launch 0 tf 0
+12:46:13 may             tai             -   cpu 63% nhiet 76.0C xung 2063/2095/2100MHz ha_xung 1 ram 1700/7867MB | camera 180 planner 21 tracker 18 driver 13 rssi 12 web 6 lidar 1 launch 0 tf 0
+12:46:23 may             tai             -   cpu 63% nhiet 76.0C xung 2050/2095/2100MHz ha_xung 1 ram 1700/7867MB | camera 180 planner 21 tracker 18 driver 12 rssi 12 web 6 lidar 1 launch 0 tf 0
+12:46:33 may             tai             -   cpu 63% nhiet 76.0C xung 2025/2095/2100MHz ha_xung 1 ram 1699/7867MB | camera 180 planner 21 tracker 18 driver 13 rssi 11 web 6 lidar 1 launch 0 tf 0
+12:46:37 su_kien         beacon          CB  mat beacon sau 39.5 s — co lai
+12:46:45 su_kien         beacon          CB  mat tin hieu beacon
+12:46:45 may             tai             -   cpu 64% nhiet 78.0C xung 2036/2095/2100MHz ha_xung 1 ram 1701/7867MB | camera 180 planner 21 tracker 18 rssi 13 driver 12 web 7 lidar 1 launch 0 tf 0
+12:46:55 may             tai             -   cpu 63% nhiet 71.0C xung 2038/2095/2100MHz ha_xung 1 ram 1702/7867MB | camera 180 planner 21 tracker 18 driver 13 rssi 12 web 6 lidar 1 launch 0 tf 0
+12:46:59 su_kien         beacon          CB  mat beacon sau 14.0 s — co lai
+12:47:03 su_kien         beacon          CB  mat tin hieu beacon
+12:47:07 may             tai             -   cpu 63% nhiet 78.0C xung 2070/2095/2100MHz ha_xung 1 ram 1699/7867MB | camera 182 planner 21 tracker 17 driver 13 rssi 12 web 4 lidar 1 launch 0 tf 0
+12:47:14 su_kien         beacon          CB  mat beacon sau 10.5 s — co lai
+12:47:19 may             tai             -   cpu 64% nhiet 76.0C xung 2008/2095/2100MHz ha_xung 1 ram 1697/7867MB | camera 181 planner 21 tracker 18 rssi 14 driver 13 web 6 lidar 0 launch 0 tf 0
+12:47:26 192.168.1.102   follow_enable   OK  Bam nguoi: BAT
+12:47:26 su_kien         follow          OK  xe bat dau bam
+12:47:31 may             tai             -   cpu 68% nhiet 77.0C xung 2056/2095/2100MHz ha_xung 1 ram 1698/7867MB | camera 179 planner 32 tracker 18 rssi 16 driver 13 web 6 lidar 1 launch 0 tf 0
+12:47:37 su_kien         beacon          CB  mat tin hieu beacon
+12:47:39 su_kien         beacon          CB  mat beacon sau 1.5 s — co lai
+12:47:41 may             tai             -   cpu 71% nhiet 76.0C xung 1998/2095/2100MHz ha_xung 1 ram 1699/7867MB | camera 171 planner 55 tracker 19 driver 15 rssi 14 web 7 lidar 1 launch 0 tf 0
+12:47:43 su_kien         plan            -   ne vat can: chui khe hep — vao truc giua khe (lech 0.45m)
+12:47:53 may             tai             -   cpu 67% nhiet 78.0C xung 2013/2095/2100MHz ha_xung 1 ram 1702/7867MB | camera 168 planner 37 tracker 19 rssi 16 driver 15 web 7 lidar 1 launch 0 tf 0
+12:47:55 su_kien         plan            -   het ne vat can sau 12.0 s -> FOLLOW
+12:48:05 may             tai             -   cpu 70% nhiet 78.0C xung 2095/2095/2100MHz ha_xung 1 ram 1702/7867MB | camera 168 planner 49 tracker 20 rssi 16 driver 15 web 7 lidar 1 launch 0 tf 0
+12:48:06 192.168.1.102   follow_disable  OK  Bam nguoi: TAT
+12:48:06 su_kien         follow          -   xe ngung bam
+12:48:12 su_kien         beacon          CB  mat tin hieu beacon
+12:48:13 su_kien         beacon          CB  mat beacon sau 1.5 s — co lai
+12:48:15 may             tai             -   cpu 63% nhiet 76.0C xung 1953/2095/2100MHz ha_xung 1 ram 1699/7867MB | camera 172 planner 22 tracker 19 rssi 15 driver 13 web 8 lidar 1 launch 0 tf 0
+12:48:25 192.168.1.102   follow_enable   OK  Bam nguoi: BAT
+12:48:26 su_kien         follow          OK  xe bat dau bam
+12:48:26 su_kien         plan            CB  dung cho (khong thay nguoi): cho tin hieu muc tieu
+12:48:27 su_kien         beacon          CB  mat tin hieu beacon
+12:48:27 may             tai             -   cpu 63% nhiet 76.0C xung 2075/2095/2100MHz ha_xung 1 ram 1703/7867MB | camera 171 planner 22 tracker 18 rssi 15 driver 13 web 7 lidar 1 launch 0 tf 0
+12:48:29 su_kien         plan            CB  het dung cho (khong thay nguoi) sau 3.0 s -> FOLLOW
+12:48:30 su_kien         beacon          CB  mat beacon sau 3.0 s — co lai
+12:48:36 su_kien         plan            -   nguoi khuat camera: nguoi ra khoi camera — xoay ve huong nho cuoi
+12:48:38 su_kien         plan            -   het nguoi khuat camera sau 2.0 s -> FOLLOW
+12:48:39 su_kien         plan            -   nguoi khuat camera: nguoi ra khoi camera — xoay ve huong nho cuoi
+12:48:39 may             tai             -   cpu 68% nhiet 78.0C xung 2044/2095/2100MHz ha_xung 1 ram 1702/7867MB | camera 170 planner 40 tracker 19 rssi 16 driver 15 web 7 lidar 1 launch 0 tf 0
+12:48:40 su_kien         plan            -   het nguoi khuat camera sau 4.5 s -> FOLLOW (gop 2 lan)
+12:48:42 su_kien         plan            -   ne vat can: chui khe hep — vao truc giua khe (lech 0.44m)
+12:48:51 may             tai             -   cpu 68% nhiet 77.0C xung 2054/2095/2100MHz ha_xung 1 ram 1703/7867MB | camera 172 planner 39 tracker 19 rssi 16 driver 15 web 7 lidar 1 launch 0 tf 0
+12:48:58 su_kien         beacon          CB  mat tin hieu beacon
+12:48:59 su_kien         beacon          CB  mat beacon sau 1.0 s — co lai
+12:48:59 su_kien         plan            -   het ne vat can sau 17.5 s -> SEARCH
+12:48:59 su_kien         plan            CB  tim nguoi: mat nguoi — chui khe hep — qua khe theo truc (lech -3 do)
+12:49:01 may             tai             -   cpu 67% nhiet 78.0C xung 2048/2095/2100MHz ha_xung 1 ram 1705/7867MB | camera 174 planner 37 tracker 18 driver 15 rssi 14 web 7 lidar 1 launch 0 tf 0
+12:49:04 su_kien         plan            CB  het tim nguoi sau 4.5 s -> AVOID
+12:49:04 su_kien         plan            -   ne vat can: chui khe hep — vao truc giua khe (lech 0.47m)
+12:49:11 su_kien         plan            -   het ne vat can sau 7.0 s -> FOLLOW
+12:49:13 may             tai             -   cpu 66% nhiet 80.0C xung 1983/2095/2100MHz ha_xung 1 ram 1708/7867MB | camera 170 planner 33 tracker 19 rssi 16 driver 15 web 8 lidar 1 launch 0 tf 0
+12:49:19 su_kien         plan            -   nguoi khuat camera: nguoi ra khoi camera — xoay ve huong nho cuoi
+12:49:20 su_kien         plan            -   het nguoi khuat camera sau 1.0 s -> FOLLOW
+12:49:23 192.168.1.102   follow_disable  OK  Bam nguoi: TAT
+12:49:23 su_kien         follow          -   xe ngung bam
+12:49:23 may             tai             -   cpu 67% nhiet 77.0C xung 2001/2095/2100MHz ha_xung 1 ram 1707/7867MB | camera 169 planner 37 tracker 20 rssi 16 driver 15 web 8 lidar 1 launch 0 tf 0
+12:49:28 su_kien         beacon          CB  mat tin hieu beacon
+12:49:35 may             tai             -   cpu 62% nhiet 75.0C xung 1938/2083/2100MHz ha_xung 1 ram 1705/7867MB | camera 171 planner 23 tracker 18 driver 13 rssi 12 web 8 lidar 1 launch 0 tf 0
+12:49:37 su_kien         sys             -   he thong RUNNING -> STOPPING: dung xe roi tat cac node
+12:49:37 192.168.1.102   shutdown        OK  dang tat he thong (dung xe truoc)
+12:49:37 -               shutdown        OK  /follow/stop: DUNG KHAN CAP
+12:49:38 su_kien         beacon          CB  mat beacon sau 9.5 s — khong con du lieu RSSI
+12:49:39 su_kien         sys             -   he thong STOPPING -> STOPPED: da tat

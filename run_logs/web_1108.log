@@ -1,0 +1,8 @@
+21:33:28 10.42.0.1       login           LOI sai mat khau
+21:33:30 10.42.0.1       login           LOI sai mat khau
+21:33:36 10.42.0.1       login           LOI sai mat khau
+21:33:39 10.42.0.1       login           LOI sai mat khau
+21:33:45 10.42.0.1       login           OK  dang nhap
+21:33:49 su_kien         sys             -   he thong STOPPED -> CHECKING: dang kiem tra thiet bi truoc khi chay
+21:33:49 10.42.0.1       start           OK  dang kiem tra roi khoi dong
+21:33:51 su_kien         sys             LOI he thong CHECKING -> FAILED: kiem tra co 7 muc HONG — khong khoi dong (xem ket qua)

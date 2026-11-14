@@ -1,0 +1,55 @@
+15:06:56 may             tai             -   cpu 27% nhiet 42.0C xung 1623/1696/2100MHz ha_xung 0 ram 964/7867MB | web 1
+15:07:58 may             tai             -   cpu 21% nhiet 39.0C xung 835/946/2100MHz ha_xung 0 ram 996/7867MB | web 1
+15:09:00 may             tai             -   cpu 22% nhiet 54.0C xung 2095/2095/2100MHz ha_xung 0 ram 1691/7867MB | web 1
+15:10:00 may             tai             -   cpu 1% nhiet 41.0C xung 823/895/2100MHz ha_xung 0 ram 2112/7867MB | web 1
+15:11:00 may             tai             -   cpu 1% nhiet 42.0C xung 821/888/2100MHz ha_xung 0 ram 2072/7867MB | web 1
+15:12:00 may             tai             -   cpu 10% nhiet 43.0C xung 825/904/2100MHz ha_xung 0 ram 1995/7867MB | web 1
+15:13:02 may             tai             -   cpu 4% nhiet 42.0C xung 841/970/2100MHz ha_xung 0 ram 1995/7867MB | web 1
+15:14:04 may             tai             -   cpu 26% nhiet 57.0C xung 2095/2096/2100MHz ha_xung 0 ram 2137/7867MB | web 1
+15:15:04 may             tai             -   cpu 8% nhiet 44.0C xung 799/800/2100MHz ha_xung 0 ram 2084/7867MB | web 1
+15:16:06 may             tai             -   cpu 46% nhiet 63.0C xung 2095/2096/2100MHz ha_xung 0 ram 2228/7867MB | web 1
+15:17:06 may             tai             -   cpu 2% nhiet 44.0C xung 866/1067/2100MHz ha_xung 0 ram 2037/7867MB | web 1
+15:18:08 may             tai             -   cpu 44% nhiet 64.0C xung 1982/2095/2100MHz ha_xung 0 ram 2441/7867MB | web 1
+15:19:08 may             tai             -   cpu 44% nhiet 65.0C xung 2070/2095/2100MHz ha_xung 0 ram 2458/7867MB | web 1
+15:19:50 10.42.0.1       login           OK  dang nhap
+15:19:55 su_kien         sys             -   he thong STOPPED -> CHECKING: dang kiem tra thiet bi truoc khi chay
+15:19:55 10.42.0.1       start           OK  dang kiem tra roi khoi dong
+15:19:56 may             tai             -   cpu 31% nhiet 58.0C xung 2021/2096/2100MHz ha_xung 0 ram 2095/7867MB | web 2
+15:20:04 su_kien         sys             -   he thong CHECKING -> STARTING: dang khoi dong cac node
+15:20:06 may             tai             -   cpu 40% nhiet 70.0C xung 2095/2095/2100MHz ha_xung 0 ram 2611/7867MB | web 2 launch 0 lidar 0 tf 0 driver 0 camera 0 rssi 0 tracker 0 planner 0
+15:20:11 su_kien         sys             OK  he thong STARTING -> RUNNING
+15:20:11 su_kien         beacon          CB  mat tin hieu beacon
+15:20:18 may             tai             -   cpu 78% nhiet 67.0C xung 2032/2095/2100MHz ha_xung 0 ram 3115/7867MB | camera 90 driver 14 planner 13 tracker 11 rssi 6 web 3 lidar 1 tf 0 launch 0
+15:20:26 su_kien         sys             -   he thong RUNNING -> STOPPING: dung xe roi tat cac node
+15:20:26 10.42.0.1       shutdown        OK  dang tat he thong (dung xe truoc)
+15:20:26 -               shutdown        OK  /follow/stop: DUNG KHAN CAP
+15:20:27 su_kien         beacon          CB  mat beacon sau 15.5 s — khong con du lieu RSSI
+15:20:28 su_kien         sys             -   he thong STOPPING -> STOPPED: da tat
+15:21:18 may             tai             -   cpu 49% nhiet 70.0C xung 2069/2095/2100MHz ha_xung 0 ram 2514/7867MB | web 1
+15:22:20 may             tai             -   cpu 10% nhiet 49.0C xung 837/953/2100MHz ha_xung 0 ram 2108/7867MB | web 1
+15:23:22 may             tai             -   cpu 49% nhiet 68.0C xung 2055/2095/2100MHz ha_xung 0 ram 2699/7867MB | web 1
+15:24:22 may             tai             -   cpu 15% nhiet 49.0C xung 847/992/2100MHz ha_xung 0 ram 2103/7867MB | web 1
+15:25:22 may             tai             -   cpu 1% nhiet 49.0C xung 834/940/2100MHz ha_xung 0 ram 2115/7867MB | web 1
+15:26:22 may             tai             -   cpu 3% nhiet 48.0C xung 801/809/2100MHz ha_xung 0 ram 2151/7867MB | web 1
+15:27:22 may             tai             -   cpu 1% nhiet 48.0C xung 942/1372/2100MHz ha_xung 0 ram 2129/7867MB | web 1
+15:28:24 may             tai             -   cpu 1% nhiet 48.0C xung 835/941/2100MHz ha_xung 0 ram 2123/7867MB | web 1
+15:29:24 may             tai             -   cpu 1% nhiet 48.0C xung 799/801/2100MHz ha_xung 0 ram 2097/7867MB | web 1
+15:30:26 may             tai             -   cpu 1% nhiet 48.0C xung 799/799/2100MHz ha_xung 0 ram 2095/7867MB | web 1
+15:31:26 may             tai             -   cpu 1% nhiet 48.0C xung 860/1044/2100MHz ha_xung 0 ram 2095/7867MB | web 1
+15:32:26 may             tai             -   cpu 1% nhiet 48.0C xung 835/945/2100MHz ha_xung 0 ram 2096/7867MB | web 1
+15:33:26 may             tai             -   cpu 1% nhiet 48.0C xung 799/799/2100MHz ha_xung 0 ram 2095/7867MB | web 1
+15:34:28 may             tai             -   cpu 1% nhiet 48.0C xung 799/799/2100MHz ha_xung 0 ram 2092/7867MB | web 1
+15:35:30 may             tai             -   cpu 1% nhiet 48.0C xung 855/1025/2100MHz ha_xung 0 ram 2091/7867MB | web 1
+15:36:32 may             tai             -   cpu 1% nhiet 48.0C xung 834/939/2100MHz ha_xung 0 ram 2093/7867MB | web 1
+15:37:34 may             tai             -   cpu 1% nhiet 48.0C xung 825/851/2100MHz ha_xung 0 ram 2069/7867MB | web 1
+15:38:34 may             tai             -   cpu 1% nhiet 48.0C xung 857/1024/2100MHz ha_xung 0 ram 2069/7867MB | web 1
+15:39:36 may             tai             -   cpu 1% nhiet 48.0C xung 801/808/2100MHz ha_xung 0 ram 2071/7867MB | web 1
+15:40:36 may             tai             -   cpu 1% nhiet 48.0C xung 798/799/2100MHz ha_xung 0 ram 2073/7867MB | web 1
+15:41:38 may             tai             -   cpu 1% nhiet 48.0C xung 798/799/2100MHz ha_xung 0 ram 2074/7867MB | web 1
+15:42:38 may             tai             -   cpu 1% nhiet 48.0C xung 867/1072/2100MHz ha_xung 0 ram 2077/7867MB | web 1
+15:43:40 may             tai             -   cpu 1% nhiet 48.0C xung 903/1216/2100MHz ha_xung 0 ram 2077/7867MB | web 1
+15:44:42 may             tai             -   cpu 1% nhiet 48.0C xung 874/1042/2100MHz ha_xung 0 ram 2075/7867MB | web 1
+15:45:42 may             tai             -   cpu 1% nhiet 48.0C xung 804/822/2100MHz ha_xung 0 ram 2075/7867MB | web 1
+15:46:44 may             tai             -   cpu 1% nhiet 48.0C xung 825/906/2100MHz ha_xung 0 ram 2075/7867MB | web 1
+15:47:44 may             tai             -   cpu 1% nhiet 48.0C xung 799/800/2100MHz ha_xung 0 ram 2075/7867MB | web 1
+15:48:46 may             tai             -   cpu 1% nhiet 48.0C xung 838/956/2100MHz ha_xung 0 ram 2074/7867MB | web 1
